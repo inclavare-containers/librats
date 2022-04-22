@@ -11,7 +11,7 @@
 #include <sys/types.h>
 
 #ifdef SGX
-#include "rats_syscalls.h"
+#include "librats/rats_syscalls.h"
 #endif
 // clang-format on
 
