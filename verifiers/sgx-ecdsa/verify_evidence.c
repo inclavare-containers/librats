@@ -207,7 +207,7 @@ rats_verifier_err_t sgx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
 #elif defined(SGX)
 	sgx_ecdsa_ctx_t *ecdsa_ctx = (sgx_ecdsa_ctx_t *)ctx->verifier_private;
 	sgx_enclave_id_t eid = (sgx_enclave_id_t)ecdsa_ctx->eid;
-	sgx_status_t sgx_ret = ocall_ecdsa_verify_evidence(&err, ctx, eid, ctx->opts->name,
+	sgx_status_t sgx_ret = rats_ocall_ecdsa_verify_evidence(&err, ctx, eid, ctx->opts->name,
 							   evidence, sizeof(attestation_evidence_t),
 							   hash, hash_len);
 	if (sgx_ret != SGX_SUCCESS || err != RATS_VERIFIER_ERR_NONE)

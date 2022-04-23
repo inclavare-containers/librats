@@ -22,14 +22,14 @@ static void get_random_nonce(uint8_t *nonce, uint32_t size)
 		nonce[i] = (uint8_t)((rand() % 255) + 1);
 }
 
-void ocall_get_target_info(sgx_target_info_t *qe_target_info)
+void rats_ocall_get_target_info(sgx_target_info_t *qe_target_info)
 {
 	int qe3_ret = sgx_qe_get_target_info(qe_target_info);
 	if (SGX_QL_SUCCESS != qe3_ret)
 		RATS_ERR("sgx_qe_get_target_info() with error code 0x%04x\n", qe3_ret);
 }
 
-rats_attester_err_t ocall_qe_get_quote_size(uint32_t *quote_size)
+rats_attester_err_t rats_ocall_qe_get_quote_size(uint32_t *quote_size)
 {
 	quote3_error_t qe3_ret = sgx_qe_get_quote_size(quote_size);
 	if (SGX_QL_SUCCESS != qe3_ret) {
@@ -40,7 +40,7 @@ rats_attester_err_t ocall_qe_get_quote_size(uint32_t *quote_size)
 	return RATS_ATTESTER_ERR_NONE;
 }
 
-rats_attester_err_t ocall_qe_get_quote(sgx_report_t *report, uint32_t quote_size, uint8_t *quote)
+rats_attester_err_t rats_ocall_qe_get_quote(sgx_report_t *report, uint32_t quote_size, uint8_t *quote)
 {
 	quote3_error_t qe3_ret = sgx_qe_get_quote(report, quote_size, quote);
 	if (SGX_QL_SUCCESS != qe3_ret) {
@@ -51,7 +51,7 @@ rats_attester_err_t ocall_qe_get_quote(sgx_report_t *report, uint32_t quote_size
 	return RATS_ATTESTER_ERR_NONE;
 }
 
-rats_verifier_err_t ocall_ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_ctx_t *ctx,
+rats_verifier_err_t rats_ocall_ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_ctx_t *ctx,
 						sgx_enclave_id_t enclave_id, const char *name,
 						attestation_evidence_t *evidence,
 						__attribute__((unused)) uint32_t evidence_len,

@@ -89,14 +89,14 @@ static inline void __cpuidex(int a[4], int b, int c)
 {
 	a[0] = b;
 	a[2] = c;
-	ocall_cpuid(&a[0], &a[1], &a[2], &a[3]);
+	rats_ocall_cpuid(&a[0], &a[1], &a[2], &a[3]);
 }
 
 static bool is_legacy_oot_kernel_driver(void)
 {
 	bool retval;
 
-	ocall_is_sgx_dev(&retval, "/dev/isgx");
+	rats_ocall_is_sgx_dev(&retval, "/dev/isgx");
 
 	return retval;
 }
@@ -108,7 +108,7 @@ static bool is_dcap_1_9_oot_kernel_driver(void)
 {
 	bool retval;
 
-	ocall_is_sgx_dev(&retval, "/dev/sgx/enclave");
+	rats_ocall_is_sgx_dev(&retval, "/dev/sgx/enclave");
 
 	return retval;
 }
@@ -120,7 +120,7 @@ static bool is_in_tree_kernel_driver(void)
 {
 	bool retval;
 
-	ocall_is_sgx_dev(&retval, "/dev/sgx_enclave");
+	rats_ocall_is_sgx_dev(&retval, "/dev/sgx_enclave");
 
 	return retval;
 }

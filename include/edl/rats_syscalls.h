@@ -9,7 +9,7 @@
 
 #include <sys/types.h>
 
-struct ocall_dirent {
+struct rats_ocall_dirent {
 	u_int64_t d_ino;
 	int64_t d_off; //off_t
 	u_int16_t d_reclen;
