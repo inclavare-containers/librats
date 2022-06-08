@@ -7,9 +7,9 @@
 #include <librats/attester.h>
 #include <librats/log.h>
 
-rats_attesterC_err_t sev_attester_cleanup(rats_attesterC_ctx_t *ctx)
+rats_attester_err_t sev_attester_cleanup(rats_attester_ctx_t *ctx)
 {
 	RATS_DEBUG("called\n");
 
-	return RATS_ATTESTERC_ERR_NONE;
+	return RATS_ATTESTER_ERR_NONE;
 }

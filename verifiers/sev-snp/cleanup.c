@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <librats/attester.h>
 #include <librats/log.h>
+#include <librats/verifier.h>
 
-rats_attester_err_t sev_attester_pre_init(void)
+rats_verifier_err_t sev_snp_verifier_cleanup(rats_verifier_ctx_t *ctx)
 {
 	RATS_DEBUG("called\n");
 
-	return RATS_ATTESTER_ERR_NONE;
+	return RATS_VERIFIER_ERR_NONE;
 }
