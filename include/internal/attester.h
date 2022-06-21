@@ -12,7 +12,11 @@
 #include <librats/err.h>
 #include <librats/core.h>
 
-#define RATS_ATTESTERS_DIR "/usr/local/lib/librats/attesters/"
+#ifdef OCCLUM
+	#define RATS_ATTESTERS_DIR "/opt/occlum/glibc/lib/attesters/"
+#else
+	#define RATS_ATTESTERS_DIR "/usr/local/lib/librats/attesters/"
+#endif
 
 extern rats_err_t rats_attester_load_all(void);
 extern rats_err_t rats_attester_load_single(const char *);

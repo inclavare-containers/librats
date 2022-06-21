@@ -9,7 +9,11 @@
 
 #include <librats/core.h>
 
-#define RATS_VERIFIERS_DIR "/usr/local/lib/librats/verifiers/"
+#ifdef OCCLUM
+	#define RATS_VERIFIERS_DIR "/opt/occlum/glibc/lib/verifiers/"
+#else
+	#define RATS_VERIFIERS_DIR "/usr/local/lib/librats/verifiers/"
+#endif
 
 extern rats_err_t rats_verifier_load_all(void);
 extern rats_err_t rats_verifier_load_single(const char *);
