@@ -113,6 +113,5 @@ rats_err_t librats_init(rats_conf_t *conf, rats_core_context_t *ctx)
 		goto err_ctx;
 
 err_ctx:
-	free(ctx);
 	return err;
 }

@@ -34,7 +34,7 @@ rats_err_t rats_attester_select(rats_core_context_t *ctx, const char *name)
 		ctx->flags |= RATS_CONF_FLAGS_ATTESTER_ENFORCED;
 
 	rats_attester_ctx_t *attester_ctx = NULL;
-	for (unsigned int i = 0; i < registerd_rats_attester_nums; ++i) {
+	for (unsigned int i = 0; i < rats_attester_nums; ++i) {
 		if (name && strcmp(name, rats_attesters_ctx[i]->opts->name))
 			continue;
 

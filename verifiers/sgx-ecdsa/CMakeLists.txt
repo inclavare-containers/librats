@@ -21,7 +21,7 @@ endif()
 link_directories(${LIBRARY_DIRS})
 
 # Set extra link library
-set(EXTRA_LINK_LIBRARY sgx_dcap_quoteverify sgx_urts)
+set(EXTRA_LINK_LIBRARY sgx_dcap_quoteverify sgx_urts dcap_quote pthread m)
 
 # Set source file
 set(SOURCES cleanup.c

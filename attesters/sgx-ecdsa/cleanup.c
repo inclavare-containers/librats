@@ -14,7 +14,8 @@ rats_attester_err_t sgx_ecdsa_attester_cleanup(rats_attester_ctx_t *ctx)
 
 	sgx_ecdsa_ctx_t *ecdsa_ctx = (sgx_ecdsa_ctx_t *)ctx->attester_private;
 
-	free(ecdsa_ctx);
+	if (ecdsa_ctx)
+		free(ecdsa_ctx);
 
 	return RATS_ATTESTER_ERR_NONE;
 }

@@ -29,7 +29,7 @@ rats_err_t rats_verifier_select(rats_core_context_t *ctx, const char *name)
 	RATS_DEBUG("selecting the rats verifier '%s' ...\n", name);
 
 	rats_verifier_ctx_t *verifier_ctx = NULL;
-	for (unsigned int i = 0; i < registerd_rats_verifier_nums; ++i) {
+	for (unsigned int i = 0; i < rats_verifier_nums; ++i) {
 		if (name && strcmp(name, rats_verifiers_ctx[i]->opts->name))
 			continue;
 
