@@ -9,7 +9,7 @@ set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../include
 include_directories(${INCLUDE_DIRS})
 
 # Set dependency library directory
-set(LIBRARY_DIRS ${CMAKE_BINARY_DIR}/src
+set(LIBRARY_DIRS ${CMAKE_BINARY_DIR}
                  ${RATS_INSTALL_LIB_PATH}
                  )
 link_directories(${LIBRARY_DIRS})
@@ -26,7 +26,7 @@ set(SOURCES cleanup.c
             )
 
 add_custom_target(ttrpc_lib ALL
-	COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/ttrpc && cargo build --release && cp -f target/release/${TTRPC_LIB} ${CMAKE_BINARY_DIR}/src)
+	COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/ttrpc && cargo build --release && cp -f target/release/${TTRPC_LIB} ${CMAKE_BINARY_DIR})
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 add_dependencies(${PROJECT_NAME} ttrpc_lib)
@@ -36,5 +36,5 @@ set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${VERSION} SOVERSION ${
 # Install library
 install(TARGETS ${PROJECT_NAME}
     DESTINATION ${RATS_INSTALL_LIBA_PATH})
-install(FILES ${CMAKE_BINARY_DIR}/src/${TTRPC_LIB}
+install(FILES ${CMAKE_BINARY_DIR}/${TTRPC_LIB}
 	DESTINATION ${RATS_INSTALL_LIB_PATH})
