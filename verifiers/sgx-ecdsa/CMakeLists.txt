@@ -15,13 +15,15 @@ set(LIBRARY_DIRS ${CMAKE_BINARY_DIR}/src
                  ${RATS_INSTALL_LIB_PATH}
                  )
 
+# Set extra link library
 if(OCCLUM)
     list(APPEND LIBRARY_DIRS ${SGXSDK_INSTALL_LIB_PATH})
+    set(EXTRA_LINK_LIBRARY sgx_dcap_quoteverify sgx_urts dcap_quote pthread m)
+else()
+    set(EXTRA_LINK_LIBRARY sgx_dcap_quoteverify sgx_urts)
 endif()
-link_directories(${LIBRARY_DIRS})
 
-# Set extra link library
-set(EXTRA_LINK_LIBRARY sgx_dcap_quoteverify sgx_urts dcap_quote pthread m)
+link_directories(${LIBRARY_DIRS})
 
 # Set source file
 set(SOURCES cleanup.c
