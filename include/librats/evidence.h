@@ -59,6 +59,7 @@ struct attestation_evidence {
 		tdx_attestation_evidence_t tdx;
 		snp_attestation_evidence_t snp;
 		sev_attestation_evidence_t sev;
+		csv_attestation_evidence_t csv;
 	};
 };
 
