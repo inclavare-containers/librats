@@ -23,6 +23,7 @@
 #define RATS_VERIFIER_OPTS_FLAGS_TDX	      (1 << 2)
 #define RATS_VERIFIER_OPTS_FLAGS_SNP	      (1 << 3)
 #define RATS_VERIFIER_OPTS_FLAGS_SEV	      (1 << 4)
+#define RATS_VERIFIER_OPTS_FLAGS_CSV	      (1 << 5)
 
 typedef struct rats_verifier_ctx rats_verifier_ctx_t;
 

@@ -57,6 +57,7 @@
  | ---------- | -------------------------- | -------------------------- |
  | 0          | nullattester               | nullverifier               |
  | 15         | sgx\_la                    | sgx\_la                    |
+ | 20         | csv                        | csv                        |
  | 35         | sev                        | sev                        |
  | 42         | sev\_snp                   | sev\_snp                   |
  | 42         | tdx\_ecdsa                 | tdx\_ecdsa                 |
@@ -79,6 +80,10 @@
 
  - Kernel support SEV(-ES) runtime attestation, please manually apply [these patches](https://github.com/haosanzi/attestation-evidence-broker/tree/master/hack/README.md).
  - Start the [attestation evidence broker](https://github.com/haosanzi/attestation-evidence-broker/blob/master/README.md) service in host.
+
+**Notice: special prerequisites for CSV(2) remote attestation in software capability.**
+
+- Kernel support CSV(2) runtime attestation, please manually apply [theses patches](https://gitee.com/anolis/cloud-kernel/pulls/412).
 
  ## Enable bootstrap debugging
 
