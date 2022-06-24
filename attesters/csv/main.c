@@ -29,9 +29,9 @@ static rats_attester_opts_t csv_attester_opts = {
 
 void __attribute__((constructor)) libattester_csv_init(void)
 {
-	RTLS_DEBUG("called\n");
+	RATS_DEBUG("called\n");
 
 	rats_verifier_err_t err = rats_attester_register(&csv_attester_opts);
 	if (err != RATS_ATTESTER_ERR_NONE)
-		RTLS_DEBUG("failed to register the rats register 'csv' %#x\n", err);
+		RATS_DEBUG("failed to register the rats register 'csv' %#x\n", err);
 }

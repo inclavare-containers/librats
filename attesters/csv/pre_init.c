@@ -9,13 +9,13 @@
 
 rats_verifier_err_t csv_attester_pre_init(void)
 {
-	RTLS_DEBUG("called\n");
+	RATS_DEBUG("called\n");
 
 	rats_verifier_err_t err = RATS_ATTESTER_ERR_NONE;
 
 	char *cmdline_str = "which wget 1> /dev/null 2> /dev/null";
 	if (system(cmdline_str) != 0) {
-		RTLS_ERR("please install wget for csv attest\n");
+		RATS_ERR("please install wget for csv attest\n");
 		err = -RATS_ATTESTER_ERR_NO_TOOL;
 	}
 

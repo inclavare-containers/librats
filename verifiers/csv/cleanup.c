@@ -9,7 +9,7 @@
 
 rats_verifier_err_t csv_verifier_cleanup(rats_verifier_ctx_t *ctx)
 {
-	RTLS_DEBUG("called\n");
+	RATS_DEBUG("called\n");
 
 	return RATS_VERIFIER_ERR_NONE;
 }

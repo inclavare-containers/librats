@@ -28,9 +28,9 @@ static rats_verifier_opts_t csv_verifier_opts = {
 
 void __attribute__((constructor)) libverifier_csv_init(void)
 {
-	RTLS_DEBUG("called\n");
+	RATS_DEBUG("called\n");
 
 	rats_verifier_err_t err = rats_verifier_register(&csv_verifier_opts);
 	if (err != RATS_VERIFIER_ERR_NONE)
-		RTLS_ERR("failed to register the rats verifier 'csv' %#x\n", err);
+		RATS_ERR("failed to register the rats verifier 'csv' %#x\n", err);
 }

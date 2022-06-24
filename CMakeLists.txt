@@ -12,7 +12,7 @@ list(GET VERSION_LIST 2 VERSION_PATCH)
 
 # Define build mode
 set(RATS_BUILD_MODE "host"
-    CACHE STRING "Select build mode for rats-tls(normal|occlum|sgx)")
+    CACHE STRING "Select build mode for librats(normal|occlum|sgx)")
 
 # Print build mode
 message(STATUS "Build Mode: ${RATS_BUILD_MODE}")

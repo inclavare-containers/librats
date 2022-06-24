@@ -52,7 +52,7 @@ rats_attester_err_t rats_attester_register(const rats_attester_opts_t *opts)
 	if (opts->flags & RATS_ATTESTER_OPTS_FLAGS_CSV_GUEST) {
 		if (!is_csvguest_supported()) {
 			// clang-format off
-			RTLS_DEBUG("failed to register the attester '%s' due to lack of CSV Guest capability\n",
+			RATS_DEBUG("failed to register the attester '%s' due to lack of CSV Guest capability\n",
 				   opts->type);
 			// clang-format on
 			return -RATS_ATTESTER_ERR_CPU_UNSUPPORTED;
