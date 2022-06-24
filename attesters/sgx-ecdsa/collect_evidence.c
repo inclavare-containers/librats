@@ -34,10 +34,12 @@ sgx_status_t sgx_generate_evidence(uint8_t *hash, sgx_report_t *app_report)
 
 	sgx_target_info_t qe_target_info;
 	memset(&qe_target_info, 0, sizeof(sgx_target_info_t));
-	ocall_get_target_info(&qe_target_info);
+	sgx_status_t sgx_error = ocall_get_target_info(&qe_target_info);
+	if (SGX_SUCCESS != sgx_error)
+		return sgx_error;
 
 	/* Generate the report for the app_rats */
-	sgx_status_t sgx_error = sgx_create_report(&qe_target_info, &report_data, app_report);
+	sgx_error = sgx_create_report(&qe_target_info, &report_data, app_report);
 	return sgx_error;
 }
 #elif defined(OCCLUM)

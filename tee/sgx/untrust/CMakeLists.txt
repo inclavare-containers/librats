@@ -15,6 +15,7 @@ include_directories(${INCLUDE_DIRS})
 # Set source file
 set(SOURCES sgx_ecdsa_ocall.c
             sgx_la_ocall.c
+            rats_syscalls_ocall.c
             )
 
 # Generate library

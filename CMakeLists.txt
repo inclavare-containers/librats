@@ -130,6 +130,7 @@ set(SOURCES
 if(SGX)
     list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tee/sgx/trust/sgx_ecdsa_ecalls.c
                         ${CMAKE_CURRENT_SOURCE_DIR}/tee/sgx/trust/sgx_dummy.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/tee/sgx/trust/rats_syscalls.c
                         )
 endif()
 
