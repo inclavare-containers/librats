@@ -20,22 +20,6 @@ void printf(const char *fmt, ...)
 	ocall_print_string(buf);
 }
 
-size_t recv(int sockfd, void *buf, size_t len, int flags)
-{
-	size_t ret;
-	sgx_status_t POSSIBLE_UNUSED sgxStatus = ocall_recv(&ret, sockfd, buf, len, flags);
-
-	return ret;
-}
-
-size_t send(int sockfd, const void *buf, size_t len, int flags)
-{
-	size_t ret;
-	sgx_status_t POSSIBLE_UNUSED sgxStatus = ocall_send(&ret, sockfd, buf, len, flags);
-
-	return ret;
-}
-
 double current_time(void)
 {
 	double curr;

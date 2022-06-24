@@ -29,8 +29,5 @@ rats_err_t librats_cleanup(rats_core_context_t *handle)
 		return -RATS_ERR_INVALID;
 	}
 
-	if (handle)
-		free(handle);
-
 	return RATS_ERR_NONE;
 }
