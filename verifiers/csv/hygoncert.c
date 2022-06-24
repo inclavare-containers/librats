@@ -166,7 +166,7 @@ int sm2_compute_z_digest(uint8_t *out, const EVP_MD *digest, const uint8_t *id, 
 
 	rc = 1;
 
-	RTLS_DEBUG("[VERIFY] %s %d: ret %d\n", __func__, __LINE__, rc);
+	RATS_DEBUG("[VERIFY] %s %d: ret %d\n", __func__, __LINE__, rc);
 done:
 	OPENSSL_free(buf);
 	BN_CTX_free(ctx);
@@ -254,7 +254,7 @@ static int sm2_sig_verify(const EC_KEY *key, const ECDSA_SIG *sig, const BIGNUM 
 	if (BN_cmp(r, t) == 0)
 		ret = 1;
 
-	RTLS_DEBUG("[VERIFY] %s %d: ret %d\n", __func__, __LINE__, ret);
+	RATS_DEBUG("[VERIFY] %s %d: ret %d\n", __func__, __LINE__, ret);
 done:
 	EC_POINT_free(pt);
 	BN_CTX_free(ctx);
@@ -311,7 +311,7 @@ static BIGNUM *sm2_compute_msg_hash(const EVP_MD *digest, const EC_KEY *key, con
 	if (e == NULL)
 		SM2err(SM2_F_SM2_COMPUTE_MSG_HASH, ERR_R_INTERNAL_ERROR);
 
-	RTLS_DEBUG("[VERIFY] %s %d: BIGNUM e=%p\n", __func__, __LINE__, e);
+	RATS_DEBUG("[VERIFY] %s %d: BIGNUM e=%p\n", __func__, __LINE__, e);
 done:
 	OPENSSL_free(z);
 	EVP_MD_CTX_free(hash);
@@ -347,7 +347,7 @@ int sm2_do_verify(const EC_KEY *key, const EVP_MD *digest, const ECDSA_SIG *sig,
 
 	ret = sm2_sig_verify(key, sig, e);
 
-	RTLS_DEBUG("[VERIFY] %s %d: ret %d\n", __func__, __LINE__, ret);
+	RATS_DEBUG("[VERIFY] %s %d: ret %d\n", __func__, __LINE__, ret);
 done:
 	BN_free(e);
 	return ret;
@@ -798,63 +798,63 @@ static int sm2_verify_sig(const sm2_pubkey_t *sm2_pubkey, const uint8_t *msg, si
 
 	// convert @sm2_pubkey to EC_KEY
 	if (!(ec_key = EC_KEY_new())) {
-		RTLS_DEBUG("EC_KEY_new() fail\n");
+		RATS_DEBUG("EC_KEY_new() fail\n");
 		return -1;
 	}
 	if (!(bn_qx = BN_new())) {
-		RTLS_DEBUG("BN_new() bn_qx fail\n");
+		RATS_DEBUG("BN_new() bn_qx fail\n");
 		goto err_free_ec_key;
 	}
 	if (!(bn_qy = BN_new())) {
-		RTLS_DEBUG("BN_new() bn_qy fail\n");
+		RATS_DEBUG("BN_new() bn_qy fail\n");
 		goto err_free_bn_qx;
 	}
 	BN_bin2bn(sm2_pubkey->qx, HYGON_SM2_POINT_SIZE, bn_qx);
 	BN_bin2bn(sm2_pubkey->qy, HYGON_SM2_POINT_SIZE, bn_qy);
 
 	if (!(group = ec_group_new_from_data(sm2_curve))) {
-		RTLS_DEBUG("EC_GROUP_new_by_curve_name() fail\n");
+		RATS_DEBUG("EC_GROUP_new_by_curve_name() fail\n");
 		goto err_free_bn_qy;
 	}
 	ret = EC_KEY_set_group(ec_key, group);
 	if (ret != 1) {
-		RTLS_DEBUG("EC_KEY_set_group() fail\n");
+		RATS_DEBUG("EC_KEY_set_group() fail\n");
 		goto err_free_group;
 	}
 
 	ret = EC_KEY_set_public_key_affine_coordinates(ec_key, bn_qx, bn_qy);
 	if (ret != 1) {
-		RTLS_DEBUG("EC_KEY_set_public_key_affine_coordinates() fail\n");
+		RATS_DEBUG("EC_KEY_set_public_key_affine_coordinates() fail\n");
 		goto err_free_group;
 	}
 
 	// convert @sig to ECDSA_SIG
 	ret = -1;
 	if (!(bn_sig_r = BN_new())) {
-		RTLS_DEBUG("BN_new() bn_sig_r fail\n");
+		RATS_DEBUG("BN_new() bn_sig_r fail\n");
 		goto err_free_group;
 	}
 	if (!(bn_sig_s = BN_new())) {
-		RTLS_DEBUG("BN_new() bn_sig_s fail\n");
+		RATS_DEBUG("BN_new() bn_sig_s fail\n");
 		goto err_free_bn_sig_r;
 	}
 	BN_bin2bn(sig->r, HYGON_SM2_SIGNATURE_SIZE, bn_sig_r);
 	BN_bin2bn(sig->s, HYGON_SM2_SIGNATURE_SIZE, bn_sig_s);
 
 	if (!(ecdsa_sig = ECDSA_SIG_new())) {
-		RTLS_DEBUG("ECDSA_SIG_new() fail\n");
+		RATS_DEBUG("ECDSA_SIG_new() fail\n");
 		goto err_free_bn_sig_s;
 	}
 	ret = ECDSA_SIG_set0(ecdsa_sig, bn_sig_r, bn_sig_s);
 	if (ret != 1) {
-		RTLS_DEBUG("ECDSA_SIG_set0() fail\n");
+		RATS_DEBUG("ECDSA_SIG_set0() fail\n");
 		goto err_free_ecdsa_sig;
 	}
 
 	// verify ECDSA_SIG
 	ret = sm2_do_verify(ec_key, EVP_sm3(), ecdsa_sig, user_id->uid, user_id->len, msg, msg_len);
 	if (ret != 1)
-		RTLS_DEBUG("sm2_do_verify() ret %d\n", ret);
+		RATS_DEBUG("sm2_do_verify() ret %d\n", ret);
 
 err_free_ecdsa_sig:
 	// ECDSA_SIG_free will free bn_sig_r and bn_sig_s
@@ -901,7 +901,7 @@ static int verify_hsk_cert_signature(hygon_root_cert_t *hsk_cert)
 int verify_hsk_cert(hygon_root_cert_t *cert)
 {
 	if (cert->key_usage != KEY_USAGE_TYPE_HSK) {
-		RTLS_ERR("HSK cert key usage type invalid\n");
+		RATS_ERR("HSK cert key usage type invalid\n");
 		return -1;
 	}
 
@@ -939,17 +939,17 @@ static int verify_cek_cert_signature(hygon_root_cert_t *hsk_cert, csv_cert_t *ce
 int verify_cek_cert(hygon_root_cert_t *hsk_cert, csv_cert_t *cek_cert)
 {
 	if (cek_cert->pubkey_usage != KEY_USAGE_TYPE_CEK) {
-		RTLS_ERR("CEK cert public key usage type invalid\n");
+		RATS_ERR("CEK cert public key usage type invalid\n");
 		return -1;
 	}
 
 	if (cek_cert->sig1_usage != KEY_USAGE_TYPE_HSK) {
-		RTLS_ERR("CEK cert sig 1 usage type invalid\n");
+		RATS_ERR("CEK cert sig 1 usage type invalid\n");
 		return -1;
 	}
 
 	if (cek_cert->sig2_usage != KEY_USAGE_TYPE_INVALID) {
-		RTLS_ERR("CSV: CEK cert sig 2 usage type invalid\n");
+		RATS_ERR("CSV: CEK cert sig 2 usage type invalid\n");
 		return -1;
 	}
 
@@ -982,12 +982,12 @@ static int verify_pek_cert_signature(csv_cert_t *cek_cert, csv_cert_t *pek_cert)
 int verify_pek_cert(csv_cert_t *cek_cert, csv_cert_t *pek_cert)
 {
 	if (pek_cert->pubkey_usage != KEY_USAGE_TYPE_PEK) {
-		RTLS_ERR("CSV: PEK cert public key usage type invalid\n");
+		RATS_ERR("CSV: PEK cert public key usage type invalid\n");
 		return -1;
 	}
 
 	if (pek_cert->sig1_usage != KEY_USAGE_TYPE_CEK) {
-		RTLS_ERR("CSV: PEK cert sig 1 usage type invalid\n");
+		RATS_ERR("CSV: PEK cert sig 1 usage type invalid\n");
 		return -1;
 	}
 

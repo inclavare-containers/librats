@@ -44,7 +44,7 @@ rats_err_t rats_attester_select(rats_core_context_t *ctx, const char *name)
 
 		memcpy(attester_ctx, rats_attesters_ctx[i], sizeof(*attester_ctx));
 
-		/* Set necessary configurations from rats_tls_init() to
+		/* Set necessary configurations from rats_init() to
 		 * make init() working correctly.
 		 */
 		attester_ctx->enclave_id = ctx->config.enclave_id;

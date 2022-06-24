@@ -40,30 +40,30 @@ static void *gva_to_gpa(void *va)
 
 	fd = open(PAGE_MAP_FILENAME, O_RDONLY);
 	if (fd == -1) {
-		RTLS_ERR("failed to open %s\n", PAGE_MAP_FILENAME);
+		RATS_ERR("failed to open %s\n", PAGE_MAP_FILENAME);
 		return NULL;
 	}
 
 	paging_entry_offset = ((uint64_t)va >> PAGE_MAP_PAGE_SHIFT) * PAGE_MAP_ENTRY_SIZE;
 	if (lseek(fd, paging_entry_offset, SEEK_SET) == -1) {
-		RTLS_ERR("failed to seek\n");
+		RATS_ERR("failed to seek\n");
 		goto err_close_fd;
 	}
 
 	if (read(fd, &entry, sizeof(entry)) != sizeof(entry)) {
-		RTLS_ERR("failed to read pagemap entry\n");
+		RATS_ERR("failed to read pagemap entry\n");
 		goto err_close_fd;
 	}
 
 	if (!(entry & (1ul << 63))) {
-		RTLS_ERR("page doesn't present\n");
+		RATS_ERR("page doesn't present\n");
 		goto err_close_fd;
 	}
 
 	pa = (void *)((entry & PAGE_MAP_PFN_MASK) << PAGE_MAP_PAGE_SHIFT) +
 	     ((uint64_t)va % PAGE_MAP_PAGE_SIZE);
 
-	RTLS_DEBUG("offset %#016lx, entry %#016lx, pa %#016lx\n",
+	RATS_DEBUG("offset %#016lx, entry %#016lx, pa %#016lx\n",
 		   (unsigned long)paging_entry_offset, (unsigned long)entry, (unsigned long)pa);
 
 err_close_fd:
@@ -103,13 +103,13 @@ static int load_hsk_cek_cert(uint8_t *hsk_cek_cert, const char *chip_id)
 	cmdline_str[count] = '\0';
 
 	if (system(cmdline_str) != 0) {
-		RTLS_ERR("failed to download %s by %s\n", filename, chip_id);
+		RATS_ERR("failed to download %s by %s\n", filename, chip_id);
 		return -1;
 	}
 
 	size_t read_len = HYGON_HSK_CEK_CERT_SIZE;
 	if (read_file(filename, hsk_cek_cert, read_len) != read_len) {
-		RTLS_ERR("read %s fail\n", filename);
+		RATS_ERR("read %s fail\n", filename);
 		return -1;
 	}
 
@@ -167,10 +167,10 @@ static int collect_attestation_evidence(uint8_t *hash, uint32_t hash_len,
 	user_data = mmap(NULL, CSV_GUEST_MAP_LEN, PROT_READ | PROT_WRITE,
 			 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
 	if (user_data == MAP_FAILED) {
-		RTLS_ERR("failed to mmap\n");
+		RATS_ERR("failed to mmap\n");
 		return -1;
 	}
-	RTLS_DEBUG("mmap [%#016lx - %#016lx)\n", (unsigned long)user_data,
+	RATS_DEBUG("mmap [%#016lx - %#016lx)\n", (unsigned long)user_data,
 		   (unsigned long)user_data + CSV_GUEST_MAP_LEN);
 	memset((void *)user_data, 0, CSV_GUEST_MAP_LEN);
 
@@ -185,7 +185,7 @@ static int collect_attestation_evidence(uint8_t *hash, uint32_t hash_len,
 		       CSV_ATTESTATION_USER_DATA_SIZE + CSV_ATTESTATION_MNONCE_SIZE,
 		       (unsigned char *)(&user_data->hash), sizeof(hash_block_t));
 	if (ret) {
-		RTLS_ERR("failed to compute sm3 hash\n");
+		RATS_ERR("failed to compute sm3 hash\n");
 		goto err_munmap;
 	}
 
@@ -193,7 +193,7 @@ static int collect_attestation_evidence(uint8_t *hash, uint32_t hash_len,
 	user_data_pa = (uint64_t)gva_to_gpa(user_data);
 	ret = do_hypercall(KVM_HC_VM_ATTESTATION, (unsigned long)user_data_pa, CSV_GUEST_MAP_LEN);
 	if (ret) {
-		RTLS_ERR("failed to save attestation report to %#016lx (ret:%d)\n", ret,
+		RATS_ERR("failed to save attestation report to %#016lx (ret:%d)\n", ret,
 			 user_data_pa);
 		goto err_munmap;
 	}
@@ -219,7 +219,7 @@ static int collect_attestation_evidence(uint8_t *hash, uint32_t hash_len,
 					   attestation_report->anonce;
 
 	if (load_hsk_cek_cert(evidence_buffer->hsk_cek_cert, (const char *)chip_id)) {
-		RTLS_ERR("failed to load HSK and CEK cert\n");
+		RATS_ERR("failed to load HSK and CEK cert\n");
 		goto err_munmap;
 	}
 	evidence->report_len = sizeof(csv_evidence);
@@ -235,19 +235,19 @@ err_munmap:
 rats_verifier_err_t csv_collect_evidence(rats_attester_ctx_t *ctx, attestation_evidence_t *evidence,
 					 uint8_t *hash, __attribute__((unused)) uint32_t hash_len)
 {
-	RTLS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
+	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
 	csv_attestation_evidence_t *c_evidence = &evidence->csv;
 	if (collect_attestation_evidence(hash, hash_len, c_evidence)) {
-		RTLS_ERR("failed to get attestation_evidence\n");
+		RATS_ERR("failed to get attestation_evidence\n");
 		return -RATS_ATTESTER_ERR_INVALID;
 	}
 
-	RTLS_DEBUG("Success to generate attestation_evidence\n");
+	RATS_DEBUG("Success to generate attestation_evidence\n");
 
 	snprintf(evidence->type, sizeof(evidence->type), "csv");
 
-	RTLS_DEBUG("ctx %p, evidence %p, report_len %d\n", ctx, evidence, evidence->csv.report_len);
+	RATS_DEBUG("ctx %p, evidence %p, report_len %d\n", ctx, evidence, evidence->csv.report_len);
 
 	return RATS_ATTESTER_ERR_NONE;
 }

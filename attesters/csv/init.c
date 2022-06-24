@@ -11,7 +11,7 @@ static unsigned int dummy_private;
 
 rats_verifier_err_t csv_attester_init(rats_attester_ctx_t *ctx)
 {
-	RTLS_DEBUG("ctx %p\n", ctx);
+	RATS_DEBUG("ctx %p\n", ctx);
 
 	ctx->attester_private = &dummy_private;
 
