@@ -4,7 +4,7 @@ project(attester_nullattester)
 include_directories(${INCLUDE_DIRS})
 
 # Set dependency library directory
-set(LIBRARY_DIRS ${CMAKE_BINARY_DIR}/src
+set(LIBRARY_DIRS ${CMAKE_BINARY_DIR}
                  ${RATS_INSTALL_LIB_PATH}
                  )
 link_directories(${LIBRARY_DIRS})
