@@ -11,16 +11,6 @@
 #include <sys/stat.h>
 #include "utils.h"
 
-int get_file_size(char *name)
-{
-	struct stat statbuf;
-
-	if (stat(name, &statbuf) == 0)
-		return statbuf.st_size;
-
-	return 0;
-}
-
 bool reverse_bytes(uint8_t *bytes, size_t size)
 {
 	uint8_t *start = bytes;

@@ -7,6 +7,8 @@
 #ifndef _LIBRATS_EVIDENCE_H
 #define _LIBRATS_EVIDENCE_H
 
+#define VECK_MAX_SIZE 2*1024
+
 typedef struct attestation_evidence attestation_evidence_t;
 
 typedef struct attestation_verification_report {
@@ -38,6 +40,8 @@ typedef struct tdx_attestation_evidence {
 typedef struct snp_attestation_evidence {
 	uint8_t report[8192];
 	uint32_t report_len;
+	uint8_t vcek[VECK_MAX_SIZE];
+	uint32_t vcek_len;
 } snp_attestation_evidence_t;
 
 typedef struct sev_attestation_evidence {

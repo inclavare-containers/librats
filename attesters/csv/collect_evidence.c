@@ -95,14 +95,13 @@ static int load_hsk_cek_cert(uint8_t *hsk_cek_cert, const char *chip_id)
 {
 	/* Download HSK and CEK cert by ChipId */
 	const char filename[] = HYGON_HSK_CEK_CERT_FILENAME;
-	char cmdline_str[200] = {
+	char url[200] = {
 		0,
 	};
-	int count = snprintf(cmdline_str, sizeof(cmdline_str), "wget -O %s %s%s", filename,
-			     HYGON_KDS_SERVER_SITE, chip_id);
-	cmdline_str[count] = '\0';
+	int count = snprintf(url, sizeof(url), "%s%s", HYGON_KDS_SERVER_SITE, chip_id);
+	url[count] = '\0';
 
-	if (system(cmdline_str) != 0) {
+	if (download_from_url(url, filename) != 0) {
 		RATS_ERR("failed to download %s by %s\n", filename, chip_id);
 		return -1;
 	}
@@ -177,7 +176,7 @@ static int collect_attestation_evidence(uint8_t *hash, uint32_t hash_len,
 	/* Prepare user defined data (challenge and mnonce) */
 	memcpy(user_data->data, hash,
 	       hash_len <= CSV_ATTESTATION_USER_DATA_SIZE ? hash_len :
-							    CSV_ATTESTATION_USER_DATA_SIZE);
+								  CSV_ATTESTATION_USER_DATA_SIZE);
 	gen_random_bytes(user_data->mnonce, CSV_ATTESTATION_MNONCE_SIZE);
 
 	/* Prepare hash of user defined data */
@@ -232,7 +231,7 @@ err_munmap:
 	return ret;
 }
 
-rats_verifier_err_t csv_collect_evidence(rats_attester_ctx_t *ctx, attestation_evidence_t *evidence,
+rats_attester_err_t csv_collect_evidence(rats_attester_ctx_t *ctx, attestation_evidence_t *evidence,
 					 uint8_t *hash, __attribute__((unused)) uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
