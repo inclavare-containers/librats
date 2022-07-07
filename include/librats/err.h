@@ -60,6 +60,7 @@ typedef enum {
 	RATS_ATTESTER_ERR_INVALID,
 	RATS_ATTESTER_ERR_CPU_UNSUPPORTED,
 	RATS_ATTESTER_ERR_NO_TOOL,
+	RATS_ATTESTER_ERR_CURL,
 } rats_attester_err_t;
 
 typedef enum {

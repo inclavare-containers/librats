@@ -7,7 +7,7 @@
 #include <librats/attester.h>
 #include <librats/log.h>
 
-rats_verifier_err_t csv_attester_cleanup(rats_attester_ctx_t *ctx)
+rats_attester_err_t csv_attester_cleanup(rats_attester_ctx_t *ctx)
 {
 	RATS_DEBUG("called\n");
 
