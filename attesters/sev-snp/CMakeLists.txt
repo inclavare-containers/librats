@@ -6,7 +6,6 @@ set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../include
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/librats
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/internal
                  ${CMAKE_CURRENT_SOURCE_DIR}
-                 /usr/include
                  )
 include_directories(${INCLUDE_DIRS})
 
@@ -27,7 +26,7 @@ set(SOURCES cleanup.c
 
 # Generate library
     add_library(${PROJECT_NAME} SHARED ${SOURCES})
-    target_link_libraries(${PROJECT_NAME} ${RATS_LDFLAGS} ${RATS_LIB})
+    target_link_libraries(${PROJECT_NAME} ${RATS_LDFLAGS} ${RATS_LIB} curl)
     set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${VERSION} SOVERSION ${VERSION_MAJOR})
     # Install library
     install(TARGETS ${PROJECT_NAME}

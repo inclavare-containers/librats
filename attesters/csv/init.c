@@ -9,7 +9,7 @@
 
 static unsigned int dummy_private;
 
-rats_verifier_err_t csv_attester_init(rats_attester_ctx_t *ctx)
+rats_attester_err_t csv_attester_init(rats_attester_ctx_t *ctx)
 {
 	RATS_DEBUG("ctx %p\n", ctx);
 
