@@ -20,6 +20,7 @@ int generate_ark_ask_cert(amd_cert *ask_cert, amd_cert *ark_cert, enum ePSP_DEVI
 	char *ark_ask_cert_patch;
 	char *default_dir = NULL;
 	char *url = NULL;
+	struct stat st;
 
 	switch (device_type) {
 	case PSP_DEVICE_TYPE_NAPLES:
@@ -42,27 +43,15 @@ int generate_ark_ask_cert(amd_cert *ask_cert, amd_cert *ark_cert, enum ePSP_DEVI
 		return -1;
 	}
 
-	char cmdline_str[200] = {
-		0,
-	};
-	int count = 0;
-	struct stat st;
-
 	if (stat(default_dir, &st) == -1) {
-		count = snprintf(cmdline_str, sizeof(cmdline_str), "mkdir -p %s", default_dir);
-		cmdline_str[count] = '\0';
-		if (system(cmdline_str) != 0)
+		if (mkdir(default_dir, S_IRWXU | S_IRWXG | S_IRWXO) != 0)
 			RATS_ERR("failed to mkdir %s\n", default_dir);
 		return -1;
 	}
 
-	count = snprintf(cmdline_str, sizeof(cmdline_str), "wget --no-proxy -O %s %s",
-			 ark_ask_cert_patch, url);
-	cmdline_str[count] = '\0';
-
 	/* Don't re-download the ASK/ARK from the KDS server if you already have it */
 	if (get_file_size(ark_ask_cert_patch) == 0) {
-		if (system(cmdline_str) != 0) {
+		if (download_from_url(url, ark_ask_cert_patch) != 0) {
 			RATS_ERR("failed to download %s\n", ark_ask_cert_patch);
 			return -1;
 		}

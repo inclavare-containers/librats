@@ -29,6 +29,10 @@
 #define ASK_ARK_ROME_SITE   ASK_ARK_PATH_SITE ASK_ARK_ROME_FILE
 #define ASK_ARK_MILAN_SITE  ASK_ARK_PATH_SITE ASK_ARK_MILAN_FILE
 
+#define CURL_RETRY_TIMES 5
+
+int get_file_size(char *name);
 int read_file(const char *filename, void *buffer, size_t len);
+int download_from_url(const char *url, const char *file_path);
 
 #endif /* _SEV_UTILS_H */

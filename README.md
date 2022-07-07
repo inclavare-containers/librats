@@ -6,6 +6,7 @@
  - make
  - autoconf
  - libtool
+ - libcurl
  - gcc
  - g++ (ubuntu 18.04)
  - SGX driver, Intel SGX SDK & PSW: Please refer to this [guide](https://download.01.org/intel-sgx/sgx-linux/2.14/docs/Intel_SGX_SW_Installation_Guide_for_Linux.pdf) to install.
