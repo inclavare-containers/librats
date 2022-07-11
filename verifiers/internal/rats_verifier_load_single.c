@@ -20,7 +20,7 @@
 #endif
 // clang-format on
 
-rats_err_t rats_verifier_post_init(const char *name, void *handle)
+rats_verifier_err_t rats_verifier_post_init(const char *name, void *handle)
 {
 	unsigned int i = 0;
 	rats_verifier_opts_t *opts = NULL;
@@ -33,7 +33,7 @@ rats_err_t rats_verifier_post_init(const char *name, void *handle)
 
 	if (i == registerd_rats_verifier_nums) {
 		RATS_DEBUG("the rats verifier '%s' failed to be registered\n", name);
-		return -RATS_ERR_NOT_REGISTERED;
+		return -RATS_VERIFIER_ERR_NOT_REGISTERED;
 	}
 
 	if (opts->pre_init) {
@@ -41,13 +41,13 @@ rats_err_t rats_verifier_post_init(const char *name, void *handle)
 
 		if (err_ev != RATS_VERIFIER_ERR_NONE) {
 			RATS_ERR("failed on pre_init() of rats verifier '%s' %#x\n", name, err_ev);
-			return -RATS_ERR_INVALID;
+			return -RATS_VERIFIER_ERR_INVALID;
 		}
 	}
 
 	rats_verifier_ctx_t *verifier_ctx = calloc(1, sizeof(*verifier_ctx));
 	if (!verifier_ctx)
-		return -RATS_ERR_NO_MEM;
+		return -RATS_VERIFIER_ERR_NO_MEM;
 
 	verifier_ctx->opts = opts;
 	verifier_ctx->log_level = rats_global_core_context.config.log_level;
@@ -55,10 +55,10 @@ rats_err_t rats_verifier_post_init(const char *name, void *handle)
 
 	rats_verifiers_ctx[rats_verifier_nums++] = verifier_ctx;
 
-	return RATS_ERR_NONE;
+	return RATS_VERIFIER_ERR_NONE;
 }
 
-rats_err_t rats_verifier_load_single(const char *fname)
+rats_verifier_err_t rats_verifier_load_single(const char *fname)
 {
 	RATS_DEBUG("loading the rats verifier instance '%s' ...\n", fname);
 
@@ -70,7 +70,7 @@ rats_err_t rats_verifier_load_single(const char *fname)
 		RATS_ERR("The filename pattern of '%s' NOT match " PATTERN_PREFIX
 			 "<name>" PATTERN_SUFFIX "\n",
 			 fname);
-		return -RATS_ERR_INVALID;
+		return -RATS_VERIFIER_ERR_INVALID;
 	}
 
 	char realpath[strlen(RATS_VERIFIERS_DIR) + strlen(fname) + 1];
@@ -81,15 +81,15 @@ rats_err_t rats_verifier_load_single(const char *fname)
 	snprintf(name, sizeof(name), "%s", fname + strlen(PATTERN_PREFIX));
 
 	void *handle = NULL;
-	rats_err_t err = rats_instance_init(name, realpath, &handle);
-	if (err != RATS_ERR_NONE)
+	rats_verifier_err_t err = rats_verifier_init(name, realpath, &handle);
+	if (err != RATS_VERIFIER_ERR_NONE)
 		return err;
 
 	err = rats_verifier_post_init(name, handle);
-	if (err != RATS_ERR_NONE)
+	if (err != RATS_VERIFIER_ERR_NONE)
 		return err;
 
 	RATS_DEBUG("the rats verifier '%s' loaded\n", name);
 
-	return RATS_ERR_NONE;
+	return RATS_VERIFIER_ERR_NONE;
 }

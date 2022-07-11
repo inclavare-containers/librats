@@ -25,7 +25,10 @@
 
 #define RATS_ATTESTER_FLAGS_DEFAULT 0
 
+typedef struct rats_core_context rats_core_context_t;
 typedef struct rats_attester_ctx rats_attester_ctx_t;
+
+extern rats_attester_err_t rats_attest_init(rats_conf_t *conf, rats_core_context_t *ctx);
 
 typedef struct rats_attester_opts {
 	uint8_t api_version;

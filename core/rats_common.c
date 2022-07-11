@@ -79,49 +79,63 @@ rats_log_level_t rats_loglevel_getenv(const char *name)
     return RATS_LOG_LEVEL_DEFAULT;
 }
 
-rats_err_t rats_instance_init(const char *name, __attribute__((unused)) const char *realpath,
+rats_attester_err_t rats_attester_init(const char *name, __attribute__((unused)) const char *realpath,
         __attribute__((unused)) void **handle)
 {
-    rats_err_t err;
+    rats_attester_err_t err;
 
     if (!strcmp(name, "nullattester")) {
         libattester_null_init();
         err = rats_attester_post_init(name, NULL);
-        if (err != RATS_ERR_NONE)
-            return err;
-    } else if (!strcmp(name, "nullverifier")) {
-        libverifier_null_init();
-        err = rats_verifier_post_init(name, NULL);
-        if (err != RATS_ERR_NONE)
+        if (err != RATS_ATTESTER_ERR_NONE)
             return err;
     } else if (!strcmp(name, "sgx_ecdsa")) {
         libattester_sgx_ecdsa_init();
-        libverifier_sgx_ecdsa_init();
         err = rats_attester_post_init(name, NULL);
-        if (err != RATS_ERR_NONE)
+        if (err != RATS_ATTESTER_ERR_NONE)
             return err;
+    } else if (!strcmp(name, "sgx_la")) {
+        libattester_sgx_la_init();
+        err = rats_attester_post_init(name, NULL);
+        if (err != RATS_ATTESTER_ERR_NONE)
+            return err;
+    }
+    else
+        return RATS_ATTESTER_ERR_INVALID;
+
+    return RATS_ATTESTER_ERR_NONE;
+}
+
+rats_verifier_err_t rats_verifier_init(const char *name, __attribute__((unused)) const char *realpath,
+        __attribute__((unused)) void **handle)
+{
+	rats_verifier_err_t err;
+
+    if (!strcmp(name, "nullverifier")) {
+        libverifier_null_init();
         err = rats_verifier_post_init(name, NULL);
-        if (err != RATS_ERR_NONE)
+        if (err != RATS_VERIFIER_ERR_NONE)
+            return err;
+    } else if (!strcmp(name, "sgx_ecdsa")) {
+        libverifier_sgx_ecdsa_init();
+        err = rats_verifier_post_init(name, NULL);
+        if (err != RATS_VERIFIER_ERR_NONE)
             return err;
     } else if (!strcmp(name, "sgx_ecdsa_qve")) {
         libverifier_sgx_ecdsa_qve_init();
         err = rats_verifier_post_init(name, NULL);
-        if (err != RATS_ERR_NONE)
+        if (err != RATS_VERIFIER_ERR_NONE)
             return err;
     } else if (!strcmp(name, "sgx_la")) {
-        libattester_sgx_la_init();
         libverifier_sgx_la_init();
-        err = rats_attester_post_init(name, NULL);
-        if (err != RATS_ERR_NONE)
-            return err;
         err = rats_verifier_post_init(name, NULL);
-        if (err != RATS_ERR_NONE)
+        if (err != RATS_VERIFIER_ERR_NONE)
             return err;
     }
     else
-        return RATS_ERR_NO_NAME;
+        return RATS_VERIFIER_ERR_INVALID;
 
-    return RATS_ERR_NONE;
+    return RATS_VERIFIER_ERR_NONE;
 }
 
 ssize_t rats_write(int fd, const void *buf, size_t count)
@@ -206,16 +220,28 @@ rats_log_level_t rats_loglevel_getenv(const char *name)
     return RATS_LOG_LEVEL_DEFAULT;
 }
 
-rats_err_t rats_instance_init(const char *name, __attribute__((unused)) const char *realpath,
+rats_attester_err_t rats_attester_init(const char *name, __attribute__((unused)) const char *realpath,
         __attribute__((unused)) void **handle)
 {
     *handle = dlopen(realpath, RTLD_LAZY);
     if (*handle == NULL) {
         RATS_ERR("failed on dlopen(): %s\n", dlerror());
-        return -RATS_ERR_DLOPEN;
+        return -RATS_ATTESTER_ERR_DLOPEN;
     }
 
-    return RATS_ERR_NONE;
+    return RATS_ATTESTER_ERR_NONE;
+}
+
+rats_verifier_err_t rats_verifier_init(const char *name, __attribute__((unused)) const char *realpath,
+        __attribute__((unused)) void **handle)
+{
+    *handle = dlopen(realpath, RTLD_LAZY);
+    if (*handle == NULL) {
+        RATS_ERR("failed on dlopen(): %s\n", dlerror());
+        return -RATS_VERIFIER_ERR_DLOPEN;
+    }
+
+    return RATS_VERIFIER_ERR_NONE;
 }
 
 ssize_t rats_write(int fd, const void *buf, size_t count)

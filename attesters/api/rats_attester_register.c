@@ -19,6 +19,16 @@ rats_attester_err_t rats_attester_register(const rats_attester_opts_t *opts)
 
 	RATS_DEBUG("registering the rats attester '%s' ...\n", opts->name);
 
+	if (opts->flags & RATS_ATTESTER_OPTS_FLAGS_SGX_ENCLAVE) {
+		if (!is_sgx2_supported()) {
+			// clang-format off
+			RATS_DEBUG("failed to register the attester '%s' due to lack of SGX capability\n",
+				   opts->type);
+			// clang-format on
+			return -RATS_ATTESTER_ERR_CPU_UNSUPPORTED;
+		}
+	}
+
 	if (opts->flags & RATS_ATTESTER_OPTS_FLAGS_TDX_GUEST) {
 		if (!is_tdguest_supported()) {
 			// clang-format off

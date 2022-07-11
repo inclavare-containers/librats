@@ -25,7 +25,10 @@
 #define RATS_VERIFIER_OPTS_FLAGS_SEV	      (1 << 4)
 #define RATS_VERIFIER_OPTS_FLAGS_CSV	      (1 << 5)
 
+typedef struct rats_core_context rats_core_context_t;
 typedef struct rats_verifier_ctx rats_verifier_ctx_t;
+
+extern rats_verifier_err_t rats_verify_init(rats_conf_t *conf, rats_core_context_t *ctx);
 
 typedef struct rats_verifier_opts {
 	uint8_t api_version;

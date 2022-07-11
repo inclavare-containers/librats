@@ -27,8 +27,6 @@ extern void rats_exit(void);
 
 extern rats_log_level_t rats_loglevel_getenv(const char *name);
 
-extern rats_err_t rats_instance_init(const char *type, const char *realpath, void **handle);
-
 extern ssize_t rats_write(int fd, const void *buf, size_t count);
 
 extern ssize_t rats_read(int fd, void *buf, size_t count);
