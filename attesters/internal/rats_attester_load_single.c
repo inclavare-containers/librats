@@ -22,7 +22,7 @@
 #endif
 // clang-format on
 
-rats_err_t rats_attester_post_init(const char *name, void *handle)
+rats_attester_err_t rats_attester_post_init(const char *name, void *handle)
 {
 	unsigned int i = 0;
 	rats_attester_opts_t *opts = NULL;
@@ -35,20 +35,20 @@ rats_err_t rats_attester_post_init(const char *name, void *handle)
 
 	if (i == registerd_rats_attester_nums) {
 		RATS_DEBUG("the rats attester '%s' failed to register\n", name);
-		return -RATS_ERR_NOT_REGISTERED;
+		return -RATS_ATTESTER_ERR_NOT_REGISTERED;
 	}
 
 	if (opts->pre_init) {
 		rats_attester_err_t err_ea = opts->pre_init();
 		if (err_ea != RATS_ATTESTER_ERR_NONE) {
 			RATS_ERR("failed on pre_init() of rats attester '%s' %#x\n", name, err_ea);
-			return -RATS_ERR_INVALID;
+			return -RATS_ATTESTER_ERR_INVALID;
 		}
 	}
 
 	rats_attester_ctx_t *attester_ctx = calloc(1, sizeof(*attester_ctx));
 	if (!attester_ctx)
-		return -RATS_ERR_NO_MEM;
+		return -RATS_ATTESTER_ERR_NO_MEM;
 
 	attester_ctx->opts = opts;
 	attester_ctx->log_level = rats_global_core_context.config.log_level;
@@ -56,10 +56,10 @@ rats_err_t rats_attester_post_init(const char *name, void *handle)
 
 	rats_attesters_ctx[rats_attester_nums++] = attester_ctx;
 
-	return RATS_ERR_NONE;
+	return RATS_ATTESTER_ERR_NONE;
 }
 
-rats_err_t rats_attester_load_single(const char *fname)
+rats_attester_err_t rats_attester_load_single(const char *fname)
 {
 	RATS_DEBUG("loading the rats attester instance '%s' ...\n", fname);
 
@@ -71,7 +71,7 @@ rats_err_t rats_attester_load_single(const char *fname)
 		RATS_ERR("The filename pattern of '%s' NOT match " PATTERN_PREFIX
 			 "<name>" PATTERN_SUFFIX "\n",
 			 fname);
-		return -RATS_ERR_INVALID;
+		return -RATS_ATTESTER_ERR_INVALID;
 	}
 
 	char realpath[strlen(RATS_ATTESTERS_DIR) + strlen(fname) + 1];
@@ -82,15 +82,15 @@ rats_err_t rats_attester_load_single(const char *fname)
 	snprintf(name, sizeof(name), "%s", fname + strlen(PATTERN_PREFIX));
 
 	void *handle = NULL;
-	rats_err_t err = rats_instance_init(name, realpath, &handle);
-	if (err != RATS_ERR_NONE)
+	rats_attester_err_t err = rats_attester_init(name, realpath, &handle);
+	if (err != RATS_ATTESTER_ERR_NONE)
 		return err;
 
 	err = rats_attester_post_init(name, handle);
-	if (err != RATS_ERR_NONE)
+	if (err != RATS_ATTESTER_ERR_NONE)
 		return err;
 
 	RATS_DEBUG("the rats attester '%s' loaded\n", name);
 
-	return RATS_ERR_NONE;
+	return RATS_ATTESTER_ERR_NONE;
 }

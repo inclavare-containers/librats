@@ -11,21 +11,22 @@
 #include <internal/core.h>
 #include <internal/attester.h>
 
-static rats_err_t rats_attester_init(rats_core_context_t *ctx, rats_attester_ctx_t *attester_ctx)
+static rats_attester_err_t init_rats_attester(rats_core_context_t *ctx,
+					      rats_attester_ctx_t *attester_ctx)
 {
 	RATS_DEBUG("called rats core ctx: %#x rats attester ctx: %#x\n", ctx, attester_ctx);
 
 	rats_attester_err_t err = attester_ctx->opts->init(attester_ctx);
 	if (err != RATS_ATTESTER_ERR_NONE)
-		return -RATS_ERR_INIT;
+		return -RATS_ATTESTER_ERR_INIT;
 
 	if (!attester_ctx->attester_private)
-		return -RATS_ERR_INIT;
+		return -RATS_ATTESTER_ERR_INIT;
 
-	return RATS_ERR_NONE;
+	return RATS_ATTESTER_ERR_NONE;
 }
 
-rats_err_t rats_attester_select(rats_core_context_t *ctx, const char *name)
+rats_attester_err_t rats_attester_select(rats_core_context_t *ctx, const char *name)
 {
 	RATS_DEBUG("selecting the rats attester '%s'...\n", name);
 
@@ -40,7 +41,7 @@ rats_err_t rats_attester_select(rats_core_context_t *ctx, const char *name)
 
 		attester_ctx = malloc(sizeof(*attester_ctx));
 		if (!attester_ctx)
-			return -RATS_ERR_NO_MEM;
+			return -RATS_ATTESTER_ERR_NO_MEM;
 
 		memcpy(attester_ctx, rats_attesters_ctx[i], sizeof(*attester_ctx));
 
@@ -50,7 +51,7 @@ rats_err_t rats_attester_select(rats_core_context_t *ctx, const char *name)
 		attester_ctx->enclave_id = ctx->config.enclave_id;
 		attester_ctx->log_level = ctx->config.log_level;
 
-		if (rats_attester_init(ctx, attester_ctx) == RATS_ERR_NONE)
+		if (init_rats_attester(ctx, attester_ctx) == RATS_ATTESTER_ERR_NONE)
 			break;
 
 		free(attester_ctx);
@@ -63,7 +64,7 @@ rats_err_t rats_attester_select(rats_core_context_t *ctx, const char *name)
 		else
 			RATS_ERR("failed to select the rats attester '%s'\n", name);
 
-		return -RATS_ERR_INVALID;
+		return -RATS_ATTESTER_ERR_INVALID;
 	}
 
 	ctx->attester = attester_ctx;
@@ -71,5 +72,5 @@ rats_err_t rats_attester_select(rats_core_context_t *ctx, const char *name)
 
 	RATS_INFO("the rats attester '%s' selected\n", ctx->attester->opts->name);
 
-	return RATS_ERR_NONE;
+	return RATS_ATTESTER_ERR_NONE;
 }

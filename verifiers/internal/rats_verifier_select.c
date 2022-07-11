@@ -10,21 +10,22 @@
 #include "internal/verifier.h"
 #include "internal/core.h"
 
-static rats_err_t init_rats_verifier(rats_core_context_t *ctx, rats_verifier_ctx_t *verifier_ctx)
+static rats_verifier_err_t init_rats_verifier(rats_core_context_t *ctx,
+					      rats_verifier_ctx_t *verifier_ctx)
 {
 	RATS_DEBUG("init rats verifier rats_core_context: %#x\n", ctx);
 	rats_verifier_err_t err = verifier_ctx->opts->init(verifier_ctx);
 
 	if (err != RATS_VERIFIER_ERR_NONE)
-		return -RATS_ERR_INIT;
+		return -RATS_VERIFIER_ERR_INIT;
 
 	if (!verifier_ctx->verifier_private)
-		return -RATS_ERR_INIT;
+		return -RATS_VERIFIER_ERR_INIT;
 
-	return RATS_ERR_NONE;
+	return RATS_VERIFIER_ERR_NONE;
 }
 
-rats_err_t rats_verifier_select(rats_core_context_t *ctx, const char *name)
+rats_verifier_err_t rats_verifier_select(rats_core_context_t *ctx, const char *name)
 {
 	RATS_DEBUG("selecting the rats verifier '%s' ...\n", name);
 
@@ -35,7 +36,7 @@ rats_err_t rats_verifier_select(rats_core_context_t *ctx, const char *name)
 
 		verifier_ctx = malloc(sizeof(*verifier_ctx));
 		if (!verifier_ctx)
-			return -RATS_ERR_NO_MEM;
+			return -RATS_VERIFIER_ERR_NO_MEM;
 
 		memcpy(verifier_ctx, rats_verifiers_ctx[i], sizeof(*verifier_ctx));
 
@@ -45,7 +46,7 @@ rats_err_t rats_verifier_select(rats_core_context_t *ctx, const char *name)
 		verifier_ctx->enclave_id = ctx->config.enclave_id;
 		verifier_ctx->log_level = ctx->config.log_level;
 
-		if (init_rats_verifier(ctx, verifier_ctx) == RATS_ERR_NONE)
+		if (init_rats_verifier(ctx, verifier_ctx) == RATS_VERIFIER_ERR_NONE)
 			break;
 
 		free(verifier_ctx);
@@ -58,7 +59,7 @@ rats_err_t rats_verifier_select(rats_core_context_t *ctx, const char *name)
 		else
 			RATS_ERR("failed to select the rats verifier '%s'\n", name);
 
-		return -RATS_ERR_INVALID;
+		return -RATS_VERIFIER_ERR_INVALID;
 	}
 
 	/* Explicitly specify the rats verifier which will never be changed */
@@ -69,5 +70,5 @@ rats_err_t rats_verifier_select(rats_core_context_t *ctx, const char *name)
 
 	RATS_INFO("the rats verifier '%s' selected\n", ctx->verifier->opts->name);
 
-	return RATS_ERR_NONE;
+	return RATS_VERIFIER_ERR_NONE;
 }

@@ -29,14 +29,14 @@ static int rats_verifier_cmp(const void *a, const void *b)
 	       (*(rats_verifier_ctx_t **)a)->opts->priority;
 }
 
-rats_err_t rats_verifier_load_all(void)
+rats_verifier_err_t rats_verifier_load_all(void)
 {
 	RATS_DEBUG("called\n");
 
 	uint64_t dir = rats_opendir(RATS_VERIFIERS_DIR);
 	if (!dir) {
 		RATS_ERR("failed to open %s", RATS_VERIFIERS_DIR);
-		return -RATS_ERR_UNKNOWN;
+		return -RATS_VERIFIER_ERR_UNKNOWN;
 	}
 
 	unsigned int total_loaded = 0;
@@ -55,7 +55,7 @@ rats_err_t rats_verifier_load_all(void)
 #else
 		if (ptr->d_type == DT_REG || ptr->d_type == DT_LNK) {
 #endif
-			if (rats_verifier_load_single(ptr->d_name) == RATS_ERR_NONE)
+			if (rats_verifier_load_single(ptr->d_name) == RATS_VERIFIER_ERR_NONE)
 				++total_loaded;
 		}
 	}
@@ -73,5 +73,5 @@ rats_err_t rats_verifier_load_all(void)
 	qsort(rats_verifiers_ctx, rats_verifier_nums, sizeof(rats_verifier_ctx_t *),
 	      rats_verifier_cmp);
 
-	return RATS_ERR_NONE;
+	return RATS_VERIFIER_ERR_NONE;
 }

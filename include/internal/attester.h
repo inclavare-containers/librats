@@ -18,9 +18,12 @@
 	#define RATS_ATTESTERS_DIR "/usr/local/lib/librats/attesters/"
 #endif
 
-extern rats_err_t rats_attester_load_all(void);
-extern rats_err_t rats_attester_load_single(const char *);
-extern rats_err_t rats_attester_select(rats_core_context_t *, const char *);
+extern rats_attester_err_t rats_attester_init(const char *name,
+					      __attribute__((unused)) const char *realpath,
+					      __attribute__((unused)) void **handle);
+extern rats_attester_err_t rats_attester_load_all(void);
+extern rats_attester_err_t rats_attester_load_single(const char *);
+extern rats_attester_err_t rats_attester_select(rats_core_context_t *, const char *);
 extern rats_attester_opts_t *rats_attesters_opts[RATS_ATTESTER_TYPE_MAX];
 extern rats_attester_ctx_t *rats_attesters_ctx[RATS_ATTESTER_TYPE_MAX];
 extern unsigned int rats_attester_nums;

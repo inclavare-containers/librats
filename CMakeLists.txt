@@ -112,10 +112,10 @@ endif()
 set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/rats_common.c
     ${CMAKE_CURRENT_SOURCE_DIR}/core/cpu.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/rats_init.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/rats_cleanup.c
     ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_collect_evidence.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_init.c
     ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_verify_evidence.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_cleanup.c
     ${CMAKE_CURRENT_SOURCE_DIR}/attesters/api/rats_attester_register.c
     ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/rats_attester.c
     ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/rats_attester_load_all.c
