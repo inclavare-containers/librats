@@ -92,7 +92,7 @@ rats_attester_err_t rats_attest_init(rats_conf_t *conf, rats_core_context_t *ctx
 	if (choice[0] == '\0') {
 		choice = rats_global_core_context.config.attester_type;
 		if (choice[0] == '\0')
-			choice = NULL;
+			strncpy(choice, "nullattester", strlen("nullattester"));
 	}
 	err = rats_attester_select(ctx, choice);
 	if (err != RATS_ATTESTER_ERR_NONE)
@@ -162,7 +162,7 @@ rats_verifier_err_t rats_verify_init(rats_conf_t *conf, rats_core_context_t *ctx
 	if (choice[0] == '\0') {
 		choice = rats_global_core_context.config.verifier_type;
 		if (choice[0] == '\0')
-			choice = NULL;
+			strncpy(choice, "nullverifier", strlen("nullverifier"));
 	}
 	err = rats_verifier_select(ctx, choice);
 	if (err != RATS_VERIFIER_ERR_NONE)
