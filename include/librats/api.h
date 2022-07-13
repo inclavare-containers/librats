@@ -37,7 +37,7 @@ typedef struct rats_verifier_ctx rats_verifier_ctx_t;
 extern "C" {
 #endif
 extern rats_attester_err_t librats_collect_evidence(attestation_evidence_t *evidence,
-						    uint8_t *hash);
+						    const uint8_t *hash);
 #ifdef __cplusplus
 }
 #endif
@@ -45,7 +45,8 @@ extern rats_attester_err_t librats_collect_evidence(attestation_evidence_t *evid
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evidence, uint8_t *hash);
+extern rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evidence,
+						   const uint8_t *hash);
 #ifdef __cplusplus
 }
 #endif
