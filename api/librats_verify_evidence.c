@@ -3,7 +3,7 @@
 #include <librats/api.h>
 #include <librats/log.h>
 
-rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evidence, uint8_t *hash)
+rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evidence, const uint8_t *hash)
 {
 	uint32_t hash_len = 32;
 	rats_core_context_t ctx;
