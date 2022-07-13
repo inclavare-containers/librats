@@ -12,8 +12,8 @@
 #include <librats/log.h>
 #include <librats/attester.h>
 #include <librats/csv.h>
+#include <curl/curl.h>
 #include "csv_utils.h"
-#include "../../verifiers/sev/sev_utils.c"
 
 #define PAGE_MAP_FILENAME   "/proc/self/pagemap"
 #define PAGE_MAP_PFN_MASK   0x007fffffffffffffUL
@@ -81,6 +81,21 @@ static int do_hypercall(unsigned int p1, unsigned long p2, unsigned long p3)
 	return (int)ret;
 }
 
+static size_t curl_writefunc_callback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+	size_t realsize = size * nmemb;
+	csv_evidence *evidence = (csv_evidence *)userp;
+
+	if (evidence->hsk_cek_cert_len + realsize > HYGON_HSK_CEK_CERT_SIZE) {
+		RATS_ERR("hsk_cek size is large than %d bytes.", HYGON_HSK_CEK_CERT_SIZE);
+		return 0;
+	}
+	memcpy(&(evidence->hsk_cek_cert[evidence->hsk_cek_cert_len]), contents, realsize);
+	evidence->hsk_cek_cert_len += realsize;
+
+	return realsize;
+}
+
 /**
  * Download HSK and CEK cert, and then save them to @hsk_cek_cert.
  *
@@ -91,24 +106,38 @@ static int do_hypercall(unsigned int p1, unsigned long p2, unsigned long p3)
  * 	0: success
  * 	otherwise error
  */
-static int load_hsk_cek_cert(uint8_t *hsk_cek_cert, const char *chip_id)
+static int csv_get_hsk_cek_cert(const char *chip_id, csv_evidence *evidence_buffer)
 {
 	/* Download HSK and CEK cert by ChipId */
-	const char filename[] = HYGON_HSK_CEK_CERT_FILENAME;
 	char url[200] = {
 		0,
 	};
 	int count = snprintf(url, sizeof(url), "%s%s", HYGON_KDS_SERVER_SITE, chip_id);
 	url[count] = '\0';
-
-	if (download_from_url(url, filename) != 0) {
-		RATS_ERR("failed to download %s by %s\n", filename, chip_id);
+	// init curl
+	CURLcode curl_ret = CURLE_OK;
+	CURL *curl = curl_easy_init();
+	if (!curl) {
+		RATS_ERR("failed to init curl.");
 		return -1;
 	}
 
-	size_t read_len = HYGON_HSK_CEK_CERT_SIZE;
-	if (read_file(filename, hsk_cek_cert, read_len) != read_len) {
-		RATS_ERR("read %s fail\n", filename);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writefunc_callback);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)evidence_buffer);
+	for (int i = 0; i < 5; i++) {
+		evidence_buffer->hsk_cek_cert_len = 0;
+		if ((curl_ret = curl_easy_perform(curl)) == CURLE_OK) {
+			break;
+		}
+		RATS_DEBUG("failed to download hsk_cek, try again.");
+	}
+	curl_easy_cleanup(curl);
+	if (curl_ret != CURLE_OK) {
+		RATS_ERR("failed to download hsk_cek after 5 retries, %s\n",
+			 curl_easy_strerror(curl_ret));
 		return -1;
 	}
 
@@ -208,16 +237,16 @@ static int collect_attestation_evidence(uint8_t *hash, uint32_t hash_len,
 
 	/* Retreive ChipId from attestation report */
 	csv_attestation_report *attestation_report = &evidence_buffer->attestation_report;
-	uint8_t chip_id[CSV_ATTESTATION_CHIP_SN_SIZE] = {
+	uint8_t chip_id[CSV_ATTESTATION_CHIP_SN_SIZE + 1] = {
 		0,
 	};
 	int i;
 
-	for (i = 0; i < sizeof(chip_id) / sizeof(uint32_t); i++)
+	for (i = 0; i < CSV_ATTESTATION_CHIP_SN_SIZE / sizeof(uint32_t); i++)
 		((uint32_t *)chip_id)[i] = ((uint32_t *)attestation_report->chip_id)[i] ^
 					   attestation_report->anonce;
 
-	if (load_hsk_cek_cert(evidence_buffer->hsk_cek_cert, (const char *)chip_id)) {
+	if (csv_get_hsk_cek_cert((const char *)chip_id, evidence_buffer)) {
 		RATS_ERR("failed to load HSK and CEK cert\n");
 		goto err_munmap;
 	}
