@@ -196,15 +196,12 @@ bool is_tdguest_supported(void)
 static uint64_t read_msr(uint32_t reg)
 {
 	int fd = open("/dev/cpu/0/msr", O_RDONLY);
-	if (fd < 0) {
-		RATS_ERR("failed to open msr\n");
+	if (fd < 0)
 		return 0;
-	}
 
 	uint64_t data;
 	if (pread(fd, &data, sizeof(data), reg) != sizeof(data)) {
 		close(fd);
-		RATS_ERR("failed to read msr %#x\n", reg);
 		return 0;
 	}
 
