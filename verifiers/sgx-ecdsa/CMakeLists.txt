@@ -18,9 +18,9 @@ set(LIBRARY_DIRS ${CMAKE_BINARY_DIR}
 # Set extra link library
 if(OCCLUM)
     list(APPEND LIBRARY_DIRS ${SGXSDK_INSTALL_LIB_PATH})
-    set(EXTRA_LINK_LIBRARY sgx_dcap_quoteverify sgx_urts dcap_quote pthread m)
+    set(EXTRA_LINK_LIBRARY dcap_quote pthread m)
 else()
-    set(EXTRA_LINK_LIBRARY sgx_dcap_quoteverify sgx_urts)
+    set(EXTRA_LINK_LIBRARY sgx_dcap_quoteverify)
 endif()
 
 link_directories(${LIBRARY_DIRS})
