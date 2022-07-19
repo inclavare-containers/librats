@@ -21,11 +21,6 @@ if(OCCLUM)
 endif()
 link_directories(${LIBRARY_DIRS})
 
-# Set extra link library
-if(OCCLUM)
-    set(EXTRA_LINK_LIBRARY sgx_dcap_quoteverify)
-endif()
-
 # Set source file
 set(SOURCES cleanup.c
             collect_evidence.c
