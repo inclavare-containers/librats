@@ -18,6 +18,10 @@ rats_attester_err_t librats_collect_evidence(attestation_evidence_t *evidence, u
 		return RATS_ATTESTER_ERR_INIT;
 	rats_attester_err_t q_err =
 		ctx.attester->opts->collect_evidence(ctx.attester, evidence, hash, hash_len);
+	
+	if (ctx.attester->opts->cleanup(ctx.attester) != RATS_ATTESTER_ERR_NONE) {
+		RATS_ERR("failed to clean up attester\n");
+	}
 
 	return q_err;
 }
