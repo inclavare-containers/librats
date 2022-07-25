@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #include <librats/api.h>
+#include <librats/log.h>
 
 rats_attester_err_t librats_collect_evidence(attestation_evidence_t *evidence, uint8_t *hash)
 {
