@@ -17,5 +17,4 @@
 rats_attester_err_t sev_snp_get_vcek_der(const uint8_t *chip_id, size_t chip_id_size,
 					 const snp_tcb_version_t *tcb,
 					 snp_attestation_evidence_t *snp_report);
-
 #endif 

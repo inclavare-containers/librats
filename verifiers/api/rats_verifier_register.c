@@ -11,10 +11,29 @@
 #include "internal/verifier.h"
 #include "internal/cpu.h"
 
+#ifdef WASM
+static int check_verifier_exist(const rats_verifier_opts_t *opts){
+	int ret = 0;
+	for (int i = 0;i<registerd_rats_verifier_nums;i++){
+		if (strcmp(opts->name,rats_verifiers_opts[i]->name) == 0){
+			ret = 1;
+			break;
+		}
+	}
+	return ret;
+}
+#endif
+
 rats_verifier_err_t rats_verifier_register(const rats_verifier_opts_t *opts)
 {
 	if (!opts)
 		return RATS_VERIFIER_ERR_INVALID;
+
+#ifdef WASM
+	if (check_verifier_exist(opts)){
+		return RATS_VERIFIER_ERR_NONE;
+	}
+#endif
 
 	RATS_DEBUG("registering the rats verifier '%s' ...\n", opts->name);
 

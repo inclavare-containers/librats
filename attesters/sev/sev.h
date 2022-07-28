@@ -7,7 +7,9 @@
 #ifndef _SEV_H
 #define _SEV_H
 
+#ifndef WASM
 #include <linux/types.h>
+#endif
 #include "../../verifiers/sev-snp/sevapi.h"
 
 /* The following structures are defined by AMD, please refer to

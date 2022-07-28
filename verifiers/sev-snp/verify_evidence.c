@@ -29,11 +29,16 @@ rats_verifier_err_t sev_snp_verify_evidence(rats_verifier_ctx_t *ctx,
 	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 	snp_attestation_report_t *report = (snp_attestation_report_t *)(evidence->snp.report);
 	if (evidence->snp.vcek[0] == '\0') {
+#ifdef WASM
+		RATS_ERR("No vcek found in evidence");
+		return RATS_VERIFIER_ERR_INVALID;
+#else
 		memset(evidence->snp.vcek, 0, VECK_MAX_SIZE);
 		err = sev_snp_get_vcek_der(report->chip_id, sizeof(report->chip_id),
 					   &report->platform_version, &evidence->snp);
 		if (err != RATS_ATTESTER_ERR_NONE)
 			return err;
+#endif
 	}
 
 	/* Verify the hash value */

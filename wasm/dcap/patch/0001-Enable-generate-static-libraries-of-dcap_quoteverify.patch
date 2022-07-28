@@ -1,0 +1,486 @@
+From 7abf1c362ef0c57c94bc53fc8b5ffc5ef3577e4d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E6=9C=9B=E5=B4=96?= <wangya.zs@alibaba-inc.com>
+Date: Mon, 30 May 2022 19:25:54 +0800
+Subject: [PATCH 1/2] Enable generate static libraries of dcap_quoteverify
+
+---
+ QuoteGeneration/buildenv.mk                   | 10 ++++
+ QuoteGeneration/qcnl/linux/Makefile           | 24 ++++++++--
+ QuoteGeneration/qpl/linux/Makefile            | 24 ++++++++--
+ QuoteVerification/buildenv.mk                 |  2 +-
+ .../dcap_quoteverify/linux/Makefile           | 42 +++++++++++-----
+ .../dcap_quoteverify/linux/config.cpp         | 21 +++++---
+ .../dcap_quoteverify/sgx_dcap_pcs_com.cpp     | 48 +++++++++++++++++--
+ 7 files changed, 138 insertions(+), 33 deletions(-)
+
+diff --git a/QuoteGeneration/buildenv.mk b/QuoteGeneration/buildenv.mk
+index 6084f57..ccfc5df 100644
+--- a/QuoteGeneration/buildenv.mk
++++ b/QuoteGeneration/buildenv.mk
+@@ -194,6 +194,16 @@ CXXFLAGS += $(COMMON_FLAGS)
+ # Enable the security flags
+ COMMON_LDFLAGS := -Wl,-z,relro,-z,now,-z,noexecstack
+ 
++# Enable build static library
++GEN_STATIC ?= 0
++GEN_DYNAMIC ?= 1
++ifeq ($(GEN_DYNAMIC),0)
++    ifeq ($(GEN_STATIC),0)
++        $(info Choose at least one library to build)
++        $(error Aborting)
++    endif
++endif
++
+ # Compiler and linker options for an Enclave
+ #
+ # We are using '--export-dynamic' so that `g_global_data_sim' etc.
+diff --git a/QuoteGeneration/qcnl/linux/Makefile b/QuoteGeneration/qcnl/linux/Makefile
+index 979964d..379f856 100644
+--- a/QuoteGeneration/qcnl/linux/Makefile
++++ b/QuoteGeneration/qcnl/linux/Makefile
+@@ -65,14 +65,25 @@ endif
+ CNL_Lib_Cpp_Objects := $(CNL_Lib_Cpp_Files:.cpp=.o)
+ CNL_Lib_Cpp_Deps := $(CNL_Lib_Cpp_Objects:%.o=%.d)
+ 
+-CNL_Lib_Name_Dynamic  := libsgx_default_qcnl_wrapper.so
++CNL_Lib_Name := libsgx_default_qcnl_wrapper
++CNL_Lib_Name_Dynamic :=  $(CNL_Lib_Name).so
++CNL_Lib_Name_Static := $(CNL_Lib_Name).a
++
+ 
+ .PHONY: all run
+ 
+-all: $(CNL_Lib_Name) install_lib
++all: install_lib
+ 
+-install_lib: $(CNL_Lib_Name_Dynamic) | $(BUILD_DIR)
+-	@$(CP) $(CNL_Lib_Name_Dynamic) $|
++install_lib: $(BUILD_DIR)
++ifeq ($(GEN_DYNAMIC),1)
++	@$(MAKE) $(CNL_Lib_Name_Dynamic)
++	@$(CP) $(CNL_Lib_Name_Dynamic) $(BUILD_DIR)
++endif
++
++ifeq ($(GEN_STATIC),1)
++	@$(MAKE) $(CNL_Lib_Name_Static)
++	@$(CP) $(CNL_Lib_Name_Static) $(BUILD_DIR)
++endif
+ 
+ run: all
+ 
+@@ -87,6 +98,9 @@ $(CNL_Lib_Cpp_Objects): %.o: %.cpp
+ $(CNL_Lib_Name_Dynamic): $(CNL_Lib_Cpp_Objects)
+ 	$(CXX) $(CXXFLAGS) $(CNL_Lib_Cpp_Objects) -shared -Wl,-soname=$@.$(SGX_MAJOR_VER) $(LDUFLAGS) $(CNL_Lib_Link_Flags) -o $@
+ 
++$(CNL_Lib_Name_Static): $(CNL_Lib_Cpp_Objects)
++	$(AR) rsD  $(CNL_Lib_Name_Static) $(CNL_Lib_Cpp_Objects)
++
+ force_look:
+ 	true
+ 
+@@ -96,6 +110,6 @@ $(BUILD_DIR):
+ .PHONY: clean
+ 
+ clean:
+-	@rm -f .config_* $(CNL_Lib_Name) $(CNL_Lib_Cpp_Objects) $(CNL_Lib_Cpp_Deps) $(CNL_Lib_Name_Dynamic) $(CNL_Lib_Name_Dynamic).orig $(CNL_Lib_Name_Dynamic_Debug)
++	@rm -f .config_* $(CNL_Lib_Name) $(CNL_Lib_Cpp_Objects) $(CNL_Lib_Cpp_Deps) $(CNL_Lib_Name_Dynamic) $(CNL_Lib_Name_Dynamic).orig $(CNL_Lib_Name_Dynamic_Debug) $(CNL_Lib_Name_Static)
+ 
+ 
+diff --git a/QuoteGeneration/qpl/linux/Makefile b/QuoteGeneration/qpl/linux/Makefile
+index 8838a6a..adfce35 100644
+--- a/QuoteGeneration/qpl/linux/Makefile
++++ b/QuoteGeneration/qpl/linux/Makefile
+@@ -63,16 +63,27 @@ endif
+ QPL_Lib_Cpp_Objects := $(QPL_Lib_Cpp_Files:.cpp=.o)
+ QPL_Lib_Cpp_Deps := $(QPL_Lib_Cpp_Objects:%.o=%.d)
+ 
+-QPL_Lib_Name_Dynamic  := libdcap_quoteprov.so
++QPL_Lib_Name := libdcap_quoteprov
++QPL_Lib_Name_Dynamic :=  $(QPL_Lib_Name).so
++QPL_Lib_Name_Static := $(QPL_Lib_Name).a
++
+ QPL_VERSION:= $(shell awk '$$2 ~ /DEFAULT_QPL_VERSION/ { print substr($$3, 2, length($$3) - 2); }' $(COMMON_DIR)/inc/internal/se_version.h)
+ QPL_SO_VERSION:= $(shell echo $(QPL_VERSION) |awk -F. '{print $$1}') 
+ 
+ .PHONY: all run
+ 
+-all: $(QPL_Lib_Name) install_lib
++all: install_lib
+ 
+-install_lib: $(QPL_Lib_Name_Dynamic) | $(BUILD_DIR)
+-	@$(CP) $(QPL_Lib_Name_Dynamic) $|
++install_lib: $(BUILD_DIR)
++ifeq ($(GEN_DYNAMIC),1)
++	@$(MAKE) $(QPL_Lib_Name_Dynamic)
++	@$(CP) $(QPL_Lib_Name_Dynamic) $(BUILD_DIR)
++endif
++
++ifeq ($(GEN_STATIC),1)
++	@$(MAKE) $(QPL_Lib_Name_Static)
++	@$(CP) $(QPL_Lib_Name_Static) $(BUILD_DIR)
++endif
+ 
+ run: all
+ 
+@@ -87,12 +98,15 @@ $(QPL_Lib_Cpp_Objects): %.o: %.cpp
+ $(QPL_Lib_Name_Dynamic): $(QPL_Lib_Cpp_Objects)
+ 	$(CXX) $(CXXFLAGS) $(QPL_Lib_Cpp_Objects) -shared -Wl,-soname=$@.$(QPL_SO_VERSION) $(LDUFLAGS) $(QPL_Lib_Link_Flags) -o $@
+ 
++$(QPL_Lib_Name_Static): $(QPL_Lib_Cpp_Objects)
++	$(AR) rsD $(QPL_Lib_Name_Static) $(QPL_Lib_Cpp_Objects)
++
+ force_look:
+ 	true
+ 
+ .PHONY: clean
+ 
+ clean:
+-	@rm -f .config_* $(QPL_Lib_Name) $(QPL_Lib_Cpp_Objects) $(QPL_Lib_Cpp_Deps) $(QPL_Lib_Name_Dynamic) $(QPL_Lib_Name_Dynamic).orig $(QPL_Lib_Name_Dynamic_Debug)
++	@rm -f .config_* $(QPL_Lib_Name) $(QPL_Lib_Cpp_Objects) $(QPL_Lib_Cpp_Deps) $(QPL_Lib_Name_Dynamic) $(QPL_Lib_Name_Dynamic).orig $(QPL_Lib_Name_Dynamic_Debug) $(QPL_Lib_Name_Static)
+ 
+ 
+diff --git a/QuoteVerification/buildenv.mk b/QuoteVerification/buildenv.mk
+index 11e74f8..75d89ed 100644
+--- a/QuoteVerification/buildenv.mk
++++ b/QuoteVerification/buildenv.mk
+@@ -67,7 +67,7 @@ QVL_COMMON_PATH := $(QVL_SRC_PATH)/AttestationCommons
+ 
+ COMMON_INCLUDE := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx -I$(SGXSSL_PACKAGE_PATH)/include
+ 
+-QVL_LIB_INC := -I$(QVL_COMMON_PATH)/include -I$(QVL_COMMON_PATH)/include/Utils -I$(QVL_LIB_PATH)/include -I$(QVL_LIB_PATH)/src -I$(QVL_PARSER_PATH)/include -I$(QVL_SRC_PATH)/ThirdParty/rapidjson/include
++QVL_LIB_INC := -I$(QVL_COMMON_PATH)/include -I$(QVL_COMMON_PATH)/include/Utils -I$(QVL_LIB_PATH)/include -I$(QVL_LIB_PATH)/src -I$(QVL_PARSER_PATH)/include -I$(QVL_SRC_PATH)/ThirdParty/rapidjson/include -I$(DCAP_QG_DIR)/qpl/inc
+ 
+ QVL_PARSER_INC := -I$(QVL_COMMON_PATH)/include -I$(QVL_COMMON_PATH)/include/Utils -I$(QVL_SRC_PATH) -I$(QVL_PARSER_PATH)/include -I$(QVL_PARSER_PATH)/src -I$(QVL_LIB_PATH)/include -I$(QVL_SRC_PATH)/ThirdParty/rapidjson/include
+ 
+diff --git a/QuoteVerification/dcap_quoteverify/linux/Makefile b/QuoteVerification/dcap_quoteverify/linux/Makefile
+index 0822438..a3ba0cd 100644
+--- a/QuoteVerification/dcap_quoteverify/linux/Makefile
++++ b/QuoteVerification/dcap_quoteverify/linux/Makefile
+@@ -67,25 +67,36 @@ QVL_VERIFY_C_SRCS := $(COMMON_DIR)/src/se_trace.c $(COMMON_DIR)/src/se_thread.c
+ QVL_VERIFY_C_SRCS += qve_u.c
+ 
+ QVL_VERIFY_CPP_OBJS := $(QVL_VERIFY_CPP_SRCS:.cpp=.o)
++QVL_VERIFY_CPP_OBJS_STATIC := $(QVL_VERIFY_CPP_SRCS:.cpp=_s.o)
+ QVL_VERIFY_C_OBJS := $(QVL_VERIFY_C_SRCS:.c=.o)
+ 
+ QVE_CPP_SRC ?= $(QVE_SRC_PATH)/Enclave/qve.cpp
+ QVE_CPP_OBJ ?= $(QVE_SRC_PATH)/Enclave/untrusted_qve.o
+ 
+-QVL_VERIFY_LIB_NAME := libsgx_dcap_quoteverify.so
++QVL_VERIFY_LIB_NAME := libsgx_dcap_quoteverify
++QVL_VERIFY_LIB_NAME_Dynamic := $(QVL_VERIFY_LIB_NAME).so
++QVL_VERIFY_LIB_NAME_Static := $(QVL_VERIFY_LIB_NAME).a
+ 
+ 
+ .PHONY: all run
+ 
+ 
+-all: $(QVL_VERIFY_LIB_NAME) install_lib
++all: install_lib
+ 
+ $(BUILD_DIR):
+ 	@$(MKDIR) $@
+ 
+-install_lib: $(QVL_VERIFY_LIB_NAME) | $(BUILD_DIR)
+-	@$(CP) $(QVL_VERIFY_LIB_NAME) $|
+-	ln -sf $|/$(QVL_VERIFY_LIB_NAME) $|/$(QVL_VERIFY_LIB_NAME).1
++install_lib: $(BUILD_DIR)
++ifeq ($(GEN_DYNAMIC),1)
++	@$(MAKE) $(QVL_VERIFY_LIB_NAME_Dynamic)
++	@$(CP) $(QVL_VERIFY_LIB_NAME_Dynamic) $(BUILD_DIR)
++	ln -sf $(BUILD_DIR)/$(QVL_VERIFY_LIB_NAME_Dynamic) $(BUILD_DIR)/$(QVL_VERIFY_LIB_NAME_Dynamic).1
++endif
++
++ifeq ($(GEN_STATIC),1)
++	@$(MAKE) $(QVL_VERIFY_LIB_NAME_Static)
++	@$(CP) $(QVL_VERIFY_LIB_NAME_Static) $(BUILD_DIR)
++endif
+ 
+ 
+ run: all
+@@ -106,6 +117,10 @@ $(QVL_VERIFY_CPP_OBJS): %.o: %.cpp qve_u.h
+ 	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(QVL_VERIFY_INC) -c $< -o $@
+ 	@echo "CXX  <=  $<"
+ 
++$(QVL_VERIFY_CPP_OBJS_STATIC): %_s.o: %.cpp qve_u.h
++	@$(CXX) -DGEN_STATIC $(SGX_COMMON_CXXFLAGS) $(QVL_VERIFY_INC) -c $< -o $@
++	@echo "CXX  <=  $<"
++
+ $(QVE_CPP_OBJ): $(QVE_CPP_SRC)
+ 	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(QVL_VERIFY_INC) -c $< -o $(QVE_CPP_OBJ)
+ 	@echo "CXX  <=  $<"
+@@ -125,25 +140,28 @@ $(QVL_PARSER_NAME): $(QVL_PARSER_OBJS)
+ 	@$(AR) rsD $(QVL_PARSER_NAME) $(QVL_PARSER_OBJS)
+ 
+ 
+-$(QVL_VERIFY_LIB_NAME): $(QVL_VERIFY_CPP_OBJS) $(QVL_VERIFY_C_OBJS) $(QVE_CPP_OBJ) $(QVL_LIB_NAME) $(QVL_PARSER_NAME)
++$(QVL_VERIFY_LIB_NAME_Dynamic): $(QVL_VERIFY_CPP_OBJS) $(QVL_VERIFY_C_OBJS) $(QVE_CPP_OBJ) $(QVL_LIB_NAME) $(QVL_PARSER_NAME)
+ 	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(QVL_VERIFY_CPP_OBJS) $(QVL_VERIFY_C_OBJS) $(QVE_CPP_OBJ) -shared -Wl,-soname=$@.$(SGX_MAJOR_VER) $(LDUFLAGS) -o $@
+-	@ln -sf $(QVL_VERIFY_LIB_NAME) $(QVL_VERIFY_LIB_NAME).1
++	@ln -sf $(QVL_VERIFY_LIB_NAME_Dynamic) $(QVL_VERIFY_LIB_NAME_Dynamic).1
++
++$(QVL_VERIFY_LIB_NAME_Static): $(QVL_VERIFY_CPP_OBJS_STATIC) $(QVL_VERIFY_C_OBJS) $(QVE_CPP_OBJ) $(QVL_LIB_NAME) $(QVL_PARSER_NAME)
++	@$(AR) rsD $(QVL_VERIFY_LIB_NAME_Static) $(QVL_VERIFY_CPP_OBJS_STATIC) $(QVL_VERIFY_C_OBJS) $(QVE_CPP_OBJ)
+ 
+ 
+ force_look:
+ 	true
+ 
+-install: $(QVL_VERIFY_LIB_NAME)
+-	$(CP) $(QVL_VERIFY_LIB_NAME) $(INSTALL_PATH)
+-	ln -sf $(INSTALL_PATH)/$(QVL_VERIFY_LIB_NAME) $(INSTALL_PATH)/$(QVL_VERIFY_LIB_NAME).1
++install: $(QVL_VERIFY_LIB_NAME_Dynamic)
++	$(CP) $(QVL_VERIFY_LIB_NAME_Dynamic) $(INSTALL_PATH)
++	ln -sf $(INSTALL_PATH)/$(QVL_VERIFY_LIB_NAME_Dynamic) $(INSTALL_PATH)/$(QVL_VERIFY_LIB_NAME_Dynamic).1
+ 
+ uninstall:
+-	rm -f $(INSTALL_PATH)/$(QVL_VERIFY_LIB_NAME) $(INSTALL_PATH)/$(QVL_VERIFY_LIB_NAME).1
++	rm -f $(INSTALL_PATH)/$(QVL_VERIFY_LIB_NAME_Dynamic) $(INSTALL_PATH)/$(QVL_VERIFY_LIB_NAME_Dynamic).1
+ 
+ .PHONY: clean
+ 
+ clean:
+-	@rm -f *_u.* $(QVL_VERIFY_CPP_OBJS) $(QVL_VERIFY_C_OBJS) $(QVL_VERIFY_LIB_NAME)
++	@rm -f *_u.* $(QVL_VERIFY_CPP_OBJS) $(QVL_VERIFY_CPP_OBJS_STATIC) $(QVL_VERIFY_C_OBJS) $(QVL_VERIFY_LIB_NAME_Dynamic) $(QVL_VERIFY_LIB_NAME_Static)
+ 	@rm -f $(QVL_LIB_OBJS) $(QVL_PARSER_OBJS)
+ 	@rm -f $(QVL_LIB_NAME) $(QVL_PARSER_NAME)
+ 	@rm -f *.orig *.debug *.1
+diff --git a/QuoteVerification/dcap_quoteverify/linux/config.cpp b/QuoteVerification/dcap_quoteverify/linux/config.cpp
+index caf26b7..80e6d97 100644
+--- a/QuoteVerification/dcap_quoteverify/linux/config.cpp
++++ b/QuoteVerification/dcap_quoteverify/linux/config.cpp
+@@ -44,13 +44,15 @@
+ 
+ #define MAX(x, y) (((x)>(y))?(x):(y))
+ #define PATH_SEPARATOR '/'
+-#define SGX_URTS_LIB_FILE_NAME "libsgx_urts.so.1"
+-#define SGX_QL_QUOTE_CONFIG_LIB_FILE_NAME "libdcap_quoteprov.so.1"
+-#define SGX_QL_QUOTE_CONFIG_LIB_FILE_NAME_LEGACY "libdcap_quoteprov.so"
+ 
++#define SGX_URTS_LIB_FILE_NAME "libsgx_urts.so.1"
+ void *g_urts_handle = NULL;
+ se_mutex_t g_urts_mutex;
+ 
++#ifndef GEN_STATIC
++#define SGX_QL_QUOTE_CONFIG_LIB_FILE_NAME "libdcap_quoteprov.so.1"
++#define SGX_QL_QUOTE_CONFIG_LIB_FILE_NAME_LEGACY "libdcap_quoteprov.so"
++
+ void *g_qpl_handle = NULL;
+ se_mutex_t g_qpl_mutex;
+ 
+@@ -65,6 +67,7 @@ extern sgx_ql_free_root_ca_crl_func_t p_sgx_ql_free_root_ca_crl;
+ 
+ extern tdx_get_quote_verification_collateral_func_t p_tdx_ql_get_quote_verification_collateral;
+ extern tdx_free_quote_verification_collateral_func_t p_tdx_ql_free_quote_verification_collateral;
++#endif
+ 
+ extern sgx_create_enclave_func_t p_sgx_urts_create_enclave;
+ extern sgx_destroy_enclave_func_t p_sgx_urts_destroy_enclave;
+@@ -99,7 +102,7 @@ extern "C" bool sgx_qv_set_qpl_path(const char* p_path)
+     return true;
+ }
+ 
+-
++#ifndef GEN_STATIC
+ bool sgx_dcap_load_qpl()
+ {
+     char *err = NULL;
+@@ -242,6 +245,7 @@ bool sgx_dcap_load_qpl()
+ 
+     return ret;
+ }
++#endif
+ 
+ 
+ bool sgx_dcap_load_urts()
+@@ -401,7 +405,9 @@ __attribute__((constructor)) void _qv_global_constructor()
+ {
+     se_mutex_init(&g_urts_mutex);
+ 
++#ifndef GEN_STATIC
+     se_mutex_init(&g_qpl_mutex);
++#endif
+ 
+     return;
+ }
+@@ -414,7 +420,10 @@ __attribute__((destructor)) void _qv_global_destructor()
+ {
+     // Try to unload Quote Provider library
+     //
+-    int rc = se_mutex_lock(&g_qpl_mutex);
++    int rc = 0;
++
++#ifndef GEN_STATIC
++    rc = se_mutex_lock(&g_qpl_mutex);
+     if (rc != 1) {
+         SE_TRACE(SE_TRACE_ERROR, "Failed to lock qpl mutex\n");
+         //destroy the mutex before lib is unloaded, even there are some errs here
+@@ -453,7 +462,7 @@ __attribute__((destructor)) void _qv_global_destructor()
+     }
+ 
+     se_mutex_destroy(&g_qpl_mutex);
+-
++#endif
+ 
+     // Try to unload sgx urts library
+     //
+diff --git a/QuoteVerification/dcap_quoteverify/sgx_dcap_pcs_com.cpp b/QuoteVerification/dcap_quoteverify/sgx_dcap_pcs_com.cpp
+index 04cb419..02c0528 100644
+--- a/QuoteVerification/dcap_quoteverify/sgx_dcap_pcs_com.cpp
++++ b/QuoteVerification/dcap_quoteverify/sgx_dcap_pcs_com.cpp
+@@ -41,6 +41,9 @@
+ #include "se_trace.h"
+ 
+ 
++#ifdef GEN_STATIC
++#include "sgx_default_quote_provider.h"
++#else
+ sgx_get_quote_verification_collateral_func_t p_sgx_ql_get_quote_verification_collateral = NULL;
+ sgx_free_quote_verification_collateral_func_t p_sgx_ql_free_quote_verification_collateral = NULL;
+ 
+@@ -52,7 +55,7 @@ sgx_ql_free_root_ca_crl_func_t p_sgx_ql_free_root_ca_crl = NULL;
+ 
+ tdx_get_quote_verification_collateral_func_t p_tdx_ql_get_quote_verification_collateral = NULL;
+ tdx_free_quote_verification_collateral_func_t p_tdx_ql_free_quote_verification_collateral = NULL;
+-
++#endif
+ 
+ /**
+  * Dynamically load sgx_ql_get_quote_verification_collateral symbol and call it.
+@@ -79,6 +82,7 @@ quote3_error_t sgx_dcap_retrieve_verification_collateral(
+         return SGX_QL_ERROR_INVALID_PARAMETER;
+     }
+ 
++#ifndef GEN_STATIC
+     if (!sgx_dcap_load_qpl() || !p_sgx_ql_get_quote_verification_collateral) {
+         return SGX_QL_PLATFORM_LIB_UNAVAILABLE;
+     }
+@@ -90,7 +94,13 @@ quote3_error_t sgx_dcap_retrieve_verification_collateral(
+         fmspc_size,
+         pck_ca,
+         pp_quote_collateral);
+-
++#else
++    return sgx_ql_get_quote_verification_collateral(
++        (const uint8_t*)fmspc,
++        fmspc_size,
++        pck_ca,
++        pp_quote_collateral);
++#endif
+ }
+ 
+ /**
+@@ -110,6 +120,7 @@ quote3_error_t sgx_dcap_free_verification_collateral(struct _sgx_ql_qve_collater
+         return SGX_QL_ERROR_INVALID_PARAMETER;
+     }
+ 
++#ifndef GEN_STATIC
+     if (!sgx_dcap_load_qpl() || !p_sgx_ql_free_quote_verification_collateral) {
+         return SGX_QL_PLATFORM_LIB_UNAVAILABLE;
+     }
+@@ -117,6 +128,9 @@ quote3_error_t sgx_dcap_free_verification_collateral(struct _sgx_ql_qve_collater
+     //call p_sgx_ql_free_quote_verification_collateral to free allocated memory
+     //
+     return p_sgx_ql_free_quote_verification_collateral(p_quote_collateral);
++#else
++    return sgx_ql_free_quote_verification_collateral(p_quote_collateral);
++#endif
+ }
+ 
+ /**
+@@ -151,6 +165,7 @@ quote3_error_t sgx_dcap_retrieve_qve_identity(
+         return SGX_QL_ERROR_INVALID_PARAMETER;
+     }
+ 
++#ifndef GEN_STATIC
+     if (!sgx_dcap_load_qpl() || !p_sgx_ql_get_qve_identity) {
+         return SGX_QL_PLATFORM_LIB_UNAVAILABLE;
+     }
+@@ -171,7 +186,20 @@ quote3_error_t sgx_dcap_retrieve_qve_identity(
+     ret = p_sgx_ql_get_root_ca_crl(
+         pp_root_ca_crl,
+         p_root_ca_crl_size);
++#else
++    ret = sgx_ql_get_qve_identity(
++        (char **)pp_qveid,
++        p_qveid_size,
++        (char **)pp_qveid_issue_chain,
++        p_qveid_issue_chain_size);
++
++    if (ret != SGX_QL_SUCCESS)
++        return ret;
+ 
++    ret = sgx_ql_get_root_ca_crl(
++        pp_root_ca_crl,
++        p_root_ca_crl_size);
++#endif
+     return ret;
+ }
+ 
+@@ -204,6 +232,7 @@ quote3_error_t sgx_dcap_free_qve_identity(
+         return SGX_QL_ERROR_INVALID_PARAMETER;
+     }
+ 
++#ifndef GEN_STATIC
+     if (!sgx_dcap_load_qpl() || !p_sgx_ql_free_qve_identity || !p_sgx_ql_free_root_ca_crl) {
+         return SGX_QL_PLATFORM_LIB_UNAVAILABLE;
+     }
+@@ -218,7 +247,11 @@ quote3_error_t sgx_dcap_free_qve_identity(
+     //ignore error
+     //
+     ret =  p_sgx_ql_free_root_ca_crl(p_root_ca_crl);
++#else
++    ret =  sgx_ql_free_qve_identity((char *)p_qveid, (char *)p_qveid_issue_chain);
+ 
++    ret =  sgx_ql_free_root_ca_crl(p_root_ca_crl);
++#endif
+     return ret;
+ }
+ 
+@@ -238,7 +271,7 @@ quote3_error_t sgx_dcap_free_qve_identity(
+  **/
+ quote3_error_t tdx_dcap_retrieve_verification_collateral(
+     const char *fmspc,
+-    uint16_t fmspc_size,
++    __attribute__((unused))uint16_t fmspc_size,
+     const char *pck_ca,
+     struct _sgx_ql_qve_collateral_t **pp_quote_collateral)
+ {
+@@ -247,6 +280,7 @@ quote3_error_t tdx_dcap_retrieve_verification_collateral(
+         return SGX_QL_ERROR_INVALID_PARAMETER;
+     }
+ 
++#ifndef GEN_STATIC
+     if (!sgx_dcap_load_qpl() || !p_tdx_ql_get_quote_verification_collateral) {
+         return SGX_QL_PLATFORM_LIB_UNAVAILABLE;
+     }
+@@ -258,7 +292,9 @@ quote3_error_t tdx_dcap_retrieve_verification_collateral(
+         fmspc_size,
+         pck_ca,
+         pp_quote_collateral);
+-
++#else
++    return SGX_QL_PLATFORM_LIB_UNAVAILABLE;
++#endif
+ }
+ 
+ /**
+@@ -278,6 +314,7 @@ quote3_error_t tdx_dcap_free_verification_collateral(struct _sgx_ql_qve_collater
+         return SGX_QL_ERROR_INVALID_PARAMETER;
+     }
+ 
++#ifndef GEN_STATIC
+     if (!sgx_dcap_load_qpl() || !p_tdx_ql_free_quote_verification_collateral) {
+         return SGX_QL_PLATFORM_LIB_UNAVAILABLE;
+     }
+@@ -285,4 +322,7 @@ quote3_error_t tdx_dcap_free_verification_collateral(struct _sgx_ql_qve_collater
+     //call p_sgx_ql_free_quote_verification_collateral to free allocated memory
+     //
+     return p_tdx_ql_free_quote_verification_collateral(p_quote_collateral);
++#else
++    return SGX_QL_PLATFORM_LIB_UNAVAILABLE;
++#endif
+ }
+-- 
+2.17.1
+

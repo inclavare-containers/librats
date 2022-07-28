@@ -10,7 +10,9 @@
 #include <sys/stat.h>
 #include <librats/log.h>
 #include "sev_utils.h"
+#ifndef WASM
 #include <curl/curl.h>
+#endif
 
 bool reverse_bytes(uint8_t *bytes, size_t size)
 {
@@ -61,6 +63,7 @@ int read_file(const char *filename, void *buffer, size_t len)
 	return count;
 }
 
+#ifndef WASM
 static size_t curl_writefunc_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
 {
 	size_t written = fwrite(ptr, size, nmemb, stream);
@@ -115,3 +118,4 @@ err:
 	}
 	return ret;
 }
+#endif

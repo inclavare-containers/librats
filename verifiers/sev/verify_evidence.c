@@ -48,10 +48,15 @@ int generate_ark_ask_cert(amd_cert *ask_cert, amd_cert *ark_cert, enum ePSP_DEVI
 
 	/* Don't re-download the ASK/ARK from the KDS server if you already have it */
 	if (get_file_size(ark_ask_cert_patch) == 0) {
+#ifdef WASM
+		RATS_ERR("No ark_ask_cert in %s\n", ark_ask_cert_patch);
+		return -1;
+#else
 		if (download_from_url(url, ark_ask_cert_patch) != 0) {
 			RATS_ERR("failed to download %s\n", ark_ask_cert_patch);
 			return -1;
 		}
+#endif
 	}
 
 	/* Read in the ask_ark so we can split it into 2 separate cert files */
