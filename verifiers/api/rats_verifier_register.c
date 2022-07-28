@@ -14,13 +14,13 @@
 rats_verifier_err_t rats_verifier_register(const rats_verifier_opts_t *opts)
 {
 	if (!opts)
-		return -RATS_VERIFIER_ERR_INVALID;
+		return RATS_VERIFIER_ERR_INVALID;
 
 	RATS_DEBUG("registering the rats verifier '%s' ...\n", opts->name);
 
 	rats_verifier_opts_t *new_opts = (rats_verifier_opts_t *)malloc(sizeof(*new_opts));
 	if (!new_opts)
-		return -RATS_VERIFIER_ERR_NO_MEM;
+		return RATS_VERIFIER_ERR_NO_MEM;
 
 	memcpy(new_opts, opts, sizeof(*new_opts));
 
@@ -53,5 +53,5 @@ rats_verifier_err_t rats_verifier_register(const rats_verifier_opts_t *opts)
 
 err:
 	free(new_opts);
-	return -RATS_VERIFIER_ERR_INVALID;
+	return RATS_VERIFIER_ERR_INVALID;
 }

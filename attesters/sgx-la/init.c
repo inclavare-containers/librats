@@ -15,7 +15,7 @@ rats_attester_err_t sgx_la_attester_init(rats_attester_ctx_t *ctx)
 
 	sgx_la_ctx_t *sgx_la_ctx = calloc(1, sizeof(*sgx_la_ctx));
 	if (!sgx_la_ctx)
-		return -RATS_ATTESTER_ERR_NO_MEM;
+		return RATS_ATTESTER_ERR_NO_MEM;
 
 	sgx_la_ctx->eid = ctx->enclave_id;
 	ctx->attester_private = sgx_la_ctx;

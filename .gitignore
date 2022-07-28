@@ -2,3 +2,13 @@ build
 Cargo.lock
 aeb.rs
 aeb_ttrpc.rs
+wasm/lib/*
+*.a
+*.bin
+*.dat
+.vscode
+sample
+SGXDataCenterAttestationPrimitives
+emsdk-*
+openssl-*
+install

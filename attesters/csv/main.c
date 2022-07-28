@@ -12,7 +12,7 @@ extern rats_attester_err_t rats_attester_register(rats_attester_opts_t *opts);
 extern rats_attester_err_t csv_attester_pre_init(void);
 extern rats_attester_err_t csv_attester_init(rats_attester_ctx_t *ctx);
 extern rats_attester_err_t csv_collect_evidence(rats_attester_ctx_t *ctx,
-						attestation_evidence_t *evidence, uint8_t *hash,
+						attestation_evidence_t *evidence, const uint8_t *hash,
 						uint32_t hash_len);
 extern rats_attester_err_t csv_attester_cleanup(rats_attester_ctx_t *ctx);
 

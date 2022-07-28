@@ -25,7 +25,12 @@
 // clang-format off
 static inline void cpuid(int *eax, int *ebx, int *ecx, int *edx)
 {
-#if defined(__x86_64__)
+#if defined(WASM)
+	*eax = 0;
+	*ebx = 0;
+	*ecx = 0;
+	*edx = 0;
+#elif defined(__x86_64__)
 	asm volatile("cpuid"
 		     : "=a"(*eax), "=b"(*ebx), "=c"(*ecx), "=d"(*edx)
 		     : "0"(*eax), "1"(*ebx), "2"(*ecx), "3"(*edx)

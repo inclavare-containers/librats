@@ -22,6 +22,7 @@ set(SOURCES cleanup.c
             init.c
             main.c
             pre_init.c
+            utils.c
             )
 
 # Generate library

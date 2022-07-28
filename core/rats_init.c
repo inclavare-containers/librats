@@ -35,6 +35,7 @@ rats_attester_err_t rats_attest_init(rats_conf_t *conf, rats_core_context_t *ctx
 {
 	RATS_DEBUG("called\n");
 
+	char *choice = NULL;
 	rats_global_log_level = rats_loglevel_getenv("RATS_GLOBAL_LOG_LEVEL");
 	if (rats_global_log_level == (rats_log_level_t)-1) {
 		RATS_FATAL("failed to get log level from env\n");
@@ -45,16 +46,16 @@ rats_attester_err_t rats_attest_init(rats_conf_t *conf, rats_core_context_t *ctx
 	rats_global_core_context.config.log_level = rats_global_log_level;
 
 	if (!conf)
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 
 	RATS_DEBUG("conf %p\n", conf);
 
 	if (!ctx)
-		return -RATS_ATTESTER_ERR_NO_MEM;
+		return RATS_ATTESTER_ERR_NO_MEM;
 
 	ctx->config = *conf;
 
-	rats_attester_err_t err = -RATS_ATTESTER_ERR_INVALID;
+	rats_attester_err_t err = RATS_ATTESTER_ERR_INVALID;
 
 	if (ctx->config.api_version > RATS_API_VERSION_MAX) {
 		RATS_ERR("unsupported rats api version %d > %d\n", ctx->config.api_version,
@@ -69,26 +70,27 @@ rats_attester_err_t rats_attest_init(rats_conf_t *conf, rats_core_context_t *ctx
 	}
 
 	rats_global_log_level = ctx->config.log_level;
-
+	if (rats_attester_nums == 0) {
 #ifdef SGX
-	for (uint8_t i = 0; i < RATS_ATTESTER_NUM; i++) {
-		err = rats_attester_init(rats_attester_name[i], NULL, NULL);
+		for (uint8_t i = 0; i < RATS_ATTESTER_NUM; i++) {
+			err = rats_attester_init(rats_attester_name[i], NULL, NULL);
+			if (err != RATS_ATTESTER_ERR_NONE) {
+				RATS_ERR("failed to initialize rats instance: %s\n",
+					 rats_attester_name[i]);
+				rats_exit();
+			}
+		}
+#else
+		/* Load all rats attester instances */
+		err = rats_attester_load_all();
 		if (err != RATS_ATTESTER_ERR_NONE) {
-			RATS_ERR("failed to initialize rats instance: %s\n", rats_attester_name[i]);
+			RATS_FATAL("failed to load any rats attester %#x\n", err);
 			rats_exit();
 		}
-	}
-#else
-	/* Load all rats attester instances */
-	err = rats_attester_load_all();
-	if (err != RATS_ATTESTER_ERR_NONE) {
-		RATS_FATAL("failed to load any rats attester %#x\n", err);
-		rats_exit();
-	}
-
 #endif
+	}
 	/* Select the target attester to be used */
-	char *choice = ctx->config.attester_type;
+	choice = ctx->config.attester_type;
 	if (choice[0] == '\0') {
 		choice = rats_global_core_context.config.attester_type;
 		if (choice[0] == '\0')
@@ -106,6 +108,7 @@ rats_verifier_err_t rats_verify_init(rats_conf_t *conf, rats_core_context_t *ctx
 {
 	RATS_DEBUG("called\n");
 
+	char *choice = NULL;
 	rats_global_log_level = rats_loglevel_getenv("RATS_GLOBAL_LOG_LEVEL");
 	if (rats_global_log_level == (rats_log_level_t)-1) {
 		RATS_FATAL("failed to get log level from env\n");
@@ -116,16 +119,16 @@ rats_verifier_err_t rats_verify_init(rats_conf_t *conf, rats_core_context_t *ctx
 	rats_global_core_context.config.log_level = rats_global_log_level;
 
 	if (!conf)
-		return -RATS_VERIFIER_ERR_INVALID;
+		return RATS_VERIFIER_ERR_INVALID;
 
 	RATS_DEBUG("conf %p\n", conf);
 
 	if (!ctx)
-		return -RATS_VERIFIER_ERR_NO_MEM;
+		return RATS_VERIFIER_ERR_NO_MEM;
 
 	ctx->config = *conf;
 
-	rats_verifier_err_t err = -RATS_VERIFIER_ERR_INVALID;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_INVALID;
 
 	if (ctx->config.api_version > RATS_API_VERSION_MAX) {
 		RATS_ERR("unsupported rats api version %d > %d\n", ctx->config.api_version,
@@ -141,24 +144,27 @@ rats_verifier_err_t rats_verify_init(rats_conf_t *conf, rats_core_context_t *ctx
 
 	rats_global_log_level = ctx->config.log_level;
 
+	if (rats_verifier_nums == 0) {
 #ifdef SGX
-	for (uint8_t i = 0; i < RATS_VERIFIER_NUM; i++) {
-		err = rats_verifier_init(rats_verifier_name[i], NULL, NULL);
+		for (uint8_t i = 0; i < RATS_VERIFIER_NUM; i++) {
+			err = rats_verifier_init(rats_verifier_name[i], NULL, NULL);
+			if (err != RATS_VERIFIER_ERR_NONE) {
+				RATS_ERR("failed to initialize rats instance: %s\n",
+					 rats_verifier_name[i]);
+				rats_exit();
+			}
+		}
+#else
+		/* Load all rats verifier instances */
+		err = rats_verifier_load_all();
 		if (err != RATS_VERIFIER_ERR_NONE) {
-			RATS_ERR("failed to initialize rats instance: %s\n", rats_verifier_name[i]);
+			RATS_FATAL("failed to load any rats verifier %#x\n", err);
 			rats_exit();
 		}
-	}
-#else
-	/* Load all rats verifier instances */
-	err = rats_verifier_load_all();
-	if (err != RATS_VERIFIER_ERR_NONE) {
-		RATS_FATAL("failed to load any rats verifier %#x\n", err);
-		rats_exit();
-	}
 #endif
+	}
 	/* Select the target verifier to be used */
-	char *choice = ctx->config.verifier_type;
+	choice = ctx->config.verifier_type;
 	if (choice[0] == '\0') {
 		choice = rats_global_core_context.config.verifier_type;
 		if (choice[0] == '\0')

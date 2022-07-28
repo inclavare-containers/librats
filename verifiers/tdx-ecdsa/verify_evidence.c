@@ -13,15 +13,15 @@
 rats_verifier_err_t ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_ctx_t *ctx,
 					  const char *name, attestation_evidence_t *evidence,
 					  __attribute__((unused)) uint32_t evidence_len,
-					  uint8_t *hash, uint32_t hash_len)
+					  const uint8_t *hash, uint32_t hash_len)
 {
-	rats_verifier_err_t err = -RATS_VERIFIER_ERR_UNKNOWN;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 
 	/* Verify the hash value */
 	if (memcmp(hash, ((tdx_quote_t *)(evidence->tdx.quote))->report_body.report_data,
 		   hash_len) != 0) {
 		RATS_ERR("unmatched hash value in evidence.\n");
-		return -RATS_VERIFIER_ERR_INVALID;
+		return RATS_VERIFIER_ERR_INVALID;
 	}
 
 	/* Call DCAP quote verify library to get supplemental data size */
@@ -34,7 +34,7 @@ rats_verifier_err_t ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_
 		p_supplemental_data = (uint8_t *)malloc(supplemental_data_size);
 		if (!p_supplemental_data) {
 			RATS_ERR("failed to malloc supplemental data space.\n");
-			return -RATS_VERIFIER_ERR_NO_MEM;
+			return RATS_VERIFIER_ERR_NO_MEM;
 		}
 	} else {
 		RATS_ERR("failed to get quote supplemental data size by sgx qv: %04x\n", dcap_ret);
@@ -89,12 +89,12 @@ errret:
 }
 
 rats_verifier_err_t tdx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
-					      attestation_evidence_t *evidence, uint8_t *hash,
+					      attestation_evidence_t *evidence, const uint8_t *hash,
 					      __attribute__((unused)) uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
-	rats_verifier_err_t err = -RATS_VERIFIER_ERR_UNKNOWN;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 	err = ecdsa_verify_evidence(ctx, ctx->opts->name, evidence, sizeof(attestation_evidence_t),
 				    hash, hash_len);
 	if (err != RATS_VERIFIER_ERR_NONE)
