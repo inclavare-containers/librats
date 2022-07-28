@@ -50,6 +50,18 @@
 
  Note that [SGX LVI mitigation](https://software.intel.com/security-software-guidance/advisory-guidance/load-value-injection) is enabled by default. You can set macro `SGX_LVI_MITIGATION` to `0` to disable SGX LVI mitigation.
 
+ 3. Wasm support
+
+ Librats provides support for [WebAssembly](https://webassembly.org), which enables it to run in the browser. To build it, please type the following command.
+
+ ```shell
+ source wasm/pre_build.sh
+ cmake -DRATS_BUILD_MODE="wasm"  -H. -Bbuild
+ make -C build
+ ```
+
+ When the compilation is finished, you can find the results in build/wasm.
+
  # RUN
 
  Right now, Librats supports the following instance types:

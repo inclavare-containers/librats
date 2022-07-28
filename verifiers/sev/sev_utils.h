@@ -29,6 +29,8 @@
 bool reverse_bytes(uint8_t *bytes, size_t size);
 int get_file_size(char *name);
 int read_file(const char *filename, void *buffer, size_t len);
+#ifndef WASM
 int download_from_url(const char *url, const char *file_path);
+#endif
 
 #endif /* _SEV_UTILS_H */

@@ -2,9 +2,11 @@
 project(verifier_sgx_ecdsa)
 
 # Set include directory
-list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
-if(OCCLUM)
-    list(APPEND INCLUDE_DIRS ${SGXSDK_INSTALL_INCLUDE_PATH})
+list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${SGXSDK_INSTALL_INCLUDE_PATH})
+if(WASM)
+    list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../wasm/dcap/SGXDataCenterAttestationPrimitives/QuoteVerification/dcap_quoteverify/inc
+                             ${CMAKE_CURRENT_SOURCE_DIR}/../../wasm/dcap/SGXDataCenterAttestationPrimitives/QuoteGeneration/quote_wrapper/ql/inc
+                             )
 endif()
 include_directories(${INCLUDE_DIRS})
 
@@ -31,9 +33,26 @@ set(SOURCES cleanup.c
             verify_evidence.c
             )
 
+if(WASM)
+    set(WASM_FETCH_FLAG -sASYNCIFY_IMPORTS=['sgx_qv_verify_quote'])
+endif()
+
 # Generate library
 if(SGX)
     add_trusted_library(${PROJECT_NAME} SRCS ${SOURCES})
+elseif(WASM)
+    add_library(${PROJECT_NAME} SHARED ${SOURCES})
+    target_link_libraries(${PROJECT_NAME} ${RATS_LDFLAGS} ${WASM_SIDE_ASYNC_FLAGS} ${WASM_FETCH_FLAG})
+    add_custom_command(TARGET ${PROJECT_NAME}
+                       POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.so ${WASM_BUILD_DIR}
+                       )
+    if(DEBUG)
+        add_custom_command(TARGET ${PROJECT_NAME}
+                           POST_BUILD
+                           COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.so.map ${WASM_BUILD_DIR}
+                           )
+    endif()
 else()
     add_library(${PROJECT_NAME} SHARED ${SOURCES})
     target_link_libraries(${PROJECT_NAME} ${EXTRA_LINK_LIBRARY} ${RATS_LDFLAGS} ${RATS_LIB})
@@ -41,5 +60,6 @@ else()
 endif()
 
 # Install library
-install(TARGETS ${PROJECT_NAME}
-	DESTINATION ${RATS_INSTALL_LIBV_PATH})
+if(NOT WASM)
+    install(TARGETS ${PROJECT_NAME} DESTINATION ${RATS_INSTALL_LIBV_PATH})
+endif()

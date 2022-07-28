@@ -10,8 +10,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "utils.h"
-
+#ifndef WASM
 #include "../../attesters/sev-snp/utils.c"
+#endif
 
 bool reverse_bytes(uint8_t *bytes, size_t size)
 {

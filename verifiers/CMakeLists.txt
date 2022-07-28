@@ -10,7 +10,7 @@ else()
     add_subdirectory(sgx-ecdsa)
 endif()
 
-if(HOST)
+if(HOST OR WASM)
     add_subdirectory(sev-snp)
     add_subdirectory(sev)
     add_subdirectory(csv)
