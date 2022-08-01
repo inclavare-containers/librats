@@ -18,24 +18,21 @@
 int generate_ark_ask_cert(amd_cert *ask_cert, amd_cert *ark_cert, enum ePSP_DEVICE_TYPE device_type)
 {
 	char *ark_ask_cert_patch;
-	char *default_dir = NULL;
+	char *default_dir = SEV_DEFAULT_DIR;
 	char *url = NULL;
 	struct stat st;
 
 	switch (device_type) {
 	case PSP_DEVICE_TYPE_NAPLES:
-		default_dir = SEV_NAPLES_DEFAULT_DIR;
-		ark_ask_cert_patch = SEV_NAPLES_DEFAULT_DIR ASK_ARK_FILENAME;
+		ark_ask_cert_patch = SEV_DEFAULT_DIR ASK_ARK_NAPLES_FILE;
 		url = ASK_ARK_NAPLES_SITE;
 		break;
 	case PSP_DEVICE_TYPE_ROME:
-		default_dir = SEV_ROME_DEFAULT_DIR;
-		ark_ask_cert_patch = SEV_ROME_DEFAULT_DIR ASK_ARK_FILENAME;
+		ark_ask_cert_patch = SEV_DEFAULT_DIR ASK_ARK_ROME_FILE;
 		url = ASK_ARK_ROME_SITE;
 		break;
 	case PSP_DEVICE_TYPE_MILAN:
-		default_dir = SEV_MILAN_DEFAULT_DIR;
-		ark_ask_cert_patch = SEV_MILAN_DEFAULT_DIR ASK_ARK_FILENAME;
+		ark_ask_cert_patch = SEV_DEFAULT_DIR ASK_ARK_MILAN_FILE;
 		url = ASK_ARK_MILAN_SITE;
 		break;
 	default:
@@ -51,10 +48,15 @@ int generate_ark_ask_cert(amd_cert *ask_cert, amd_cert *ark_cert, enum ePSP_DEVI
 
 	/* Don't re-download the ASK/ARK from the KDS server if you already have it */
 	if (get_file_size(ark_ask_cert_patch) == 0) {
+#ifdef WASM
+		RATS_ERR("No ark_ask_cert in %s\n", ark_ask_cert_patch);
+		return -1;
+#else
 		if (download_from_url(url, ark_ask_cert_patch) != 0) {
 			RATS_ERR("failed to download %s\n", ark_ask_cert_patch);
 			return -1;
 		}
+#endif
 	}
 
 	/* Read in the ask_ark so we can split it into 2 separate cert files */
@@ -91,7 +93,7 @@ int generate_ark_ask_cert(amd_cert *ask_cert, amd_cert *ark_cert, enum ePSP_DEVI
 rats_verifier_err_t validate_cert_chain(sev_evidence_t *sev_evidence, amd_cert *ark_cert,
 					amd_cert *ask_cert)
 {
-	rats_verifier_err_t err = -RATS_VERIFIER_ERR_INVALID;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_INVALID;
 	sev_cert *cek = &sev_evidence->cek_cert;
 	sev_cert *pek = &sev_evidence->pek_cert;
 	sev_cert *oca = &sev_evidence->oca_cert;
@@ -144,11 +146,11 @@ rats_verifier_err_t validate_cert_chain(sev_evidence_t *sev_evidence, amd_cert *
 }
 
 rats_verifier_err_t sev_verify_evidence(rats_verifier_ctx_t *ctx, attestation_evidence_t *evidence,
-					uint8_t *hash, uint32_t hash_len)
+					const uint8_t *hash, uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
-	rats_verifier_err_t err = -RATS_VERIFIER_ERR_UNKNOWN;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 	sev_evidence_t *sev_evidence = (sev_evidence_t *)(evidence->sev.report);
 
 	/* SEV(-ES) do NOT support self-defined user_data, therefore we skip the
@@ -160,8 +162,8 @@ rats_verifier_err_t sev_verify_evidence(rats_verifier_ctx_t *ctx, attestation_ev
 	amd_cert ark_cert;
 	enum ePSP_DEVICE_TYPE device_type = sev_evidence->device_type;
 	if (generate_ark_ask_cert(&ask_cert, &ark_cert, device_type) == -1) {
-		RATS_ERR("failed to load ASK cert %x\n");
-		return -RATS_VERIFIER_ERR_INVALID;
+		RATS_ERR("failed to load ASK cert\n");
+		return RATS_VERIFIER_ERR_INVALID;
 	}
 
 	err = validate_cert_chain(sev_evidence, &ark_cert, &ask_cert);

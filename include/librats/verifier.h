@@ -45,7 +45,7 @@ typedef struct rats_verifier_opts {
 	rats_verifier_err_t (*pre_init)(void);
 	rats_verifier_err_t (*init)(rats_verifier_ctx_t *ctx);
 	rats_verifier_err_t (*verify_evidence)(rats_verifier_ctx_t *ctx,
-					       attestation_evidence_t *evidence, uint8_t *hash,
+					       attestation_evidence_t *evidence, const uint8_t *hash,
 					       uint32_t hash_len);
 	rats_verifier_err_t (*collect_collateral)(rats_verifier_ctx_t *ctx);
 	rats_verifier_err_t (*cleanup)(rats_verifier_ctx_t *ctx);

@@ -35,7 +35,7 @@ static int tdx_get_report(const tdx_report_data_t *report_data, tdx_report_t *td
 	return 0;
 }
 
-static int tdx_gen_quote(uint8_t *hash, uint8_t *quote_buf, uint32_t *quote_size)
+static int tdx_gen_quote(const uint8_t *hash, uint8_t *quote_buf, uint32_t *quote_size)
 {
 	if (hash == NULL) {
 		RATS_ERR("empty hash pointer.\n");
@@ -82,7 +82,7 @@ static int tdx_gen_quote(uint8_t *hash, uint8_t *quote_buf, uint32_t *quote_size
 }
 
 rats_attester_err_t tdx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
-					       attestation_evidence_t *evidence, uint8_t *hash,
+					       attestation_evidence_t *evidence, const uint8_t *hash,
 					       __attribute__((unused)) uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
@@ -90,7 +90,7 @@ rats_attester_err_t tdx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 	evidence->tdx.quote_len = sizeof(evidence->tdx.quote);
 	if (tdx_gen_quote(hash, evidence->tdx.quote, &evidence->tdx.quote_len)) {
 		RATS_ERR("failed to generate quote\n");
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 	}
 
 	RATS_DEBUG("Succeed to generate the quote!\n");

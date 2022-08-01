@@ -13,14 +13,14 @@
 static rats_verifier_err_t init_rats_verifier(rats_core_context_t *ctx,
 					      rats_verifier_ctx_t *verifier_ctx)
 {
-	RATS_DEBUG("init rats verifier rats_core_context: %#x\n", ctx);
+	RATS_DEBUG("init rats verifier rats_core_context: %p\n", ctx);
 	rats_verifier_err_t err = verifier_ctx->opts->init(verifier_ctx);
 
 	if (err != RATS_VERIFIER_ERR_NONE)
-		return -RATS_VERIFIER_ERR_INIT;
+		return RATS_VERIFIER_ERR_INIT;
 
 	if (!verifier_ctx->verifier_private)
-		return -RATS_VERIFIER_ERR_INIT;
+		return RATS_VERIFIER_ERR_INIT;
 
 	return RATS_VERIFIER_ERR_NONE;
 }
@@ -34,9 +34,9 @@ rats_verifier_err_t rats_verifier_select(rats_core_context_t *ctx, const char *n
 		if (name && strcmp(name, rats_verifiers_ctx[i]->opts->name))
 			continue;
 
-		verifier_ctx = malloc(sizeof(*verifier_ctx));
+		verifier_ctx = (rats_verifier_ctx_t *)malloc(sizeof(*verifier_ctx));
 		if (!verifier_ctx)
-			return -RATS_VERIFIER_ERR_NO_MEM;
+			return RATS_VERIFIER_ERR_NO_MEM;
 
 		memcpy(verifier_ctx, rats_verifiers_ctx[i], sizeof(*verifier_ctx));
 
@@ -59,7 +59,7 @@ rats_verifier_err_t rats_verifier_select(rats_core_context_t *ctx, const char *n
 		else
 			RATS_ERR("failed to select the rats verifier '%s'\n", name);
 
-		return -RATS_VERIFIER_ERR_INVALID;
+		return RATS_VERIFIER_ERR_INVALID;
 	}
 
 	/* Explicitly specify the rats verifier which will never be changed */

@@ -7,7 +7,6 @@ set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../include
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/internal
                  ${CMAKE_CURRENT_SOURCE_DIR}
                  ${SGXSDK_INSTALL_INCLUDE_PATH}
-                 /usr/include
                  )
 include_directories(${INCLUDE_DIRS})
 

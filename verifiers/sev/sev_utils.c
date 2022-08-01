@@ -9,7 +9,9 @@
 #include <librats/log.h>
 #include "../sev-snp/utils.c"
 #include "sev_utils.h"
+#ifndef WASM
 #include <curl/curl.h>
+#endif
 
 int get_file_size(char *name)
 {
@@ -33,7 +35,7 @@ int read_file(const char *filename, void *buffer, size_t len)
 
 	if ((count = fread(buffer, 1, len, fp)) != len) {
 		fclose(fp);
-		RATS_ERR("failed to read %s with count %d\n", filename, count);
+		RATS_ERR("failed to read %s with count %lu\n", filename, count);
 		return 0;
 	}
 
@@ -41,7 +43,8 @@ int read_file(const char *filename, void *buffer, size_t len)
 	return count;
 }
 
-size_t curl_writefunc_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
+#ifndef WASM
+static size_t curl_writefunc_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
 {
 	size_t written = fwrite(ptr, size, nmemb, stream);
 	return written;
@@ -95,3 +98,5 @@ err:
 	}
 	return ret;
 }
+
+#endif

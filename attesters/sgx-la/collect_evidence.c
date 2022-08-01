@@ -11,7 +11,7 @@
 #include <sgx_report.h>
 #include "sgx_la.h"
 
-extern sgx_status_t sgx_generate_evidence(uint8_t *hash, sgx_report_t *app_report);
+extern sgx_status_t sgx_generate_evidence(const uint8_t *hash, sgx_report_t *app_report);
 
 /* The local attestation requires to exchange the target info between ISV
  * ratss as the prerequisite. This is out of scope in librats because it
@@ -23,7 +23,7 @@ extern sgx_status_t sgx_generate_evidence(uint8_t *hash, sgx_report_t *app_repor
  * it presents ISV rats's local report has been fully verified.
  */
 rats_attester_err_t sgx_la_collect_evidence(rats_attester_ctx_t *ctx,
-					    attestation_evidence_t *evidence, uint8_t *hash,
+					    attestation_evidence_t *evidence, const uint8_t *hash,
 					    __attribute__((unused)) uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);

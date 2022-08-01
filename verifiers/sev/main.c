@@ -11,7 +11,7 @@ extern rats_verifier_err_t rats_verifier_register(rats_verifier_opts_t *opts);
 extern rats_verifier_err_t sev_verifier_pre_init(void);
 extern rats_verifier_err_t sev_verifier_init(rats_verifier_ctx_t *ctx);
 extern rats_verifier_err_t sev_verify_evidence(rats_verifier_ctx_t *ctx,
-					       attestation_evidence_t *evidence, uint8_t *hash,
+					       attestation_evidence_t *evidence, const uint8_t *hash,
 					       uint32_t hash_len);
 extern rats_verifier_err_t sev_verifier_cleanup(rats_verifier_ctx_t *ctx);
 

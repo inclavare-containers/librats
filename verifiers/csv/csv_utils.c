@@ -24,7 +24,7 @@ int sm3_hmac(const char *key, size_t key_len, const unsigned char *data, size_t 
 	if (!HMAC_Update(hmac_ctx, data, data_len))
 		goto err_free_hmac_ctx;
 
-	if (!HMAC_Final(hmac_ctx, hmac, &sm3_hmac_out_size))
+	if (!HMAC_Final(hmac_ctx, hmac, (unsigned int *)&sm3_hmac_out_size))
 		goto err_free_hmac_ctx;
 
 	if (sm3_hmac_out_size != expected_hmac_len)

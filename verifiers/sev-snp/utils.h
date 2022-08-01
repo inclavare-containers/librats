@@ -9,6 +9,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#ifndef WASM
+#include "../../attesters/sev-snp/sev_snp.h"
+#endif
 
 bool reverse_bytes(uint8_t *bytes, size_t size);
 

@@ -12,7 +12,7 @@ extern rats_verifier_err_t rats_verifier_register(rats_verifier_opts_t *);
 extern rats_verifier_err_t nullverifier_pre_init(void);
 extern rats_verifier_err_t nullverifier_init(rats_verifier_ctx_t *);
 extern rats_verifier_err_t nullverifier_verify_evidence(rats_verifier_ctx_t *,
-							attestation_evidence_t *, uint8_t *,
+							attestation_evidence_t *, const uint8_t *,
 							uint32_t hash_len);
 extern rats_verifier_err_t nullverifier_cleanup(rats_verifier_ctx_t *);
 

@@ -1,0 +1,468 @@
+From 838a9cd828976fbe5d5e4fe465c104a6a60c9d98 Mon Sep 17 00:00:00 2001
+From: wangya <wangya.zs@alibaba-inc.com>
+Date: Tue, 19 Jul 2022 17:39:15 +0800
+Subject: [PATCH 2/2] Add Wasm support
+
+---
+ QuoteGeneration/buildenv.mk                   |   4 +
+ QuoteGeneration/common/src/se_thread.c        |  19 ++-
+ QuoteGeneration/qcnl/inc/qcnl_config.h        |   2 +-
+ QuoteGeneration/qcnl/linux/Makefile           |   5 +-
+ .../qcnl/linux/network_wrapper.cpp            | 134 ++++++++++++++++++
+ .../qcnl/linux/qcnl_config_impl.cpp           |   5 +-
+ .../AttestationCommons/src/Utils/GMTime.cpp   |   2 +-
+ .../src/PckParser/PckParser.cpp               |   2 +
+ .../AttestationParsers/src/ParserUtils.cpp    |   2 +
+ QuoteVerification/buildenv.mk                 |  11 +-
+ .../dcap_quoteverify/linux/Makefile           |   4 +-
+ .../dcap_quoteverify/sgx_dcap_pcs_com.cpp     |   8 +-
+ .../dcap_quoteverify/sgx_dcap_quoteverify.cpp |  17 ++-
+ 13 files changed, 202 insertions(+), 13 deletions(-)
+
+diff --git a/QuoteGeneration/buildenv.mk b/QuoteGeneration/buildenv.mk
+index ccfc5df..9053a38 100644
+--- a/QuoteGeneration/buildenv.mk
++++ b/QuoteGeneration/buildenv.mk
+@@ -104,12 +104,16 @@ ifeq ($(CC_NO_LESS_THAN_8), 1)
+ endif
+ 
+ # turn on stack protector for SDK
++ifndef WASM
+ CC_BELOW_4_9 := $(shell expr "`$(CC) -dumpversion`" \< "4.9")
+ ifeq ($(CC_BELOW_4_9), 1)
+     COMMON_FLAGS += -fstack-protector
+ else
+     COMMON_FLAGS += -fstack-protector-strong
+ endif
++else
++    COMMON_FLAGS += -fno-stack-protector
++endif
+ 
+ ifdef DEBUG
+     COMMON_FLAGS += -O0 -ggdb -DDEBUG -UNDEBUG
+diff --git a/QuoteGeneration/common/src/se_thread.c b/QuoteGeneration/common/src/se_thread.c
+index f4904e0..8c0656c 100644
+--- a/QuoteGeneration/common/src/se_thread.c
++++ b/QuoteGeneration/common/src/se_thread.c
+@@ -59,6 +59,19 @@ int	se_tls_set_value(se_tls_index_t tls_index, void *tls_value) { return TlsSetV
+ 
+ void se_mutex_init(se_mutex_t* mutex)
+ {
++#ifdef __EMSCRIPTEN__
++    pthread_mutexattr_t attr;
++    int r;
++
++    pthread_mutexattr_init(&attr);
++
++    r = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
++
++    if (r == 0)
++        r = pthread_mutex_init(mutex, &attr);
++
++    pthread_mutexattr_destroy(&attr);
++#else
+ #ifdef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
+     se_mutex_t tmp = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+ #elif defined(PTHREAD_RECURSIVE_MUTEX_INITIALIZER)
+@@ -69,6 +82,7 @@ void se_mutex_init(se_mutex_t* mutex)
+ 
+     /* C doesn't allow `*mutex = PTHREAD_..._INITIALIZER'.*/
+     memcpy(mutex, &tmp, sizeof(tmp));
++#endif
+ }
+ 
+ int se_mutex_lock(se_mutex_t* mutex) { return (0 == pthread_mutex_lock(mutex)); }
+@@ -85,8 +99,11 @@ int se_thread_cond_wait(se_cond_t *cond, se_mutex_t *mutex){return (0 == pthread
+ int se_thread_cond_signal(se_cond_t *cond){return (0 == pthread_cond_signal(cond));}
+ int se_thread_cond_broadcast(se_cond_t *cond){return (0 == pthread_cond_broadcast(cond));}
+ int se_thread_cond_destroy(se_cond_t* cond){return (0 == pthread_cond_destroy(cond));}
+-
++#ifndef __EMSCRIPTEN__
+ unsigned int se_get_threadid(void) { return (unsigned)syscall(__NR_gettid);}
++#else
++unsigned int se_get_threadid(void) { return (unsigned)gettid();}
++#endif
+ /* tls functions */
+ int se_tls_alloc(se_tls_index_t *tls_index) { return !pthread_key_create(tls_index, NULL); }
+ int se_tls_free(se_tls_index_t tls_index) { return !pthread_key_delete(tls_index); }
+diff --git a/QuoteGeneration/qcnl/inc/qcnl_config.h b/QuoteGeneration/qcnl/inc/qcnl_config.h
+index fcc3c62..77c43c5 100644
+--- a/QuoteGeneration/qcnl/inc/qcnl_config.h
++++ b/QuoteGeneration/qcnl/inc/qcnl_config.h
+@@ -75,7 +75,7 @@ protected:
+     // custom request options for Azure
+     Document custom_request_options_;
+ 
+-    QcnlConfig() : server_url_("https://localhost:8081/sgx/certification/v3/"),
++    QcnlConfig() : server_url_("https://sgx-dcap-server.cn-hangzhou.aliyuncs.com/sgx/certification/v3/"),
+                    use_secure_cert_(true),
+                    collateral_service_url_(server_url_),
+                    collateral_version_("3.0"),
+diff --git a/QuoteGeneration/qcnl/linux/Makefile b/QuoteGeneration/qcnl/linux/Makefile
+index 379f856..9c8c4d6 100644
+--- a/QuoteGeneration/qcnl/linux/Makefile
++++ b/QuoteGeneration/qcnl/linux/Makefile
+@@ -55,7 +55,10 @@ ifdef SELF_SIGNED_CERT
+ CNL_Lib_Cpp_Flags+= -DSELF_SIGNED_CERT
+ endif
+ 
+-CNL_Lib_Link_Flags := $(SGX_COMMON_FLAGS) -g -L$(TOP_DIR)/build/linux -L$(SGX_SDK)/lib64 -lpthread -ldl -lcurl
++CNL_Lib_Link_Flags := $(SGX_COMMON_FLAGS) -g -L$(TOP_DIR)/build/linux -L$(SGX_SDK)/lib64 -lpthread
++ifndef WASM
++CNL_Lib_Link_Flags += -ldl -lcurl
++endif
+  
+ ifndef DEBUG
+ CNL_Lib_Cpp_Flags += -DDISABLE_TRACE
+diff --git a/QuoteGeneration/qcnl/linux/network_wrapper.cpp b/QuoteGeneration/qcnl/linux/network_wrapper.cpp
+index 5c8ea1f..983aa95 100644
+--- a/QuoteGeneration/qcnl/linux/network_wrapper.cpp
++++ b/QuoteGeneration/qcnl/linux/network_wrapper.cpp
+@@ -39,7 +39,13 @@
+ #include "qcnl_config.h"
+ #include "se_memcpy.h"
+ #include "sgx_default_qcnl_wrapper.h"
++#ifndef __EMSCRIPTEN__
+ #include <curl/curl.h>
++#else
++#include <emscripten.h>
++#include "writer.h"
++#include "stringbuffer.h"
++#endif
+ #include <unistd.h>
+ 
+ typedef struct _network_malloc_info_t {
+@@ -78,6 +84,7 @@ static size_t write_callback(void *ptr, size_t size, size_t nmemb, void *stream)
+  *
+  * @return Collateral Network Library Error Codes
+  */
++#ifndef __EMSCRIPTEN__
+ static sgx_qcnl_error_t curl_error_to_qcnl_error(CURLcode curl_error) {
+     switch (curl_error) {
+     case CURLE_OK:
+@@ -102,6 +109,7 @@ static sgx_qcnl_error_t curl_error_to_qcnl_error(CURLcode curl_error) {
+         return SGX_QCNL_NETWORK_ERROR;
+     }
+ }
++#endif
+ 
+ /**
+  * This method converts PCCS HTTP status codes to QCNL error codes
+@@ -144,6 +152,7 @@ static sgx_qcnl_error_t pccs_status_to_qcnl_error(long pccs_status_code) {
+  *
+  * @return SGX_QCNL_SUCCESS Call https post successfully. Other return codes indicate an error occured.
+  */
++#ifndef __EMSCRIPTEN__
+ sgx_qcnl_error_t qcnl_https_request(const char *url,
+                                     http_header_map &header_map,
+                                     const char *req_body,
+@@ -293,3 +302,128 @@ cleanup:
+ 
+     return ret;
+ }
++#else
++EM_JS(char *, dcap_fetch_proxy, (const char *cUrl, const char *cOptions), {
++	return Asyncify.handleSleep(function(wakeUp) {
++		const url = AsciiToString(cUrl);
++		const options = JSON.parse(AsciiToString(cOptions));
++		let headerStr = "";
++		let retJson = {
++			headers : "",
++			body : "",
++			status:-1
++		};
++		fetch(new Request(url), options)
++			.then(async(response) => {
++				retJson.status = response.status;
++				if(response.status === 200)
++				{
++					for (let[key, value] of response.headers)
++					{
++						const tmp = key + ": " + value + "\n";
++						headerStr += tmp;
++					}
++					retJson.headers = headerStr;
++					const text = await response.text();
++					retJson.body = String(text);
++				};
++				const jsonStr = JSON.stringify(retJson);
++				const lengthBytes = lengthBytesUTF8(jsonStr) + 1;
++				const result = _malloc(lengthBytes);
++				stringToUTF8(jsonStr, result, lengthBytes);
++				setTimeout(wakeUp(result), 0);
++			})
++			.catch(error => {
++				const jsonStr = JSON.stringify(retJson);
++				var lengthBytes = lengthBytesUTF8(jsonStr) + 1;
++				var result = _malloc(lengthBytes);
++				stringToUTF8(jsonStr, result, lengthBytes);
++				setTimeout(wakeUp(result), 0);
++			});
++	});
++});
++
++sgx_qcnl_error_t qcnl_https_request(const char *url,
++                                    http_header_map &header_map,
++                                    const char *req_body,
++                                    uint32_t req_body_size,
++                                    const uint8_t *user_token,
++                                    uint16_t user_token_size,
++                                    char **resp_msg,
++                                    uint32_t &resp_size,
++                                    char **resp_header,
++                                    uint32_t &header_size)
++{
++	sgx_qcnl_error_t ret = SGX_QCNL_NETWORK_ERROR;
++    Document optJson;
++    optJson.SetObject();
++    Document::AllocatorType& allocator = optJson.GetAllocator();
++    Value user_token_str(kStringType);
++    Value req_body_str(kStringType);
++    Value headers(kObjectType);
++
++	if (user_token && user_token_size > 0)
++	{
++        headers.AddMember("Content-Type", "application/json",allocator);
++        user_token_str.SetString(reinterpret_cast<const char *>(user_token), user_token_size);
++        headers.AddMember("user-token", user_token_str,allocator);
++	}
++    http_header_map::iterator it = header_map.begin();
++    while (it != header_map.end()) {
++        headers.AddMember(StringRef(it->first.c_str(),it->first.length()), StringRef(it->second.c_str(),it->second.length()),allocator);
++        it++;
++    }
++	if (req_body && req_body_size > 0)
++	{
++        optJson.AddMember("method","POST",allocator);
++        req_body_str.SetString(req_body, req_body_size);
++        optJson.AddMember("body",req_body_str,allocator);
++        optJson.AddMember("Content-Length",req_body_size,allocator);
++	}
++	else
++        optJson.AddMember("method", "GET", allocator);
++    optJson.AddMember("cache", "default", allocator);
++    optJson.AddMember("headers", headers, allocator);
++
++    StringBuffer strBuffer;
++    Writer<StringBuffer> writer(strBuffer);
++    optJson.Accept(writer);
++    std::string options = strBuffer.GetString();
++	char *cstr = dcap_fetch_proxy(url, options.c_str());
++    std::string str(cstr);
++    free(cstr);
++    Document retJson;
++    retJson.Parse(str.c_str());
++
++    if (retJson.HasParseError() || !retJson.IsObject())
++        return ret;
++    if (!retJson.HasMember("status") || !retJson["status"].IsInt())
++        return ret;
++
++    int status = retJson["status"].GetInt();
++    if (status == 200)
++    {
++        if (!retJson.HasMember("headers") || !retJson["headers"].IsString() ||
++            !retJson.HasMember("body") || !retJson["body"].IsString())
++            return ret;
++        std::string retHeader = retJson["headers"].GetString();
++        std::string retBody = retJson["body"].GetString();
++        uint32_t headersLen = retHeader.length();
++        uint32_t bodyLen = retBody.length();
++        *resp_header = (char *)malloc(headersLen);
++        memset(*resp_header, 0, headersLen);
++        *resp_msg = (char *)malloc(bodyLen);
++        memset(*resp_msg, 0, bodyLen);
++        memcpy(*resp_header, retHeader.c_str(), headersLen);
++        header_size = headersLen;
++        memcpy(*resp_msg, retBody.c_str(),bodyLen);
++        resp_size = bodyLen;
++        ret = SGX_QCNL_SUCCESS;
++    }
++    else if (status == -1)
++            ret = SGX_QCNL_NETWORK_ERROR;
++    else
++        ret = pccs_status_to_qcnl_error(status);
++    return ret;
++}
++#endif
+\ No newline at end of file
+diff --git a/QuoteGeneration/qcnl/linux/qcnl_config_impl.cpp b/QuoteGeneration/qcnl/linux/qcnl_config_impl.cpp
+index 6094925..e2dd409 100644
+--- a/QuoteGeneration/qcnl/linux/qcnl_config_impl.cpp
++++ b/QuoteGeneration/qcnl/linux/qcnl_config_impl.cpp
+@@ -38,14 +38,15 @@
+ #include "istreamwrapper.h"
+ #include "qcnl_config.h"
+ #include <algorithm>
+-#include <curl/curl.h>
+ #include <fstream>
+-
++#ifndef __EMSCRIPTEN__
++#include <curl/curl.h>
+ static struct init_solib {
+     init_solib() {
+         curl_global_init(CURL_GLOBAL_DEFAULT);
+     }
+ } _init_solib;
++#endif
+ 
+ bool QcnlConfigLegacy::load_config() {
+     // read configuration File
+diff --git a/QuoteVerification/QVL/Src/AttestationCommons/src/Utils/GMTime.cpp b/QuoteVerification/QVL/Src/AttestationCommons/src/Utils/GMTime.cpp
+index b963c0b..d422f39 100644
+--- a/QuoteVerification/QVL/Src/AttestationCommons/src/Utils/GMTime.cpp
++++ b/QuoteVerification/QVL/Src/AttestationCommons/src/Utils/GMTime.cpp
+@@ -42,7 +42,7 @@
+ #define FALSE	0
+ #define TRUE	1
+ 
+-#ifdef _MSC_VER
++#if defined(_MSC_VER) || defined(__EMSCRIPTEN__)
+ #include <stdint.h>
+ typedef int32_t	    int_fast32_t;
+ typedef int64_t     int_fast64_t;
+diff --git a/QuoteVerification/QVL/Src/AttestationLibrary/src/PckParser/PckParser.cpp b/QuoteVerification/QVL/Src/AttestationLibrary/src/PckParser/PckParser.cpp
+index f81791b..dc961fc 100644
+--- a/QuoteVerification/QVL/Src/AttestationLibrary/src/PckParser/PckParser.cpp
++++ b/QuoteVerification/QVL/Src/AttestationLibrary/src/PckParser/PckParser.cpp
+@@ -413,7 +413,9 @@ bool initialized = false;
+ std::time_t asn1TimeToTimet(
+         const ASN1_TIME* asn1Time)
+ {
++#ifndef __EMSCRIPTEN__
+     static_assert(sizeof(std::time_t) >= sizeof(int64_t), "std::time_t size too small, the dates may overflow");
++#endif
+     static constexpr int64_t SECONDS_IN_A_DAY = 24 * 60 * 60;
+ 
+     int pday;
+diff --git a/QuoteVerification/QVL/Src/AttestationParsers/src/ParserUtils.cpp b/QuoteVerification/QVL/Src/AttestationParsers/src/ParserUtils.cpp
+index f1021b4..8523ece 100644
+--- a/QuoteVerification/QVL/Src/AttestationParsers/src/ParserUtils.cpp
++++ b/QuoteVerification/QVL/Src/AttestationParsers/src/ParserUtils.cpp
+@@ -177,7 +177,9 @@ std::string getNameEntry(X509_NAME* name, int nid)
+ std::time_t asn1TimeToTimet(
+         const ASN1_TIME* asn1Time)
+ {
++#ifndef __EMSCRIPTEN__
+     static_assert(sizeof(std::time_t) >= sizeof(int64_t), "std::time_t size too small, the dates may overflow");
++#endif
+     static constexpr int64_t SECONDS_IN_A_DAY = 24 * 60 * 60;
+ 
+     int pday;
+diff --git a/QuoteVerification/buildenv.mk b/QuoteVerification/buildenv.mk
+index 75d89ed..afd444a 100644
+--- a/QuoteVerification/buildenv.mk
++++ b/QuoteVerification/buildenv.mk
+@@ -57,8 +57,15 @@ QVL_SRC_PATH 			?= $(DCAP_QV_DIR)/QVL/Src
+ SGXSSL_PACKAGE_PATH 	?= $(DCAP_QV_DIR)/sgxssl/Linux/package
+ PREBUILD_OPENSSL_PATH	?= $(DCAP_QV_DIR)/../prebuilt/openssl
+ 
+-SGX_COMMON_CFLAGS := $(COMMON_FLAGS) -m64 -Wjump-misses-init -Wstrict-prototypes -Wunsuffixed-float-constants
+-SGX_COMMON_CXXFLAGS := $(COMMON_FLAGS) -m64 -Wnon-virtual-dtor -std=c++14
++SGX_COMMON_CFLAGS := $(COMMON_FLAGS)  -Wjump-misses-init -Wstrict-prototypes -Wunsuffixed-float-constants
++SGX_COMMON_CXXFLAGS := $(COMMON_FLAGS) -Wnon-virtual-dtor -std=c++14
++ifdef WASM
++SGX_COMMON_CFLAGS += -m32
++SGX_COMMON_CXXFLAGS += -m32
++else
++SGX_COMMON_CFLAGS += -m64
++SGX_COMMON_CXXFLAGS += -m64
++endif
+ 
+ 
+ QVL_LIB_PATH := $(QVL_SRC_PATH)/AttestationLibrary
+diff --git a/QuoteVerification/dcap_quoteverify/linux/Makefile b/QuoteVerification/dcap_quoteverify/linux/Makefile
+index a3ba0cd..0424296 100644
+--- a/QuoteVerification/dcap_quoteverify/linux/Makefile
++++ b/QuoteVerification/dcap_quoteverify/linux/Makefile
+@@ -114,11 +114,11 @@ $(QVL_VERIFY_C_OBJS): %.o: %.c qve_u.c
+ 	@echo "CC  <=  $<"
+ 
+ $(QVL_VERIFY_CPP_OBJS): %.o: %.cpp qve_u.h
+-	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(QVL_VERIFY_INC) -c $< -o $@
++	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(QVL_VERIFY_INC) -I../../../QuoteGeneration/qpl/inc -c $< -o $@
+ 	@echo "CXX  <=  $<"
+ 
+ $(QVL_VERIFY_CPP_OBJS_STATIC): %_s.o: %.cpp qve_u.h
+-	@$(CXX) -DGEN_STATIC $(SGX_COMMON_CXXFLAGS) $(QVL_VERIFY_INC) -c $< -o $@
++	@$(CXX) -DGEN_STATIC $(SGX_COMMON_CXXFLAGS) $(QVL_VERIFY_INC) -I../../../QuoteGeneration/qpl/inc -c $< -o $@
+ 	@echo "CXX  <=  $<"
+ 
+ $(QVE_CPP_OBJ): $(QVE_CPP_SRC)
+diff --git a/QuoteVerification/dcap_quoteverify/sgx_dcap_pcs_com.cpp b/QuoteVerification/dcap_quoteverify/sgx_dcap_pcs_com.cpp
+index 02c0528..4639687 100644
+--- a/QuoteVerification/dcap_quoteverify/sgx_dcap_pcs_com.cpp
++++ b/QuoteVerification/dcap_quoteverify/sgx_dcap_pcs_com.cpp
+@@ -293,7 +293,11 @@ quote3_error_t tdx_dcap_retrieve_verification_collateral(
+         pck_ca,
+         pp_quote_collateral);
+ #else
+-    return SGX_QL_PLATFORM_LIB_UNAVAILABLE;
++    return tdx_ql_get_quote_verification_collateral(
++        (const uint8_t *)fmspc,
++        fmspc_size,
++        pck_ca,
++        pp_quote_collateral);
+ #endif
+ }
+ 
+@@ -323,6 +327,6 @@ quote3_error_t tdx_dcap_free_verification_collateral(struct _sgx_ql_qve_collater
+     //
+     return p_tdx_ql_free_quote_verification_collateral(p_quote_collateral);
+ #else
+-    return SGX_QL_PLATFORM_LIB_UNAVAILABLE;
++    return tdx_ql_free_quote_verification_collateral(p_quote_collateral);
+ #endif
+ }
+diff --git a/QuoteVerification/dcap_quoteverify/sgx_dcap_quoteverify.cpp b/QuoteVerification/dcap_quoteverify/sgx_dcap_quoteverify.cpp
+index 26aa51a..9e0c9e8 100644
+--- a/QuoteVerification/dcap_quoteverify/sgx_dcap_quoteverify.cpp
++++ b/QuoteVerification/dcap_quoteverify/sgx_dcap_quoteverify.cpp
+@@ -361,6 +361,7 @@ quote3_error_t tee_get_verification_supplemental_data_size(
+     tee_qv_base *p_trusted_qv = NULL;
+     tee_qv_base *p_untrusted_qv = NULL;
+ 
++#ifndef __EMSCRIPTEN__
+     do {
+         //create and initialize QvE
+         //
+@@ -405,6 +406,17 @@ quote3_error_t tee_get_verification_supplemental_data_size(
+         }
+ 
+     } while (0);
++#else
++
++    if (tee_type == SGX_EVIDENCE)
++    {
++        p_untrusted_qv = new sgx_qv();
++    }
++    else if (tee_type == TDX_EVIDENCE)
++    {
++        p_untrusted_qv = new tdx_qv();
++    }
++#endif
+ 
+     do {
+         //call untrusted API to get supplemental data version
+@@ -519,6 +531,7 @@ quote3_error_t tee_verify_evidence(
+     tee_qv_base *p_tee_qv = NULL;
+ 
+     do {
++#ifndef __EMSCRIPTEN__
+         if (p_qve_report_info) {
+             //try to load QvE for trusted quote verification
+             //
+@@ -551,7 +564,9 @@ quote3_error_t tee_verify_evidence(
+ 
+         //untrsuted quote verification
+         //
+-        else {
++        else
++#endif
++        {
+             try {
+                 if (tee_type == SGX_EVIDENCE)
+                     p_tee_qv = new sgx_qv();
+-- 
+2.17.1
+
