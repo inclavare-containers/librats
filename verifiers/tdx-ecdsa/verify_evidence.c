@@ -13,7 +13,7 @@
 rats_verifier_err_t ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_ctx_t *ctx,
 					  const char *name, attestation_evidence_t *evidence,
 					  __attribute__((unused)) uint32_t evidence_len,
-					  uint8_t *hash, uint32_t hash_len)
+					  const uint8_t *hash, uint32_t hash_len)
 {
 	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 
@@ -89,7 +89,7 @@ errret:
 }
 
 rats_verifier_err_t tdx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
-					      attestation_evidence_t *evidence, uint8_t *hash,
+					      attestation_evidence_t *evidence, const uint8_t *hash,
 					      __attribute__((unused)) uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);

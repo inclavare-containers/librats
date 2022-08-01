@@ -8,7 +8,7 @@
 #include <librats/verifier.h>
 
 rats_verifier_err_t nullverifier_verify_evidence(rats_verifier_ctx_t *ctx,
-						 attestation_evidence_t *evidence, uint8_t *hash,
+						 attestation_evidence_t *evidence, const uint8_t *hash,
 						 __attribute__((unused)) unsigned int hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);

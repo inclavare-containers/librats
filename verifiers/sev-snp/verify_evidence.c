@@ -21,7 +21,7 @@
 #include "utils.h"
 
 rats_verifier_err_t sev_snp_verify_evidence(rats_verifier_ctx_t *ctx,
-					    attestation_evidence_t *evidence, uint8_t *hash,
+					    attestation_evidence_t *evidence, const uint8_t *hash,
 					    uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);

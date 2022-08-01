@@ -169,7 +169,7 @@ rats_attester_err_t sev_snp_get_vcek_der(const uint8_t *chip_id, size_t chip_id_
 }
 
 rats_attester_err_t sev_snp_collect_evidence(rats_attester_ctx_t *ctx,
-					     attestation_evidence_t *evidence, uint8_t *hash,
+					     attestation_evidence_t *evidence, const uint8_t *hash,
 					     uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
