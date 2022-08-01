@@ -55,7 +55,7 @@ rats_verifier_err_t ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_
 	memcpy(pquote, evidence->ecdsa.quote, evidence->ecdsa.quote_len);
 
 	uint32_t quote_size = (uint32_t)sizeof(sgx_quote3_t) + pquote->signature_data_len;
-	RATS_DEBUG("quote size is %d, quote signature_data_len is %d\n", quote_size,
+	RATS_DEBUG("quote size is %u, quote signature_data_len is %u\n", quote_size,
 		   pquote->signature_data_len);
 
 	/* First verify the hash value */

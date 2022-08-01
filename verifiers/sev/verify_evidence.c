@@ -80,7 +80,7 @@ int generate_ark_ask_cert(amd_cert *ask_cert, amd_cert *ark_cert, enum ePSP_DEVI
 
 	/* Check the usage of the ASK and ARK */
 	if (ask_cert->key_usage != AMD_USAGE_ASK || ark_cert->key_usage != AMD_USAGE_ARK) {
-		RATS_ERR("certificate Usage %d did not match expected value %d\n",
+		RATS_ERR("certificate Usage %u did not match expected value %d\n",
 			 ask_cert->key_usage, AMD_USAGE_ASK);
 		return -1;
 	}

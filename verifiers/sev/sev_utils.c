@@ -34,7 +34,7 @@ int read_file(const char *filename, void *buffer, size_t len)
 
 	if ((count = fread(buffer, 1, len, fp)) != len) {
 		fclose(fp);
-		RATS_ERR("failed to read %s with count %d\n", filename, count);
+		RATS_ERR("failed to read %s with count %lu\n", filename, count);
 		return 0;
 	}
 
