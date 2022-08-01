@@ -10,7 +10,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "../../attesters/sev/sev.h"
-#include "../sev-snp/utils.h"
 
 #define SEV_DEFAULT_DIR	       "/opt/sev/"
 #define SEV_NAPLES_DEFAULT_DIR SEV_DEFAULT_DIR "naple"

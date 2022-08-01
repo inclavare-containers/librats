@@ -6,8 +6,9 @@
 
 #include <stdio.h>
 #include <stddef.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <librats/log.h>
-#include "../sev-snp/utils.c"
 #include "sev_utils.h"
 #include <curl/curl.h>
 
