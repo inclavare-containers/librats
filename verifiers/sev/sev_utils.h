@@ -12,14 +12,10 @@
 #include "../../attesters/sev/sev.h"
 
 #define SEV_DEFAULT_DIR	       "/opt/sev/"
-#define SEV_NAPLES_DEFAULT_DIR SEV_DEFAULT_DIR "naple"
-#define SEV_ROME_DEFAULT_DIR   SEV_DEFAULT_DIR "rome"
-#define SEV_MILAN_DEFAULT_DIR  SEV_DEFAULT_DIR "milan"
 
 #define AMD_SEV_DEVELOPER_SITE "https://developer.amd.com/sev/"
 #define ASK_ARK_PATH_SITE      "https://developer.amd.com/wp-content/resources/"
 
-#define ASK_ARK_FILENAME    "ask_ark.cert"
 #define ASK_ARK_NAPLES_FILE "ask_ark_naples.cert"
 #define ASK_ARK_ROME_FILE   "ask_ark_rome.cert"
 #define ASK_ARK_MILAN_FILE  "ask_ark_milan.cert"
