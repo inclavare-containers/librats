@@ -47,7 +47,7 @@ rats_log_level_t rats_loglevel_getenv(const char *name)
     char *log_level_str = NULL;
     size_t log_level_len = 32;
 
-    log_level_str = calloc(1, log_level_len);
+    log_level_str = (char *)calloc(1, log_level_len);
     if (!log_level_str) {
         RATS_ERR("failed to calloc log level string\n");
         return -1;

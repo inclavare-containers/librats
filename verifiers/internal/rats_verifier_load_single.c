@@ -45,7 +45,7 @@ rats_verifier_err_t rats_verifier_post_init(const char *name, void *handle)
 		}
 	}
 
-	rats_verifier_ctx_t *verifier_ctx = calloc(1, sizeof(*verifier_ctx));
+	rats_verifier_ctx_t *verifier_ctx = (rats_verifier_ctx_t *)calloc(1, sizeof(*verifier_ctx));
 	if (!verifier_ctx)
 		return RATS_VERIFIER_ERR_NO_MEM;
 

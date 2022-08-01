@@ -39,7 +39,7 @@ rats_attester_err_t rats_attester_select(rats_core_context_t *ctx, const char *n
 		if (name && strcmp(name, rats_attesters_ctx[i]->opts->name))
 			continue;
 
-		attester_ctx = malloc(sizeof(*attester_ctx));
+		attester_ctx = (rats_attester_ctx_t *)malloc(sizeof(*attester_ctx));
 		if (!attester_ctx)
 			return RATS_ATTESTER_ERR_NO_MEM;
 

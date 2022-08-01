@@ -46,7 +46,7 @@ rats_attester_err_t rats_attester_post_init(const char *name, void *handle)
 		}
 	}
 
-	rats_attester_ctx_t *attester_ctx = calloc(1, sizeof(*attester_ctx));
+	rats_attester_ctx_t *attester_ctx = (rats_attester_ctx_t *)calloc(1, sizeof(*attester_ctx));
 	if (!attester_ctx)
 		return RATS_ATTESTER_ERR_NO_MEM;
 

@@ -13,7 +13,7 @@ rats_verifier_err_t tdx_ecdsa_verifier_init(rats_verifier_ctx_t *ctx)
 {
 	RATS_DEBUG("ctx %p\n", ctx);
 
-	tdx_ctx_t *tdx_ctx = calloc(1, sizeof(*tdx_ctx));
+	tdx_ctx_t *tdx_ctx = (tdx_ctx_t *)calloc(1, sizeof(*tdx_ctx));
 	if (!tdx_ctx)
 		return RATS_VERIFIER_ERR_NO_MEM;
 

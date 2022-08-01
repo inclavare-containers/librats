@@ -34,7 +34,7 @@ rats_verifier_err_t rats_verifier_select(rats_core_context_t *ctx, const char *n
 		if (name && strcmp(name, rats_verifiers_ctx[i]->opts->name))
 			continue;
 
-		verifier_ctx = malloc(sizeof(*verifier_ctx));
+		verifier_ctx = (rats_verifier_ctx_t *)malloc(sizeof(*verifier_ctx));
 		if (!verifier_ctx)
 			return RATS_VERIFIER_ERR_NO_MEM;
 

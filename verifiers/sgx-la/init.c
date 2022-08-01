@@ -13,7 +13,7 @@ rats_verifier_err_t sgx_la_verifier_init(rats_verifier_ctx_t *ctx)
 {
 	RATS_DEBUG("ctx %p\n", ctx);
 
-	sgx_la_ctx_t *sgx_la_ctx = calloc(1, sizeof(*sgx_la_ctx));
+	sgx_la_ctx_t *sgx_la_ctx = (sgx_la_ctx_t *)calloc(1, sizeof(*sgx_la_ctx));
 	if (!sgx_la_ctx)
 		return RATS_VERIFIER_ERR_NO_MEM;
 
