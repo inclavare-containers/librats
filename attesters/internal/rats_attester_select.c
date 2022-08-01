@@ -14,7 +14,7 @@
 static rats_attester_err_t init_rats_attester(rats_core_context_t *ctx,
 					      rats_attester_ctx_t *attester_ctx)
 {
-	RATS_DEBUG("called rats core ctx: %#x rats attester ctx: %#x\n", ctx, attester_ctx);
+	RATS_DEBUG("called rats core ctx: %p rats attester ctx: %p\n", ctx, attester_ctx);
 
 	rats_attester_err_t err = attester_ctx->opts->init(attester_ctx);
 	if (err != RATS_ATTESTER_ERR_NONE)

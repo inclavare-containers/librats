@@ -13,7 +13,7 @@
 static rats_verifier_err_t init_rats_verifier(rats_core_context_t *ctx,
 					      rats_verifier_ctx_t *verifier_ctx)
 {
-	RATS_DEBUG("init rats verifier rats_core_context: %#x\n", ctx);
+	RATS_DEBUG("init rats verifier rats_core_context: %p\n", ctx);
 	rats_verifier_err_t err = verifier_ctx->opts->init(verifier_ctx);
 
 	if (err != RATS_VERIFIER_ERR_NONE)
