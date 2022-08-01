@@ -12,7 +12,7 @@ rats_verifier_err_t sgx_ecdsa_qve_verifier_init(rats_verifier_ctx_t *ctx)
 {
 	RATS_DEBUG("ctx %p\n", ctx);
 
-	sgx_ecdsa_ctx_t *sgx_ecdsa_ctx = calloc(1, sizeof(*sgx_ecdsa_ctx));
+	sgx_ecdsa_ctx_t *sgx_ecdsa_ctx = (sgx_ecdsa_ctx_t *)calloc(1, sizeof(*sgx_ecdsa_ctx));
 	if (!sgx_ecdsa_ctx)
 		return RATS_VERIFIER_ERR_NO_MEM;
 
