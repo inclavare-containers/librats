@@ -13,7 +13,7 @@ extern rats_attester_err_t tdx_ecdsa_attester_pre_init(void);
 extern rats_attester_err_t tdx_ecdsa_attester_init(rats_attester_ctx_t *ctx);
 extern rats_attester_err_t tdx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 						      attestation_evidence_t *evidence,
-						      uint8_t *hash, uint32_t hash_len);
+						      const uint8_t *hash, uint32_t hash_len);
 extern rats_attester_err_t tdx_ecdsa_attester_cleanup(rats_attester_ctx_t *ctx);
 
 static rats_attester_opts_t tdx_ecdsa_attester_opts = {

@@ -25,7 +25,7 @@ enclave {
                                                                 [in, string] const char *name,
                                                                 [in, size=evidence_len] attestation_evidence_t *evidence,
                                                                 uint32_t evidence_len,
-                                                                [in, size=hash_len] uint8_t *hash,
+                                                                [in, size=hash_len] const uint8_t *hash,
                                                                 uint32_t hash_len)
 			allow(ecall_get_target_info, sgx_tvl_verify_qve_report_and_identity);
 	};

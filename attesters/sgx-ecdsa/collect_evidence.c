@@ -25,7 +25,7 @@
 #ifdef SGX
 #include "rats_t.h"
 
-sgx_status_t sgx_generate_evidence(uint8_t *hash, sgx_report_t *app_report)
+sgx_status_t sgx_generate_evidence(const uint8_t *hash, sgx_report_t *app_report)
 {
 	sgx_report_data_t report_data;
 	assert(sizeof(report_data.d) >= SHA256_HASH_SIZE);
@@ -65,7 +65,7 @@ int generate_quote(int sgx_fd, sgxioc_gen_dcap_quote_arg_t *gen_quote_arg)
 // clang-format on
 
 rats_attester_err_t sgx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
-					       attestation_evidence_t *evidence, uint8_t *hash,
+					       attestation_evidence_t *evidence, const uint8_t *hash,
 					       __attribute__((unused)) uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);

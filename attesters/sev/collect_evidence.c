@@ -27,7 +27,7 @@ static int do_hypercall(unsigned int p1)
 }
 
 rats_attester_err_t sev_collect_evidence(rats_attester_ctx_t *ctx, attestation_evidence_t *evidence,
-					 uint8_t *hash, uint32_t hash_len)
+					 const uint8_t *hash, uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
