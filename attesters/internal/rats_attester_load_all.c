@@ -64,7 +64,7 @@ rats_attester_err_t rats_attester_load_all(void)
 
 	if (!total_loaded) {
 		RATS_ERR("unavailable rats attester instance under %s\n", RATS_ATTESTERS_DIR);
-		return RATS_ERR_LOAD_ENCLAVE_ATTESTER;
+		return RATS_ATTESTER_ERR_INIT;
 	}
 
 	/* Sort all rats_attester_ctx_t instances in the rats_attesters_ctx, and the higher priority
