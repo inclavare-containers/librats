@@ -100,7 +100,7 @@ rats_attester_err_t tdx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 	 */
 	snprintf(evidence->type, sizeof(evidence->type), "tdx_ecdsa");
 
-	RATS_DEBUG("ctx %p, evidence %p, quote_size %d\n", ctx, evidence, evidence->tdx.quote_len);
+	RATS_DEBUG("ctx %p, evidence %p, quote_size %u\n", ctx, evidence, evidence->tdx.quote_len);
 
 	return RATS_ATTESTER_ERR_NONE;
 }
