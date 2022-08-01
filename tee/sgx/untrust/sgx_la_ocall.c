@@ -30,7 +30,7 @@ rats_verifier_err_t ocall_la_verify_evidence(rats_verifier_ctx_t *ctx,
 
 	if (memcmp(hash, lreport->body.report_data.d, hash_len) != 0) {
 		RATS_ERR("unmatched hash value in evidence\n");
-		return -RATS_VERIFIER_ERR_INVALID;
+		return RATS_VERIFIER_ERR_INVALID;
 	}
 
 	qe3_ret = sgx_qe_get_target_info(&qe_target_info);

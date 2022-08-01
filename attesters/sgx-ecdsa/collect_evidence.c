@@ -74,7 +74,7 @@ rats_attester_err_t sgx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 	int sgx_fd;
 	if ((sgx_fd = open("/dev/sgx", O_RDONLY)) < 0) {
 		RATS_ERR("failed to open /dev/sgx\n");
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 	}
 
 	sgx_report_data_t report_data = {
@@ -86,7 +86,7 @@ rats_attester_err_t sgx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 	uint32_t quote_size = 0;
 	if (ioctl(sgx_fd, SGXIOC_GET_DCAP_QUOTE_SIZE, &quote_size) < 0) {
 		RATS_ERR("failed to ioctl get quote size\n");
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 	}
 
 	sgxioc_gen_dcap_quote_arg_t gen_quote_arg = { .report_data = &report_data,
@@ -96,7 +96,7 @@ rats_attester_err_t sgx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 	if (generate_quote(sgx_fd, &gen_quote_arg) != 0) {
 		RATS_ERR("failed to generate quote\n");
 		close(sgx_fd);
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 	}
 #else
 

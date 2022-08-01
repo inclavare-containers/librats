@@ -18,10 +18,10 @@ static rats_attester_err_t init_rats_attester(rats_core_context_t *ctx,
 
 	rats_attester_err_t err = attester_ctx->opts->init(attester_ctx);
 	if (err != RATS_ATTESTER_ERR_NONE)
-		return -RATS_ATTESTER_ERR_INIT;
+		return RATS_ATTESTER_ERR_INIT;
 
 	if (!attester_ctx->attester_private)
-		return -RATS_ATTESTER_ERR_INIT;
+		return RATS_ATTESTER_ERR_INIT;
 
 	return RATS_ATTESTER_ERR_NONE;
 }
@@ -41,7 +41,7 @@ rats_attester_err_t rats_attester_select(rats_core_context_t *ctx, const char *n
 
 		attester_ctx = malloc(sizeof(*attester_ctx));
 		if (!attester_ctx)
-			return -RATS_ATTESTER_ERR_NO_MEM;
+			return RATS_ATTESTER_ERR_NO_MEM;
 
 		memcpy(attester_ctx, rats_attesters_ctx[i], sizeof(*attester_ctx));
 
@@ -64,7 +64,7 @@ rats_attester_err_t rats_attester_select(rats_core_context_t *ctx, const char *n
 		else
 			RATS_ERR("failed to select the rats attester '%s'\n", name);
 
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 	}
 
 	ctx->attester = attester_ctx;

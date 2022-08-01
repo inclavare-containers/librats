@@ -15,7 +15,7 @@ rats_verifier_err_t sgx_la_verify_evidence(rats_verifier_ctx_t *ctx,
 					   attestation_evidence_t *evidence, uint8_t *hash,
 					   uint32_t hash_len)
 {
-	rats_verifier_err_t err = -RATS_VERIFIER_ERR_UNKNOWN;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 
 	ocall_la_verify_evidence(&err, ctx, evidence, sizeof(attestation_evidence_t), hash,
 				 hash_len);

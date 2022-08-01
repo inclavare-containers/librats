@@ -33,7 +33,7 @@ rats_verifier_err_t ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_
 					  __attribute__((unused)) uint32_t evidence_len,
 					  uint8_t *hash, uint32_t hash_len)
 {
-	rats_verifier_err_t err = -RATS_VERIFIER_ERR_UNKNOWN;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 	uint32_t supplemental_data_size = 0;
 	uint8_t *p_supplemental_data = NULL;
 	sgx_ql_qv_result_t quote_verification_result = SGX_QL_QV_RESULT_UNSPECIFIED;
@@ -49,7 +49,7 @@ rats_verifier_err_t ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_
 	sgx_quote3_t *pquote = (sgx_quote3_t *)malloc(8192);
 	if (!pquote) {
 		RATS_ERR("failed to malloc sgx quote3 data space.\n");
-		return -RATS_VERIFIER_ERR_NO_MEM;
+		return RATS_VERIFIER_ERR_NO_MEM;
 	}
 
 	memcpy(pquote, evidence->ecdsa.quote, evidence->ecdsa.quote_len);
@@ -61,7 +61,7 @@ rats_verifier_err_t ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_
 	/* First verify the hash value */
 	if (memcmp(hash, pquote->report_body.report_data.d, hash_len) != 0) {
 		RATS_ERR("unmatched hash value in evidence.\n");
-		err = -RATS_VERIFIER_ERR_INVALID;
+		err = RATS_VERIFIER_ERR_INVALID;
 		goto errout;
 	}
 
@@ -71,7 +71,7 @@ rats_verifier_err_t ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_
 		p_supplemental_data = (uint8_t *)malloc(supplemental_data_size);
 		if (!p_supplemental_data) {
 			RATS_ERR("failed to malloc supplemental data space.\n");
-			err = -RATS_VERIFIER_ERR_NO_MEM;
+			err = RATS_VERIFIER_ERR_NO_MEM;
 			goto errout;
 		}
 	} else {
@@ -152,12 +152,12 @@ rats_verifier_err_t sgx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
 					 supplemental_size, p_supplemental_buffer);
 	if (ret != 0) {
 		RATS_ERR("Error in dcap_verify_quote.\n");
-		err = -RATS_VERIFIER_ERR_UNKNOWN;
+		err = RATS_VERIFIER_ERR_UNKNOWN;
 	}
 
 	if (collateral_expiration_status != 0) {
 		RATS_WARN("The verification collateral has expired!\n");
-		err = -RATS_VERIFIER_ERR_INVALID;
+		err = RATS_VERIFIER_ERR_INVALID;
 	}
 
 	RATS_DEBUG("called dcap_verify_quote.\n");
