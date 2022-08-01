@@ -36,7 +36,7 @@ rats_attester_err_t rats_attester_load_all(void)
 	uint64_t dir = rats_opendir(RATS_ATTESTERS_DIR);
 	if (!dir) {
 		RATS_ERR("failed to open %s", RATS_ATTESTERS_DIR);
-		return -RATS_ATTESTER_ERR_UNKNOWN;
+		return RATS_ATTESTER_ERR_UNKNOWN;
 	}
 
 	unsigned int total_loaded = 0;
@@ -64,7 +64,7 @@ rats_attester_err_t rats_attester_load_all(void)
 
 	if (!total_loaded) {
 		RATS_ERR("unavailable rats attester instance under %s\n", RATS_ATTESTERS_DIR);
-		return -RATS_ERR_LOAD_ENCLAVE_ATTESTER;
+		return RATS_ERR_LOAD_ENCLAVE_ATTESTER;
 	}
 
 	/* Sort all rats_attester_ctx_t instances in the rats_attesters_ctx, and the higher priority

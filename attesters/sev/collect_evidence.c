@@ -35,7 +35,7 @@ rats_attester_err_t sev_collect_evidence(rats_attester_ctx_t *ctx, attestation_e
 	uint32_t guest_handle = do_hypercall(KVM_HC_VM_HANDLE);
 	if (guest_handle <= 0) {
 		RATS_ERR("failed to get guest handle, invalid guest_handle %d\n", guest_handle);
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 	}
 	RATS_DEBUG("guest firmware handle is %d\n", guest_handle);
 
@@ -48,13 +48,13 @@ rats_attester_err_t sev_collect_evidence(rats_attester_ctx_t *ctx, attestation_e
 	if (evidence_size != sizeof(sev_evidence_t)) {
 		RATS_ERR("failed to retrieve attestation evidence size, invalid size %d\n",
 			 evidence_size);
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 	}
 
 	sev_evidence_t *s_evidence = retrieve_attestation_evidence(guest_handle, evidence_size);
 	if (!s_evidence) {
 		RATS_ERR("failed to retrieve attestation_evidence\n");
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 	}
 
 	sev_attestation_evidence_t *sev_report = &evidence->sev;

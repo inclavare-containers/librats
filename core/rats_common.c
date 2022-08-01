@@ -226,7 +226,7 @@ rats_attester_err_t rats_attester_init(const char *name, __attribute__((unused))
     *handle = dlopen(realpath, RTLD_LAZY);
     if (*handle == NULL) {
         RATS_ERR("failed on dlopen(): %s\n", dlerror());
-        return -RATS_ATTESTER_ERR_DLOPEN;
+        return RATS_ATTESTER_ERR_DLOPEN;
     }
 
     return RATS_ATTESTER_ERR_NONE;
@@ -238,7 +238,7 @@ rats_verifier_err_t rats_verifier_init(const char *name, __attribute__((unused))
     *handle = dlopen(realpath, RTLD_LAZY);
     if (*handle == NULL) {
         RATS_ERR("failed on dlopen(): %s\n", dlerror());
-        return -RATS_VERIFIER_ERR_DLOPEN;
+        return RATS_VERIFIER_ERR_DLOPEN;
     }
 
     return RATS_VERIFIER_ERR_NONE;

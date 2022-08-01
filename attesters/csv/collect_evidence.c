@@ -268,7 +268,7 @@ rats_attester_err_t csv_collect_evidence(rats_attester_ctx_t *ctx, attestation_e
 	csv_attestation_evidence_t *c_evidence = &evidence->csv;
 	if (collect_attestation_evidence(hash, hash_len, c_evidence)) {
 		RATS_ERR("failed to get attestation_evidence\n");
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 	}
 
 	RATS_DEBUG("Success to generate attestation_evidence\n");

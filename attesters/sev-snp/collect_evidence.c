@@ -179,7 +179,7 @@ rats_attester_err_t sev_snp_collect_evidence(rats_attester_ctx_t *ctx,
 
 	if (snp_get_report(hash, hash_len, &report)) {
 		RATS_ERR("failed to get snp report\n");
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 	}
 
 	snp_attestation_evidence_t *snp_report = &evidence->snp;

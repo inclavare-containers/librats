@@ -36,7 +36,7 @@ rats_verifier_err_t rats_verifier_load_all(void)
 	uint64_t dir = rats_opendir(RATS_VERIFIERS_DIR);
 	if (!dir) {
 		RATS_ERR("failed to open %s", RATS_VERIFIERS_DIR);
-		return -RATS_VERIFIER_ERR_UNKNOWN;
+		return RATS_VERIFIER_ERR_UNKNOWN;
 	}
 
 	unsigned int total_loaded = 0;
@@ -64,7 +64,7 @@ rats_verifier_err_t rats_verifier_load_all(void)
 
 	if (!total_loaded) {
 		RATS_ERR("unavailable rats verifier instance under %s\n", RATS_VERIFIERS_DIR);
-		return -RATS_ERR_LOAD_ENCLAVE_VERIFIER;
+		return RATS_ERR_LOAD_ENCLAVE_VERIFIER;
 	}
 
 	/* Sort all rats_verifier_ctx_t instances in the rats_verifiers_ctx, and the higher priority

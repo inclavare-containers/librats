@@ -14,7 +14,7 @@
 
 static rats_verifier_err_t verify_cert_chain(csv_evidence *evidence)
 {
-	rats_verifier_err_t err = -RATS_VERIFIER_ERR_INVALID;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_INVALID;
 	csv_attestation_report *report = &evidence->attestation_report;
 
 	hygon_root_cert_t *hsk_cert = (hygon_root_cert_t *)evidence->hsk_cek_cert;
@@ -85,7 +85,7 @@ static rats_verifier_err_t verify_cert_chain(csv_evidence *evidence)
 
 static rats_verifier_err_t verify_attestation_report(csv_attestation_report *report)
 {
-	rats_verifier_err_t err = -RATS_VERIFIER_ERR_INVALID;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_INVALID;
 
 	csv_cert_t *pek_cert = (csv_cert_t *)report->pek_cert;
 
@@ -102,7 +102,7 @@ rats_verifier_err_t csv_verify_evidence(rats_verifier_ctx_t *ctx, attestation_ev
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
-	rats_verifier_err_t err = -RATS_VERIFIER_ERR_UNKNOWN;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 	csv_evidence *c_evidence = (csv_evidence *)(&evidence->csv.report);
 	csv_attestation_report *attestation_report = &c_evidence->attestation_report;
 
@@ -120,7 +120,7 @@ rats_verifier_err_t csv_verify_evidence(rats_verifier_ctx_t *ctx, attestation_ev
 		   hash_len <= CSV_ATTESTATION_USER_DATA_SIZE ? hash_len :
 								CSV_ATTESTATION_USER_DATA_SIZE)) {
 		RATS_ERR("unmatched hash value in evidence\n");
-		return -RATS_VERIFIER_ERR_INVALID;
+		return RATS_VERIFIER_ERR_INVALID;
 	}
 
 	assert(sizeof(csv_evidence) <= sizeof(evidence->csv.report));
