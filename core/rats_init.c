@@ -35,6 +35,7 @@ rats_attester_err_t rats_attest_init(rats_conf_t *conf, rats_core_context_t *ctx
 {
 	RATS_DEBUG("called\n");
 
+	char *choice = NULL;
 	rats_global_log_level = rats_loglevel_getenv("RATS_GLOBAL_LOG_LEVEL");
 	if (rats_global_log_level == (rats_log_level_t)-1) {
 		RATS_FATAL("failed to get log level from env\n");
@@ -91,7 +92,7 @@ rats_attester_err_t rats_attest_init(rats_conf_t *conf, rats_core_context_t *ctx
 #endif
 	}
 	/* Select the target attester to be used */
-	char *choice = ctx->config.attester_type;
+	choice = ctx->config.attester_type;
 	if (choice[0] == '\0') {
 		choice = rats_global_core_context.config.attester_type;
 		if (choice[0] == '\0')
@@ -109,6 +110,7 @@ rats_verifier_err_t rats_verify_init(rats_conf_t *conf, rats_core_context_t *ctx
 {
 	RATS_DEBUG("called\n");
 
+	char *choice = NULL;
 	rats_global_log_level = rats_loglevel_getenv("RATS_GLOBAL_LOG_LEVEL");
 	if (rats_global_log_level == (rats_log_level_t)-1) {
 		RATS_FATAL("failed to get log level from env\n");
@@ -163,7 +165,7 @@ rats_verifier_err_t rats_verify_init(rats_conf_t *conf, rats_core_context_t *ctx
 #endif
 	}
 	/* Select the target verifier to be used */
-	char *choice = ctx->config.verifier_type;
+	choice = ctx->config.verifier_type;
 	if (choice[0] == '\0') {
 		choice = rats_global_core_context.config.verifier_type;
 		if (choice[0] == '\0')
