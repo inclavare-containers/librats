@@ -42,7 +42,7 @@ int read_file(const char *filename, void *buffer, size_t len)
 	return count;
 }
 
-size_t curl_writefunc_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
+static size_t curl_writefunc_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
 {
 	size_t written = fwrite(ptr, size, nmemb, stream);
 	return written;
