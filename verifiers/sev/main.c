@@ -19,6 +19,7 @@ static rats_verifier_opts_t sev_verifier_opts = {
 	.api_version = RATS_VERIFIER_API_VERSION_DEFAULT,
 	.flags = RATS_VERIFIER_OPTS_FLAGS_SNP,
 	.name = "sev",
+	.type = "sev",
 	.priority = 35,
 	.pre_init = sev_verifier_pre_init,
 	.init = sev_verifier_init,

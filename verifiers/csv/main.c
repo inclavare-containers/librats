@@ -19,6 +19,7 @@ static rats_verifier_opts_t csv_verifier_opts = {
 	.api_version = RATS_VERIFIER_API_VERSION_DEFAULT,
 	.flags = RATS_VERIFIER_OPTS_FLAGS_CSV,
 	.name = "csv",
+	.type = "csv",
 	.priority = 20,
 	.pre_init = csv_verifier_pre_init,
 	.init = csv_verifier_init,

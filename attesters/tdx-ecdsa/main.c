@@ -20,6 +20,7 @@ static rats_attester_opts_t tdx_ecdsa_attester_opts = {
 	.api_version = RATS_ATTESTER_API_VERSION_DEFAULT,
 	.flags = RATS_ATTESTER_OPTS_FLAGS_TDX_GUEST,
 	.name = "tdx_ecdsa",
+	.type = "tdx_ecdsa",
 	.priority = 42,
 	.pre_init = tdx_ecdsa_attester_pre_init,
 	.init = tdx_ecdsa_attester_init,

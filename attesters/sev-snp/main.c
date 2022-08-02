@@ -20,6 +20,7 @@ static rats_attester_opts_t sev_snp_attester_opts = {
 	.api_version = RATS_ATTESTER_API_VERSION_DEFAULT,
 	.flags = RATS_ATTESTER_OPTS_FLAGS_SNP_GUEST,
 	.name = "sev_snp",
+	.type = "sev_snp",
 	.priority = 42,
 	.pre_init = sev_snp_attester_pre_init,
 	.init = sev_snp_attester_init,

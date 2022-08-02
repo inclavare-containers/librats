@@ -20,6 +20,7 @@ static rats_verifier_opts_t sgx_ecdsa_verifier_opts = {
 	.api_version = RATS_VERIFIER_API_VERSION_DEFAULT,
 	.flags = RATS_VERIFIER_OPTS_FLAGS_DEFAULT,
 	.name = "sgx_ecdsa",
+	.type = "sgx_ecdsa",
 	.priority = 52,
 	.pre_init = sgx_ecdsa_verifier_pre_init,
 	.init = sgx_ecdsa_verifier_init,
