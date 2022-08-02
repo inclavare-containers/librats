@@ -13,5 +13,7 @@ rats_attester_err_t nullattester_collect_evidence(rats_attester_ctx_t *ctx,
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
+	snprintf(evidence->type, sizeof(evidence->type), "nullattester");
+
 	return RATS_ATTESTER_ERR_NONE;
 }
