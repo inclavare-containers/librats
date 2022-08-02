@@ -6,9 +6,7 @@ set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../include
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/librats
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/internal
                  ${CMAKE_CURRENT_SOURCE_DIR}
-                 ${SGXSDK_INSTALL_INCLUDE_PATH}
-                 /usr/include
-                 )
+                 ${SGXSDK_INSTALL_INCLUDE_PATH})
 include_directories(${INCLUDE_DIRS})
 
 # Set dependency library directory
