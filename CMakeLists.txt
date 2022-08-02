@@ -80,9 +80,7 @@ else()
 endif()
 
 # Set include directory
-set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
-		         /usr/include
-                 )
+set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if(SGX)
     list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/edl
                              ${CMAKE_BINARY_DIR}/tee/sgx/trust
