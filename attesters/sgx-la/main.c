@@ -19,6 +19,7 @@ static rats_attester_opts_t sgx_la_attester_opts = {
 	.api_version = RATS_ATTESTER_API_VERSION_DEFAULT,
 	.flags = RATS_ATTESTER_OPTS_FLAGS_SGX_ENCLAVE,
 	.name = "sgx_la",
+	.type = "sgx_la",
 	.priority = 15,
 	.pre_init = sgx_la_attester_pre_init,
 	.init = sgx_la_attester_init,

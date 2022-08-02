@@ -20,6 +20,7 @@ static rats_attester_opts_t csv_attester_opts = {
 	.api_version = RATS_ATTESTER_API_VERSION_DEFAULT,
 	.flags = RATS_ATTESTER_OPTS_FLAGS_CSV_GUEST,
 	.name = "csv",
+	.type = "csv",
 	.priority = 20,
 	.pre_init = csv_attester_pre_init,
 	.init = csv_attester_init,
