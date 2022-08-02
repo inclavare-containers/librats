@@ -15,7 +15,7 @@
 rats_attester_err_t rats_attester_register(const rats_attester_opts_t *opts)
 {
 	if (!opts)
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 
 	RATS_DEBUG("registering the rats attester '%s' ...\n", opts->name);
 
@@ -25,7 +25,7 @@ rats_attester_err_t rats_attester_register(const rats_attester_opts_t *opts)
 			RATS_DEBUG("failed to register the attester '%s' due to lack of SGX capability\n",
 				   opts->type);
 			// clang-format on
-			return -RATS_ATTESTER_ERR_CPU_UNSUPPORTED;
+			return RATS_ATTESTER_ERR_CPU_UNSUPPORTED;
 		}
 	}
 
@@ -35,7 +35,7 @@ rats_attester_err_t rats_attester_register(const rats_attester_opts_t *opts)
 			RATS_DEBUG("failed to register the attester '%s' due to lack of TDX Guest capability\n",
 				   opts->type);
 			// clang-format on
-			return -RATS_ATTESTER_ERR_CPU_UNSUPPORTED;
+			return RATS_ATTESTER_ERR_CPU_UNSUPPORTED;
 		}
 	}
 
@@ -45,7 +45,7 @@ rats_attester_err_t rats_attester_register(const rats_attester_opts_t *opts)
 			RATS_DEBUG("failed to register the attester '%s' due to lack of SNP Guest capability\n",
 				   opts->type);
 			// clang-format on
-			return -RATS_ATTESTER_ERR_CPU_UNSUPPORTED;
+			return RATS_ATTESTER_ERR_CPU_UNSUPPORTED;
 		}
 	}
 
@@ -55,7 +55,7 @@ rats_attester_err_t rats_attester_register(const rats_attester_opts_t *opts)
 			RATS_DEBUG("failed to register the attester '%s' due to lack of SEV(-ES) Guest capability\n",
 				   opts->type);
 			// clang-format on
-			return -RATS_ATTESTER_ERR_CPU_UNSUPPORTED;
+			return RATS_ATTESTER_ERR_CPU_UNSUPPORTED;
 		}
 	}
 
@@ -65,13 +65,13 @@ rats_attester_err_t rats_attester_register(const rats_attester_opts_t *opts)
 			RATS_DEBUG("failed to register the attester '%s' due to lack of CSV Guest capability\n",
 				   opts->type);
 			// clang-format on
-			return -RATS_ATTESTER_ERR_CPU_UNSUPPORTED;
+			return RATS_ATTESTER_ERR_CPU_UNSUPPORTED;
 		}
 	}
 
 	rats_attester_opts_t *new_opts = (rats_attester_opts_t *)malloc(sizeof(*new_opts));
 	if (!new_opts)
-		return -RATS_ATTESTER_ERR_NO_MEM;
+		return RATS_ATTESTER_ERR_NO_MEM;
 
 	memcpy(new_opts, opts, sizeof(*new_opts));
 
@@ -104,5 +104,5 @@ rats_attester_err_t rats_attester_register(const rats_attester_opts_t *opts)
 
 err:
 	free(new_opts);
-	return -RATS_ATTESTER_ERR_INVALID;
+	return RATS_ATTESTER_ERR_INVALID;
 }

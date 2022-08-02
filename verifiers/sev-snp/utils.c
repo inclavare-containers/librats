@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include "utils.h"
 
+#include "../../attesters/sev-snp/utils.c"
+
 bool reverse_bytes(uint8_t *bytes, size_t size)
 {
 	uint8_t *start = bytes;

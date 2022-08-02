@@ -17,7 +17,7 @@ set(LIBRARY_DIRS ${CMAKE_BINARY_DIR}
 link_directories(${LIBRARY_DIRS})
 
 # Set extra link library
-set(EXTRA_LINK_LIBRARY crypto)
+set(EXTRA_LINK_LIBRARY crypto curl)
 
 # Set source file
 set(SOURCES cleanup.c

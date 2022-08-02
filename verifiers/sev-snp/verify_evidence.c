@@ -21,21 +21,25 @@
 #include "utils.h"
 
 rats_verifier_err_t sev_snp_verify_evidence(rats_verifier_ctx_t *ctx,
-					    attestation_evidence_t *evidence, uint8_t *hash,
+					    attestation_evidence_t *evidence, const uint8_t *hash,
 					    uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
-	rats_verifier_err_t err = -RATS_VERIFIER_ERR_UNKNOWN;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 	snp_attestation_report_t *report = (snp_attestation_report_t *)(evidence->snp.report);
 	if (evidence->snp.vcek[0] == '\0') {
-		return RATS_VERIFIER_ERR_INVALID;
+		memset(evidence->snp.vcek, 0, VECK_MAX_SIZE);
+		err = sev_snp_get_vcek_der(report->chip_id, sizeof(report->chip_id),
+					   &report->platform_version, &evidence->snp);
+		if (err != RATS_ATTESTER_ERR_NONE)
+			return err;
 	}
 
 	/* Verify the hash value */
 	if (memcmp(hash, report->report_data, hash_len) != 0) {
 		RATS_ERR("unmatched hash value in evidence.\n");
-		return -RATS_VERIFIER_ERR_INVALID;
+		return RATS_VERIFIER_ERR_INVALID;
 	}
 
 	X509 *x509_ark = NULL;
@@ -60,7 +64,7 @@ rats_verifier_err_t sev_snp_verify_evidence(rats_verifier_ctx_t *ctx,
 	if (!x509_ark) {
 		goto err;
 	}
-	char *vcek_ptr = evidence->snp.vcek;
+	uint8_t *vcek_ptr = evidence->snp.vcek;
 	x509_vcek = d2i_X509(NULL, (const unsigned char **)&(vcek_ptr), evidence->snp.vcek_len);
 	if (!x509_vcek) {
 		goto err;
@@ -75,7 +79,7 @@ rats_verifier_err_t sev_snp_verify_evidence(rats_verifier_ctx_t *ctx,
 	ret = x509_validate_signature(x509_ark, NULL, x509_ark);
 	if (!ret) {
 		RATS_ERR("failed to validate signature of x509_ark cert\n");
-		err = -RATS_VERIFIER_ERR_INVALID;
+		err = RATS_VERIFIER_ERR_INVALID;
 		goto err;
 	}
 
@@ -83,7 +87,7 @@ rats_verifier_err_t sev_snp_verify_evidence(rats_verifier_ctx_t *ctx,
 	ret = x509_validate_signature(x509_ask, NULL, x509_ark);
 	if (!ret) {
 		RATS_ERR("failed to validate signature of x509_ask cert\n");
-		err = -RATS_VERIFIER_ERR_INVALID;
+		err = RATS_VERIFIER_ERR_INVALID;
 		goto err;
 	}
 
@@ -91,7 +95,7 @@ rats_verifier_err_t sev_snp_verify_evidence(rats_verifier_ctx_t *ctx,
 	ret = x509_validate_signature(x509_vcek, x509_ask, x509_ark);
 	if (!ret) {
 		RATS_ERR("failed to validate signature of x509_vcek cert\n");
-		err = -RATS_VERIFIER_ERR_INVALID;
+		err = RATS_VERIFIER_ERR_INVALID;
 		goto err;
 	}
 
@@ -101,7 +105,7 @@ rats_verifier_err_t sev_snp_verify_evidence(rats_verifier_ctx_t *ctx,
 			     SEV_SIG_ALGO_ECDSA_SHA384);
 	if (!ret) {
 		RATS_ERR("failed to verify snp guest report\n");
-		err = -RATS_VERIFIER_ERR_INVALID;
+		err = RATS_VERIFIER_ERR_INVALID;
 		goto err;
 	}
 

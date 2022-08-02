@@ -2,9 +2,7 @@
 project(verifier_sgx_ecdsa)
 
 # Set include directory
-list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
-                         /usr/include
-                         )
+list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
 if(OCCLUM)
     list(APPEND INCLUDE_DIRS ${SGXSDK_INSTALL_INCLUDE_PATH})
 endif()

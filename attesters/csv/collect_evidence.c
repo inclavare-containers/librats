@@ -178,7 +178,7 @@ typedef struct {
  * 	0: success
  * 	otherwise error
  */
-static int collect_attestation_evidence(uint8_t *hash, uint32_t hash_len,
+static int collect_attestation_evidence(const uint8_t *hash, uint32_t hash_len,
 					csv_attestation_evidence_t *evidence)
 {
 	int ret = 0;
@@ -221,7 +221,7 @@ static int collect_attestation_evidence(uint8_t *hash, uint32_t hash_len,
 	user_data_pa = (uint64_t)gva_to_gpa(user_data);
 	ret = do_hypercall(KVM_HC_VM_ATTESTATION, (unsigned long)user_data_pa, CSV_GUEST_MAP_LEN);
 	if (ret) {
-		RATS_ERR("failed to save attestation report to %#016lx (ret:%d)\n", ret,
+		RATS_ERR("failed to save attestation report to %#016lx (ret:%lu)\n", (unsigned long)ret,
 			 user_data_pa);
 		goto err_munmap;
 	}
@@ -261,21 +261,21 @@ err_munmap:
 }
 
 rats_attester_err_t csv_collect_evidence(rats_attester_ctx_t *ctx, attestation_evidence_t *evidence,
-					 uint8_t *hash, __attribute__((unused)) uint32_t hash_len)
+					 const uint8_t *hash, __attribute__((unused)) uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
 	csv_attestation_evidence_t *c_evidence = &evidence->csv;
 	if (collect_attestation_evidence(hash, hash_len, c_evidence)) {
 		RATS_ERR("failed to get attestation_evidence\n");
-		return -RATS_ATTESTER_ERR_INVALID;
+		return RATS_ATTESTER_ERR_INVALID;
 	}
 
 	RATS_DEBUG("Success to generate attestation_evidence\n");
 
 	snprintf(evidence->type, sizeof(evidence->type), "csv");
 
-	RATS_DEBUG("ctx %p, evidence %p, report_len %d\n", ctx, evidence, evidence->csv.report_len);
+	RATS_DEBUG("ctx %p, evidence %p, report_len %u\n", ctx, evidence, evidence->csv.report_len);
 
 	return RATS_ATTESTER_ERR_NONE;
 }

@@ -6,7 +6,6 @@ set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../include
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/librats
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/internal
                  ${CMAKE_CURRENT_SOURCE_DIR}
-                 /usr/include
                  )
 include_directories(${INCLUDE_DIRS})
 

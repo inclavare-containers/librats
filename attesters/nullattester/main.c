@@ -12,7 +12,7 @@ extern rats_attester_err_t rats_attester_register(rats_attester_opts_t *);
 extern rats_attester_err_t nullattester_pre_init(void);
 extern rats_attester_err_t nullattester_init(rats_attester_ctx_t *);
 extern rats_attester_err_t nullattester_collect_evidence(rats_attester_ctx_t *,
-							 attestation_evidence_t *, uint8_t *,
+							 attestation_evidence_t *, const uint8_t *,
 							 uint32_t hash_len);
 extern rats_attester_err_t nullattester_cleanup(rats_attester_ctx_t *);
 

@@ -9,7 +9,7 @@
 
 rats_verifier_err_t nullverifier_cleanup(rats_verifier_ctx_t *ctx)
 {
-	RATS_DEBUG("called enclave verifier ctx: %#x\n", ctx);
+	RATS_DEBUG("called enclave verifier ctx: %p\n", ctx);
 
 	return RATS_VERIFIER_ERR_NONE;
 }

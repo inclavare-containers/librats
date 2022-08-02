@@ -359,7 +359,7 @@ bool verify_sev_cert(const sev_cert *child_cert, const sev_cert *parent_cert1,
 			goto err;
 		break;
 	default:
-		RATS_ERR("unsupported pub_key_usage %d\n", child_cert->pub_key_usage);
+		RATS_ERR("unsupported pub_key_usage %u\n", child_cert->pub_key_usage);
 		goto err;
 	}
 

@@ -9,6 +9,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "../../attesters/sev-snp/utils.h"
 
 bool reverse_bytes(uint8_t *bytes, size_t size);
 
