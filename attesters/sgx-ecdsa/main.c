@@ -20,6 +20,7 @@ static rats_attester_opts_t sgx_ecdsa_attester_opts = {
 	.api_version = RATS_ATTESTER_API_VERSION_DEFAULT,
 	.flags = RATS_ATTESTER_OPTS_FLAGS_SGX_ENCLAVE,
 	.name = "sgx_ecdsa",
+	.type = "sgx_ecdsa",
 	.priority = 52,
 	.pre_init = sgx_ecdsa_attester_pre_init,
 	.init = sgx_ecdsa_attester_init,

@@ -20,6 +20,7 @@ static rats_attester_opts_t nullattester_opts = {
 	.api_version = RATS_ATTESTER_API_VERSION_DEFAULT,
 	.flags = RATS_ATTESTER_FLAGS_DEFAULT,
 	.name = "nullattester",
+	.type = "nullattester",
 	.priority = 0,
 	.pre_init = nullattester_pre_init,
 	.init = nullattester_init,

@@ -20,6 +20,7 @@ static rats_verifier_opts_t nullverifier_opts = {
 	.api_version = RATS_VERIFIER_API_VERSION_DEFAULT,
 	.flags = RATS_VERIFIER_OPTS_FLAGS_DEFAULT,
 	.name = "nullverifier",
+	.type = "nullverifier",
 	.priority = 0,
 	.pre_init = nullverifier_pre_init,
 	.init = nullverifier_init,
