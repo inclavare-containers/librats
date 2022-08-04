@@ -10,7 +10,7 @@
 #include <openssl/rsa.h>
 #include <openssl/sha.h>
 #include "amdcert.h"
-#include "../sev-snp/utils.h"
+#include "sev_utils.h"
 #include "../sev-snp/crypto.c"
 
 /* Return the size of amd cert in Bytes, NOT bits */
