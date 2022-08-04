@@ -26,6 +26,7 @@
 
 #define CURL_RETRY_TIMES 5
 
+bool reverse_bytes(uint8_t *bytes, size_t size);
 int get_file_size(char *name);
 int read_file(const char *filename, void *buffer, size_t len);
 int download_from_url(const char *url, const char *file_path);

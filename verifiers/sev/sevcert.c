@@ -13,7 +13,7 @@
 #include <librats/attester.h>
 #include "sevcert.h"
 #include "../sev-snp/crypto.h"
-#include "../sev-snp/utils.h"
+#include "sev_utils.h"
 
 #define SEV_CERT_MAX_SIGNATURES 2
 #define SEV_CERT_MAX_VERSION	1

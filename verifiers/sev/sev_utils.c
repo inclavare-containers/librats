@@ -12,6 +12,25 @@
 #include "sev_utils.h"
 #include <curl/curl.h>
 
+bool reverse_bytes(uint8_t *bytes, size_t size)
+{
+	uint8_t *start = bytes;
+	uint8_t *end = bytes + size - 1;
+
+	if (!bytes)
+		return false;
+
+	while (start < end) {
+		uint8_t byte = *start;
+		*start = *end;
+		*end = byte;
+		start++;
+		end--;
+	}
+
+	return true;
+}
+
 int get_file_size(char *name)
 {
 	struct stat statbuf;
