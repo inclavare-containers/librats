@@ -17,11 +17,6 @@ if(OCCLUM)
 endif()
 link_directories(${LIBRARY_DIRS})
 
-# Set extra link library
-if(OCCLUM)
-    set(EXTRA_LINK_LIBRARY dcap_quote pthread m)
-endif()
-
 # Set source file
 if(SGX)
     set(SOURCES init.c
