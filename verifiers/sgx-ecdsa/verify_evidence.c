@@ -22,7 +22,6 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 #include "quote_verification.h"
-#include "dcap_quote.h"
 #else
 #include <sgx_dcap_quoteverify.h>
 #include <sgx_dcap_ql_wrapper.h>
@@ -139,57 +138,72 @@ rats_verifier_err_t sgx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
 
 	rats_verifier_err_t err = RATS_VERIFIER_ERR_NONE;
 #ifdef OCCLUM
-	void *handle = dcap_quote_open();
-
-	uint32_t supplemental_size = dcap_get_supplemental_data_size(handle);
-	uint8_t *p_supplemental_buffer = (uint8_t *)calloc(supplemental_size, sizeof(uint8_t));
-	if (NULL == p_supplemental_buffer) {
-		RATS_ERR("Couldn't allocate supplemental buffer\n");
-	}
-
+	uint32_t supplemental_data_size = 0;
+	uint8_t *p_supplemental_data = NULL;
 	sgx_ql_qv_result_t quote_verification_result = SGX_QL_QV_RESULT_UNSPECIFIED;
 	uint32_t collateral_expiration_status = 1;
-	uint32_t ret = dcap_verify_quote(handle, evidence->ecdsa.quote, evidence->ecdsa.quote_len,
-					 &collateral_expiration_status, &quote_verification_result,
-					 supplemental_size, p_supplemental_buffer);
-	if (ret != 0) {
-		RATS_ERR("Error in dcap_verify_quote.\n");
-		err = RATS_VERIFIER_ERR_UNKNOWN;
+
+	int sgx_fd = open("/dev/sgx", O_RDONLY);
+	if (sgx_fd < 0) {
+		RATS_ERR("failed to open /dev/sgx\n");
+		return -RATS_VERIFIER_ERR_INVALID;
 	}
 
-	if (collateral_expiration_status != 0) {
-		RATS_WARN("The verification collateral has expired!\n");
-		err = RATS_VERIFIER_ERR_INVALID;
+	if (ioctl(sgx_fd, SGXIOC_GET_DCAP_SUPPLEMENTAL_SIZE, &supplemental_data_size) < 0) {
+		RATS_ERR("failed to ioctl get supplemental data size: %s\n", strerror(errno));
+		close(sgx_fd);
+		return -RATS_VERIFIER_ERR_INVALID;
 	}
 
-	RATS_DEBUG("called dcap_verify_quote.\n");
+	p_supplemental_data = (uint8_t *)malloc(supplemental_data_size);
+	if (!p_supplemental_data) {
+		close(sgx_fd);
+		return -RATS_VERIFIER_ERR_NO_MEM;
+	}
+
+	memset(p_supplemental_data, 0, supplemental_data_size);
+
+	sgxioc_ver_dcap_quote_arg_t ver_quote_arg = {
+		.quote_buf = evidence->ecdsa.quote,
+		.quote_size = evidence->ecdsa.quote_len,
+		.collateral_expiration_status = &collateral_expiration_status,
+		.quote_verification_result = &quote_verification_result,
+		.supplemental_data_size = supplemental_data_size,
+		.supplemental_data = p_supplemental_data
+	};
+
+	if (ioctl(sgx_fd, SGXIOC_VER_DCAP_QUOTE, &ver_quote_arg) < 0) {
+		RATS_ERR("failed to ioctl verify quote: %s\n", strerror(errno));
+		close(sgx_fd);
+		return -RATS_VERIFIER_ERR_INVALID;
+	}
+
+	close(sgx_fd);
+
+	/* Check verification result */
 	switch (quote_verification_result) {
 	case SGX_QL_QV_RESULT_OK:
-		RATS_INFO("Succeed to verify the quote!\n");
+		RATS_INFO("verification completed successfully.\n");
+		err = RATS_VERIFIER_ERR_NONE;
 		break;
 	case SGX_QL_QV_RESULT_CONFIG_NEEDED:
 	case SGX_QL_QV_RESULT_OUT_OF_DATE:
 	case SGX_QL_QV_RESULT_OUT_OF_DATE_CONFIG_NEEDED:
 	case SGX_QL_QV_RESULT_SW_HARDENING_NEEDED:
 	case SGX_QL_QV_RESULT_CONFIG_AND_SW_HARDENING_NEEDED:
-		RATS_WARN("WARN: App: Verification completed with Non-terminal result: %x\n",
+		RATS_WARN("verification completed with Non-terminal result: %x\n",
 			  quote_verification_result);
+		err = SGX_ECDSA_VERIFIER_ERR_CODE((int)quote_verification_result);
 		break;
 	case SGX_QL_QV_RESULT_INVALID_SIGNATURE:
 	case SGX_QL_QV_RESULT_REVOKED:
 	case SGX_QL_QV_RESULT_UNSPECIFIED:
 	default:
-		RATS_ERR("\tError: App: Verification completed with Terminal result: %x\n",
+		RATS_ERR("verification completed with Terminal result: %x\n",
 			 quote_verification_result);
+		err = SGX_ECDSA_VERIFIER_ERR_CODE((int)quote_verification_result);
+		break;
 	}
-
-	if (p_supplemental_buffer) {
-		free(p_supplemental_buffer);
-		p_supplemental_buffer = NULL;
-	}
-
-	dcap_quote_close(handle);
-	return err;
 #elif defined(SGX)
 	sgx_ecdsa_ctx_t *ecdsa_ctx = (sgx_ecdsa_ctx_t *)ctx->verifier_private;
 	sgx_enclave_id_t eid = (sgx_enclave_id_t)ecdsa_ctx->eid;
