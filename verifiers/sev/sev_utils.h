@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include "../../attesters/sev/sev.h"
 
-#define SEV_DEFAULT_DIR	       "/opt/sev/"
+#define SEV_DEFAULT_DIR "/opt/sev/"
 
 #define AMD_SEV_DEVELOPER_SITE "https://developer.amd.com/sev/"
 #define ASK_ARK_PATH_SITE      "https://developer.amd.com/wp-content/resources/"

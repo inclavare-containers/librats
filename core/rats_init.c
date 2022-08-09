@@ -18,10 +18,8 @@
 #ifdef SGX
 #include "rats_t.h"
 #endif
-// clang-format on
 
 #ifdef SGX
-	// clang-format off
 #define RATS_ATTESTER_NUM	5
 #define RATS_VERIFIER_NUM	5
 #define RATS_NAME   		32

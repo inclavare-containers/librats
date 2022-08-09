@@ -65,7 +65,8 @@ int generate_quote(int sgx_fd, sgxioc_gen_dcap_quote_arg_t *gen_quote_arg)
 // clang-format on
 
 rats_attester_err_t sgx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
-					       attestation_evidence_t *evidence, const uint8_t *hash,
+					       attestation_evidence_t *evidence,
+					       const uint8_t *hash,
 					       __attribute__((unused)) uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);

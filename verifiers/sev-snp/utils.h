@@ -9,9 +9,11 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+// clang-format off
 #ifndef WASM
 #include "../../attesters/sev-snp/utils.h"
 #endif
+// clang-format on
 
 bool reverse_bytes(uint8_t *bytes, size_t size);
 

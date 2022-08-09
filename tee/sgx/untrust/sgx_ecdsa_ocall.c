@@ -93,7 +93,8 @@ rats_verifier_err_t ocall_ecdsa_verify_evidence(__attribute__((unused)) rats_ver
 	 * it from sgx_ecdsa instance.
 	 */
 	if (!strcmp(name, "sgx_ecdsa_qve")) {
-		qve_report_info = (sgx_ql_qe_report_info_t *)malloc(sizeof(sgx_ql_qe_report_info_t));
+		qve_report_info =
+			(sgx_ql_qe_report_info_t *)malloc(sizeof(sgx_ql_qe_report_info_t));
 		if (!qve_report_info) {
 			RATS_ERR("failed to malloc qve report info.\n");
 			goto errout;
