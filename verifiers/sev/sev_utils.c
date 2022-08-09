@@ -10,9 +10,11 @@
 #include <sys/stat.h>
 #include <librats/log.h>
 #include "sev_utils.h"
+// clang-format off
 #ifndef WASM
 #include <curl/curl.h>
 #endif
+// clang-format on
 
 bool reverse_bytes(uint8_t *bytes, size_t size)
 {

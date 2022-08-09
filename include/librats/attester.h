@@ -45,8 +45,8 @@ typedef struct rats_attester_opts {
 	rats_attester_err_t (*pre_init)(void);
 	rats_attester_err_t (*init)(rats_attester_ctx_t *ctx);
 	rats_attester_err_t (*collect_evidence)(rats_attester_ctx_t *ctx,
-						attestation_evidence_t *evidence, const uint8_t *hash,
-						uint32_t hash_len);
+						attestation_evidence_t *evidence,
+						const uint8_t *hash, uint32_t hash_len);
 	rats_attester_err_t (*cleanup)(rats_attester_ctx_t *ctx);
 } rats_attester_opts_t;
 

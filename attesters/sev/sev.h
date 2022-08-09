@@ -7,9 +7,11 @@
 #ifndef _SEV_H
 #define _SEV_H
 
+// clang-format off
 #ifndef WASM
 #include <linux/types.h>
 #endif
+// clang-format on
 #include "../../verifiers/sev-snp/sevapi.h"
 
 /* The following structures are defined by AMD, please refer to
