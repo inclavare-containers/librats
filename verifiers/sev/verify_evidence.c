@@ -146,7 +146,9 @@ rats_verifier_err_t validate_cert_chain(sev_evidence_t *sev_evidence, amd_cert *
 }
 
 rats_verifier_err_t sev_verify_evidence(rats_verifier_ctx_t *ctx, attestation_evidence_t *evidence,
-					const uint8_t *hash, uint32_t hash_len)
+					const uint8_t *hash, uint32_t hash_len,
+					__attribute__((unused)) claim_t **claims,
+					__attribute__((unused)) size_t *claims_length)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 

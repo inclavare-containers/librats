@@ -13,7 +13,9 @@
 /* Refer to explanation in sgx_la_collect_evidence */
 rats_verifier_err_t sgx_la_verify_evidence(rats_verifier_ctx_t *ctx,
 					   attestation_evidence_t *evidence, const uint8_t *hash,
-					   uint32_t hash_len)
+					   uint32_t hash_len,
+					   __attribute__((unused)) claim_t **claims,
+					   __attribute__((unused)) size_t *claims_length)
 {
 	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 

@@ -5,10 +5,12 @@
  */
 
 #include <string.h>
+#include <librats/claim.h>
 #include <librats/log.h>
 #include <librats/verifier.h>
 #include <sgx_dcap_quoteverify.h>
 #include "tdx-ecdsa.h"
+#include "sgx_quote_4.h"
 
 rats_verifier_err_t ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_ctx_t *ctx,
 					  const char *name, attestation_evidence_t *evidence,
@@ -88,17 +90,74 @@ errret:
 	return err;
 }
 
+#define TDX_CLAIMS_COUNT 4
+
+#define TDX_CLAIM_RTMR0 "rtmr0"
+#define TDX_CLAIM_RTMR1 "rtmr1"
+#define TDX_CLAIM_RTMR2 "rtmr2"
+#define TDX_CLAIM_RTMR3 "rtmr3"
+
+rats_verifier_err_t tdx_parse_claims(sgx_quote4_t *quote4, claim_t **claims_out,
+				     size_t *claims_length_out)
+{
+	if (!quote4 || !claims_out || !claims_length_out)
+		return RATS_ERR_INVALID_PARAMETER;
+
+	rats_err_t err = RATS_ERR_UNKNOWN;
+	tee_measurement_t rtmr0 = quote4->report_body.rt_mr[0];
+	tee_measurement_t rtmr1 = quote4->report_body.rt_mr[1];
+	tee_measurement_t rtmr2 = quote4->report_body.rt_mr[2];
+	tee_measurement_t rtmr3 = quote4->report_body.rt_mr[3];
+
+	size_t claims_index = 0;
+	uint64_t claims_size = TDX_CLAIMS_COUNT * sizeof(claim_t);
+	claim_t *claims = (claim_t *)malloc(claims_size);
+	if (claims == NULL)
+		return RATS_ERR_NO_MEM;
+
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], TDX_CLAIM_RTMR0,
+				      sizeof(TDX_CLAIM_RTMR0), &rtmr0, sizeof(rtmr0)));
+
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], TDX_CLAIM_RTMR1,
+				      sizeof(TDX_CLAIM_RTMR1), &rtmr1, sizeof(rtmr1)));
+
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], TDX_CLAIM_RTMR2,
+				      sizeof(TDX_CLAIM_RTMR2), &rtmr2, sizeof(rtmr2)));
+
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], TDX_CLAIM_RTMR3,
+				      sizeof(TDX_CLAIM_RTMR3), &rtmr3, sizeof(rtmr3)));
+
+	*claims_out = claims;
+	*claims_length_out = claims_index;
+	claims = NULL;
+
+	err = RATS_VERIFIER_ERR_NONE;
+
+done:
+	if (claims)
+		free_claims_list(claims, claims_index);
+
+	return err;
+}
+
 rats_verifier_err_t tdx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
 					      attestation_evidence_t *evidence, const uint8_t *hash,
-					      __attribute__((unused)) uint32_t hash_len)
+					      __attribute__((unused)) uint32_t hash_len,
+					      claim_t **claims, size_t *claims_length)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
 	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 	err = ecdsa_verify_evidence(ctx, ctx->opts->name, evidence, sizeof(attestation_evidence_t),
 				    hash, hash_len);
-	if (err != RATS_VERIFIER_ERR_NONE)
+	if (err != RATS_VERIFIER_ERR_NONE) {
 		RATS_ERR("failed to verify ecdsa\n");
+		return err;
+	}
+
+	err = tdx_parse_claims((sgx_quote4_t *)evidence->tdx.quote, claims, claims_length);
+	if (err != RATS_VERIFIER_ERR_NONE)
+		RATS_ERR("failed to parse tdx claims\n");
 
 	return err;
 }
