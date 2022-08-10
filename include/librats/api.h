@@ -14,6 +14,7 @@
 #include <librats/conf.h>
 #include <librats/evidence.h>
 #include <librats/core.h>
+#include <librats/claim.h>
 
 //clang-format off
 #define RATS_API_VERSION_1	 1
@@ -46,7 +47,8 @@ extern rats_attester_err_t librats_collect_evidence(attestation_evidence_t *evid
 extern "C" {
 #endif
 extern rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evidence,
-						   const uint8_t *hash);
+						   const uint8_t *hash, claim_t **claims,
+						   size_t *claims_length);
 #ifdef __cplusplus
 }
 #endif

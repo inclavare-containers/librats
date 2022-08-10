@@ -1,9 +1,11 @@
 #include <stdint.h>
 #include <string.h>
 #include <librats/api.h>
+#include <librats/claim.h>
 #include <librats/log.h>
 
-rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evidence, const uint8_t *hash)
+rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evidence, const uint8_t *hash,
+					    claim_t **claims, size_t *claims_length)
 {
 	uint32_t hash_len = 32;
 	rats_core_context_t ctx;
@@ -16,8 +18,8 @@ rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evidence, co
 	if (rats_verify_init(&conf, &ctx) != RATS_VERIFIER_ERR_NONE)
 		return RATS_VERIFIER_ERR_INIT;
 
-	rats_verifier_err_t err =
-		ctx.verifier->opts->verify_evidence(ctx.verifier, evidence, hash, hash_len);
+	rats_verifier_err_t err = ctx.verifier->opts->verify_evidence(
+		ctx.verifier, evidence, hash, hash_len, claims, claims_length);
 
 	if (ctx.verifier->opts->cleanup(ctx.verifier) != RATS_VERIFIER_ERR_NONE) {
 		RATS_ERR("failed to clean up verifier\n");
