@@ -13,6 +13,9 @@ list(GET VERSION_LIST 0 VERSION_MAJOR)
 list(GET VERSION_LIST 1 VERSION_MINOR)
 list(GET VERSION_LIST 2 VERSION_PATCH)
 
+# Build options
+option(SGX_HW "Run SGX on hardware, OFF for simulation" ON)
+
 # Define build mode
 set(RATS_BUILD_MODE "host"
     CACHE STRING "Select build mode for librats(host|occlum|sgx｜wasm)")
