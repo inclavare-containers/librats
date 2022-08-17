@@ -34,7 +34,7 @@ sgx_status_t sgx_generate_evidence(const uint8_t *hash, sgx_report_t *app_report
 
 	sgx_target_info_t qe_target_info;
 	memset(&qe_target_info, 0, sizeof(sgx_target_info_t));
-	sgx_status_t sgx_error = ocall_get_target_info(&qe_target_info);
+	sgx_status_t sgx_error = rats_ocall_get_target_info(&qe_target_info);
 	if (SGX_SUCCESS != sgx_error)
 		return sgx_error;
 
@@ -111,13 +111,13 @@ rats_attester_err_t sgx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 	rats_attester_err_t qe3_ret;
 	int sgx_status;
 	uint32_t quote_size = 0;
-	sgx_status = ocall_qe_get_quote_size(&qe3_ret, &quote_size);
+	sgx_status = rats_ocall_qe_get_quote_size(&qe3_ret, &quote_size);
 	if (SGX_SUCCESS != sgx_status || RATS_ATTESTER_ERR_NONE != qe3_ret) {
 		RATS_ERR("sgx_qe_get_quote_size(): 0x%04x, 0x%04x\n", sgx_status, qe3_ret);
 		return SGX_ECDSA_ATTESTER_ERR_CODE((int)qe3_ret);
 	}
 
-	sgx_status = ocall_qe_get_quote(&qe3_ret, &app_report, quote_size, evidence->ecdsa.quote);
+	sgx_status = rats_ocall_qe_get_quote(&qe3_ret, &app_report, quote_size, evidence->ecdsa.quote);
 	if (SGX_SUCCESS != sgx_status || RATS_ATTESTER_ERR_NONE != qe3_ret) {
 		RATS_ERR("sgx_qe_get_quote(): 0x%04x, 0x%04x\n", sgx_status, qe3_ret);
 		return SGX_ECDSA_ATTESTER_ERR_CODE((int)qe3_ret);

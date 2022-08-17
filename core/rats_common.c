@@ -39,7 +39,7 @@ rats_log_level_t rats_global_log_level = RATS_LOG_LEVEL_DEFAULT;
 #ifdef SGX
 void rats_exit(void)
 {
-    ocall_exit();
+    rats_ocall_exit();
 }
 
 rats_log_level_t rats_loglevel_getenv(const char *name)
@@ -53,7 +53,7 @@ rats_log_level_t rats_loglevel_getenv(const char *name)
         return -1;
     }
 
-    ocall_getenv(name, log_level_str, log_level_len);
+    rats_ocall_getenv(name, log_level_str, log_level_len);
     if (log_level_str) {
         if (!strcmp(log_level_str, "debug") || !strcmp(log_level_str, "DEBUG")) {
             free(log_level_str);
@@ -141,7 +141,7 @@ rats_verifier_err_t rats_verifier_init(const char *name, __attribute__((unused))
 ssize_t rats_write(int fd, const void *buf, size_t count)
 {
     ssize_t rc;
-    int sgx_status = ocall_write(&rc, fd, buf, count);
+    int sgx_status = rats_ocall_write(&rc, fd, buf, count);
     if (SGX_SUCCESS != sgx_status) {
         RATS_ERR("sgx failed to write data, sgx status: 0x%04x\n", sgx_status);
     }
@@ -152,7 +152,7 @@ ssize_t rats_write(int fd, const void *buf, size_t count)
 ssize_t rats_read(int fd, void *buf, size_t count)
 {
     ssize_t rc;
-    int sgx_status = ocall_read(&rc, fd, buf, count);
+    int sgx_status = rats_ocall_read(&rc, fd, buf, count);
     if (SGX_SUCCESS != sgx_status) {
         RATS_ERR("sgx failed to read data, sgx status: 0x%04x\n", sgx_status);
     }
@@ -164,7 +164,7 @@ uint64_t rats_opendir(const char *name)
 {
     uint64_t dir;
 
-    int sgx_status = ocall_opendir(&dir, name);
+    int sgx_status = rats_ocall_opendir(&dir, name);
     if (sgx_status != SGX_SUCCESS) {
         RATS_ERR("sgx failed to open %s, sgx status: 0x%04x\n", name, sgx_status);
     }
@@ -181,7 +181,7 @@ int rats_readdir(uint64_t dirp, rats_dirent **ptr)
         RATS_ERR("failed to calloc memory in rats_readdir\n");
         return -1;
     }
-    ocall_readdir(&ret, dirp, *ptr);
+    rats_ocall_readdir(&ret, dirp, *ptr);
 
     return ret;
 }
@@ -189,7 +189,7 @@ int rats_readdir(uint64_t dirp, rats_dirent **ptr)
 int rats_closedir(uint64_t dir)
 {
     int ret = 0;
-    ocall_closedir(&ret, dir);
+    rats_ocall_closedir(&ret, dir);
 
     return ret;
 }

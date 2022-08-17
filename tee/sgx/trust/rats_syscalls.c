@@ -17,19 +17,19 @@ void printf(const char *fmt, ...)
 	va_start(ap, fmt);
 	vsnprintf(buf, BUFSIZ, fmt, ap);
 	va_end(ap);
-	ocall_print_string(buf);
+	rats_ocall_print_string(buf);
 }
 
 double current_time(void)
 {
 	double curr;
-	ocall_current_time(&curr);
+	rats_ocall_current_time(&curr);
 	return curr;
 }
 
 int LowResTimer(void)
 {
 	int time;
-	ocall_low_res_time(&time);
+	rats_ocall_low_res_time(&time);
 	return time;
 }

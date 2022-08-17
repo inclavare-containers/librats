@@ -9,24 +9,24 @@ enclave {
 	from "sgx_dcap_tvl.edl" import *;
 
 	trusted {
-		public sgx_status_t ecall_get_target_info([out] sgx_target_info_t* target_info);
+		public sgx_status_t rats_ecall_get_target_info([out] sgx_target_info_t* target_info);
 	};
 
 	untrusted {
-		void ocall_get_target_info([out] sgx_target_info_t *qe_target_info);
+		void rats_ocall_get_target_info([out] sgx_target_info_t *qe_target_info);
 
-		rats_attester_err_t ocall_qe_get_quote_size([out] uint32_t *quote_size);
+		rats_attester_err_t rats_ocall_qe_get_quote_size([out] uint32_t *quote_size);
 
-		rats_attester_err_t ocall_qe_get_quote([in]sgx_report_t *report, uint32_t quote_size,
+		rats_attester_err_t rats_ocall_qe_get_quote([in]sgx_report_t *report, uint32_t quote_size,
                                                 [out, size=quote_size] uint8_t *quote);
 
-		rats_verifier_err_t ocall_ecdsa_verify_evidence([user_check] rats_verifier_ctx_t *ctx,
+		rats_verifier_err_t rats_ocall_ecdsa_verify_evidence([user_check] rats_verifier_ctx_t *ctx,
                                                                 sgx_enclave_id_t enclave_id,
                                                                 [in, string] const char *name,
                                                                 [in, size=evidence_len] attestation_evidence_t *evidence,
                                                                 uint32_t evidence_len,
                                                                 [in, size=hash_len] const uint8_t *hash,
                                                                 uint32_t hash_len)
-			allow(ecall_get_target_info, sgx_tvl_verify_qve_report_and_identity);
+			allow(rats_ecall_get_target_info, sgx_tvl_verify_qve_report_and_identity);
 	};
 };

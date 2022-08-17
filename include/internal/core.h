@@ -16,7 +16,7 @@
 // clang-format on
 
 #ifdef SGX
-typedef struct ocall_dirent rats_dirent;
+typedef struct rats_ocall_dirent rats_dirent;
 #else
 typedef struct dirent rats_dirent;
 #endif

@@ -19,12 +19,12 @@
 #include "rats_syscalls.h"
 #include "cpu.h"
 
-void ocall_exit(void)
+void rats_ocall_exit(void)
 {
 	exit(EXIT_FAILURE);
 }
 
-void ocall_print_string(const char *str)
+void rats_ocall_print_string(const char *str)
 {
 	/* Proxy/Bridge will check the length and null-terminate
 	 * the input string to prevent buffer overflow.
@@ -33,13 +33,13 @@ void ocall_print_string(const char *str)
 }
 
 /* Copy from openenclave */
-uint64_t ocall_opendir(const char *name)
+uint64_t rats_ocall_opendir(const char *name)
 {
 	return (uint64_t)opendir(name);
 }
 
 /* Copy from openenclave */
-int ocall_readdir(uint64_t dirp, struct ocall_dirent *entry)
+int rats_ocall_readdir(uint64_t dirp, struct rats_ocall_dirent *entry)
 {
 	int ret = -1;
 	struct dirent *ent;
@@ -89,24 +89,24 @@ done:
 }
 
 /* Copy from openenclave */
-int ocall_closedir(uint64_t dirp)
+int rats_ocall_closedir(uint64_t dirp)
 {
 	errno = 0;
 
 	return closedir((DIR *)dirp);
 }
 
-ssize_t ocall_read(int fd, void *buf, size_t count)
+ssize_t rats_ocall_read(int fd, void *buf, size_t count)
 {
 	return read(fd, buf, count);
 }
 
-ssize_t ocall_write(int fd, const void *buf, size_t count)
+ssize_t rats_ocall_write(int fd, const void *buf, size_t count)
 {
 	return write(fd, buf, count);
 }
 
-void ocall_getenv(const char *name, char *value, size_t len)
+void rats_ocall_getenv(const char *name, char *value, size_t len)
 {
 	memset(value, 0, len);
 
@@ -126,7 +126,7 @@ static double current_time(void)
 	return (double)((1000000.0f * (double)tv.tv_sec + (double)tv.tv_usec) / 1000000.0f);
 }
 
-void ocall_current_time(double *time)
+void rats_ocall_current_time(double *time)
 {
 	if (!time)
 		return;
@@ -136,7 +136,7 @@ void ocall_current_time(double *time)
 	return;
 }
 
-void ocall_low_res_time(int *time)
+void rats_ocall_low_res_time(int *time)
 {
 	if (!time)
 		return;
@@ -147,7 +147,7 @@ void ocall_low_res_time(int *time)
 	*time = (int)tv.tv_sec;
 }
 
-void ocall_cpuid(int *eax, int *ebx, int *ecx, int *edx)
+void rats_ocall_cpuid(int *eax, int *ebx, int *ecx, int *edx)
 {
 #if defined(__x86_64__)
 	__asm__ volatile("cpuid"
@@ -163,7 +163,7 @@ void ocall_cpuid(int *eax, int *ebx, int *ecx, int *edx)
 #endif
 }
 
-void ocall_is_sgx_dev(bool *retval, const char *dev)
+void rats_ocall_is_sgx_dev(bool *retval, const char *dev)
 {
 	struct stat st;
 

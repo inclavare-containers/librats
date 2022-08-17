@@ -5,7 +5,7 @@ enclave {
 	from "sgx_dummy.edl" import *;
 
 	untrusted {
-		rats_verifier_err_t ocall_la_verify_evidence([user_check] rats_verifier_ctx_t *ctx,
+		rats_verifier_err_t rats_ocall_la_verify_evidence([user_check] rats_verifier_ctx_t *ctx,
                                                              [in, size=evidence_len] attestation_evidence_t *evidence,
                                                              uint32_t evidence_len,
                                                              [in, size=hash_len] const uint8_t *hash,
