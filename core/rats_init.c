@@ -20,8 +20,8 @@
 #endif
 
 #ifdef SGX
-#define RATS_ATTESTER_NUM	5
-#define RATS_VERIFIER_NUM	5
+#define RATS_ATTESTER_NUM	3
+#define RATS_VERIFIER_NUM	4
 #define RATS_NAME   		32
 // clang-format on
 char rats_attester_name[RATS_ATTESTER_NUM][RATS_NAME] = { "nullattester", "sgx_ecdsa", "sgx_la" };
