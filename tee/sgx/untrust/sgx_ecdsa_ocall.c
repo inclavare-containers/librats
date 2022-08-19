@@ -16,6 +16,8 @@
 #include "sgx_ecdsa.h"
 #include "rats_u.h"
 
+rats_log_level_t rats_global_log_level = RATS_LOG_LEVEL_DEFAULT;
+
 static void get_random_nonce(uint8_t *nonce, uint32_t size)
 {
 	for (uint32_t i = 0; i < size; i++)
