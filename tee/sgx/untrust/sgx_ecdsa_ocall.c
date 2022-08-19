@@ -105,7 +105,7 @@ rats_verifier_err_t rats_ocall_ecdsa_verify_evidence(__attribute__((unused)) rat
 		memcpy(qve_report_info->nonce.rand, rand_nonce, sizeof(rand_nonce));
 
 		sgx_status_t get_target_info_ret;
-		sgx_ret = ecall_get_target_info(enclave_id, &get_target_info_ret,
+		sgx_ret = rats_ecall_get_target_info(enclave_id, &get_target_info_ret,
 						&qve_report_info->app_enclave_target_info);
 		if (sgx_ret != SGX_SUCCESS || get_target_info_ret != SGX_SUCCESS) {
 			RATS_ERR(
