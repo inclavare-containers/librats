@@ -92,7 +92,7 @@ endif()
 set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if(SGX)
     list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/edl
-                             ${CMAKE_BINARY_DIR}/tee/sgx/trust
+                             ${CMAKE_CURRENT_BINARY_DIR}/tee/sgx/trust
                              )
 elseif(WASM)
     list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/openssl/install/include)
@@ -181,9 +181,9 @@ elseif(WASM)
                       --preload-file ${WASM_BUILD_DIR}/libverifier_sgx_ecdsa.so@${RATS_INSTALL_LIBV_PATH}/libverifier_sgx_ecdsa.so \
                       --preload-file ${WASM_BUILD_DIR}/libverifier_sev.so@${RATS_INSTALL_LIBV_PATH}/libverifier_sev.so \
                       --preload-file ${WASM_BUILD_DIR}/libverifier_sev_snp.so@${RATS_INSTALL_LIBV_PATH}/libverifier_sev_snp.so \
-                      --preload-file ${CMAKE_BINARY_DIR}/${ASK_ARK_NAPLES_FILE}@${SEV_DEFAULT_DIR}/${ASK_ARK_NAPLES_FILE} \
-                      --preload-file ${CMAKE_BINARY_DIR}/${ASK_ARK_ROME_FILE}@${SEV_DEFAULT_DIR}/${ASK_ARK_ROME_FILE} \
-                      --preload-file ${CMAKE_BINARY_DIR}/${ASK_ARK_MILAN_FILE}@${SEV_DEFAULT_DIR}/${ASK_ARK_MILAN_FILE}"
+                      --preload-file ${CMAKE_CURRENT_BINARY_DIR}/${ASK_ARK_NAPLES_FILE}@${SEV_DEFAULT_DIR}/${ASK_ARK_NAPLES_FILE} \
+                      --preload-file ${CMAKE_CURRENT_BINARY_DIR}/${ASK_ARK_ROME_FILE}@${SEV_DEFAULT_DIR}/${ASK_ARK_ROME_FILE} \
+                      --preload-file ${CMAKE_CURRENT_BINARY_DIR}/${ASK_ARK_MILAN_FILE}@${SEV_DEFAULT_DIR}/${ASK_ARK_MILAN_FILE}"
                       )
 
     # Put dumped evidence.bin in ${CMAKE_CURRENT_SOURCE_DIR}/wasm if need to
@@ -208,7 +208,7 @@ elseif(WASM)
     add_dependencies(${RATS_LIB} ${DEPEND_LIBS})
     add_custom_command(TARGET ${RATS_LIB}
                        POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/${RATS_LIB}.* ${WASM_BUILD_DIR}
+                       COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/${RATS_LIB}.* ${WASM_BUILD_DIR}
                        )
     if(DEBUG)
         add_custom_command(TARGET ${RATS_LIB}

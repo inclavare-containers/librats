@@ -1,5 +1,5 @@
 # /usr/local
-set(RATS_INSTALL_PATH "/usr/local")
+set(RATS_INSTALL_PATH "/usr/local" CACHE STRING "Install path for librats")
 
 # lib/rats
 set(RATS_INSTALL_LIB_PATH "${RATS_INSTALL_PATH}/lib/librats")
