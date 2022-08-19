@@ -53,4 +53,15 @@ extern rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evide
 }
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+int get_evidence_from_json(const char *json_string, attestation_evidence_t *evidence);
+int convert_evidence_to_json(attestation_evidence_t *evidence, char **json_string);
+int librats_collect_evidence_to_json(const uint8_t *hash,char **evidence_json);
+int librats_verify_evidence_from_json(const char *json_string, const uint8_t *hash);
+#ifdef __cplusplus
+}
+#endif
+
 #endif
