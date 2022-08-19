@@ -1,5 +1,5 @@
 enclave {
-	include "rats_syscalls.h"
+	include "librats/rats_syscalls.h"
 
 	from "sgx_dummy.edl" import *;
 

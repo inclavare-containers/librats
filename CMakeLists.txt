@@ -251,9 +251,23 @@ set(RATS_INCLUDE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/api.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/sgx.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/evidence.h
                        )
+
 if(SGX)
     list(APPEND RATS_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/tee/sgx/trust/rats_t.h
                                    ${CMAKE_CURRENT_BINARY_DIR}/tee/sgx/untrust/rats_u.h
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/rats_syscalls.h
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/include/edl/rats.edl
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/include/edl/rats_syscalls.edl
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/include/edl/sgx_dummy.edl
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/include/edl/sgx_ecdsa.edl
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/include/edl/sgx_la.edl
+                                   )
+
+    list(APPEND RATS_EDL_FILES     ${CMAKE_CURRENT_SOURCE_DIR}/include/edl/rats.edl
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/include/edl/rats_syscalls.edl
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/include/edl/sgx_dummy.edl
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/include/edl/sgx_ecdsa.edl
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/include/edl/sgx_la.edl
                                    )
 endif()
 
@@ -262,4 +276,7 @@ if(NOT WASM)
     install(TARGETS ${RATS_LIB} DESTINATION ${RATS_INSTALL_LIB_PATH})
     install(DIRECTORY DESTINATION ${RATS_INSTALL_INCLUDE_PATH}/librats)
     install(FILES ${RATS_INCLUDE_FILES} DESTINATION ${RATS_INSTALL_INCLUDE_PATH}/librats)
+    if(SGX)
+        install(FILES ${RATS_EDL_FILES} DESTINATION ${RATS_INSTALL_INCLUDE_PATH}/librats/edl)
+    endif()
 endif()
