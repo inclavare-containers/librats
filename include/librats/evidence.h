@@ -8,6 +8,7 @@
 #define _LIBRATS_EVIDENCE_H
 
 #define VECK_MAX_SIZE 2 * 1024
+#define JSON_MAX_SIZE 10 * 1024
 
 typedef struct attestation_evidence attestation_evidence_t;
 

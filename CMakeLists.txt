@@ -88,6 +88,13 @@ else()
     message(FATAL_ERROR "Invalid build type!")
 endif()
 
+set(ENABLE_JSON ON CACHE BOOL
+    "Enable to transform evidence to/from json.")
+
+if(ENABLE_JSON)
+    add_definitions(-DENABLE_JSON)
+endif()
+
 # Set include directory
 set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if(SGX)
@@ -142,6 +149,11 @@ if(SGX)
                         )
 elseif(WASM)
     list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/wasm/wasm.cpp)
+endif()
+
+if(ENABLE_JSON)
+    list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core/base64.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/core/cJSON.c)
 endif()
 
 # Static library dependencies

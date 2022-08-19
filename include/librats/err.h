@@ -58,6 +58,7 @@ typedef enum {
 	RATS_ATTESTER_ERR_INIT,
 	RATS_ATTESTER_ERR_NO_TOOL,
 	RATS_ATTESTER_ERR_CURL,
+	RATS_ATTESTER_ERR_JSON
 } rats_attester_err_t;
 
 typedef enum {
@@ -69,6 +70,7 @@ typedef enum {
 	RATS_VERIFIER_ERR_DLOPEN,
 	RATS_VERIFIER_ERR_INIT,
 	RATS_VERIFIER_ERR_NO_TOOL,
+	RATS_VERIFIER_ERR_JSON
 } rats_verifier_err_t;
 
 #endif
