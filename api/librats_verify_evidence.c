@@ -70,9 +70,9 @@ int get_evidence_from_json(const char *json_string, attestation_evidence_t *evid
 		ret_code = 0;
 		goto err;
 	}
-	if (base64_decode((const unsigned char *)report_base64, strlen(report_base64), &report, &report_len) != 0 ||
+	if (rats_base64_decode((const unsigned char *)report_base64, strlen(report_base64), &report, &report_len) != 0 ||
 	    !report || !report_len) {
-		RATS_ERR("failed to get_evidence_from_json, base64_decode report error\n");
+		RATS_ERR("failed to get_evidence_from_json, rats_base64_decode report error\n");
 		goto err;
 	}
 	if (report_len != (size_t)cJSON_GetObjectItem(evidence_json, "report_len")->valueint) {
@@ -94,11 +94,11 @@ int get_evidence_from_json(const char *json_string, attestation_evidence_t *evid
 		    cJSON_IsNumber(cJSON_GetObjectItem(evidence_json, "vcek_base64"))) {
 			vcek_base64 =
 				cJSON_GetObjectItem(evidence_json, "vcek_base64")->valuestring;
-			if (base64_decode((const unsigned char *)vcek_base64, strlen(vcek_base64), &vcek, &vcek_len) !=
+			if (rats_base64_decode((const unsigned char *)vcek_base64, strlen(vcek_base64), &vcek, &vcek_len) !=
 				    0 ||
 			    !vcek || !vcek_len) {
 				RATS_ERR(
-					"failed to get_evidence_from_json, base64_decode vcek error\n");
+					"failed to get_evidence_from_json, rats_base64_decode vcek error\n");
 				goto err;
 			}
 			if (vcek_len != (size_t)cJSON_GetObjectItem(evidence_json, "vcek_len")->valueint) {
@@ -139,7 +139,7 @@ int librats_verify_evidence_from_json(const char *json_string, const uint8_t *ha
 	rats_global_log_level = RATS_LOG_LEVEL_DEFAULT;
 	if (get_evidence_from_json(json_string, &evidence) != 0)
 		return RATS_VERIFIER_ERR_JSON;
-	rats_verifier_err_t ret = librats_verify_evidence(&evidence, hash, NULL, 0);
+	rats_verifier_err_t ret = librats_verify_evidence(&evidence, hash, NULL, NULL);
 	if (ret != RATS_VERIFIER_ERR_NONE) {
 		RATS_ERR("failed to librats_verify_evidence return %#x\n", ret);
 		return (int)ret;
