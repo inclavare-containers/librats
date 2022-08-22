@@ -118,7 +118,7 @@ rats_verifier_err_t evidence_verify(std::string evidence_base64, std::string has
 	memcpy(&evidence, evidence_bytes, evidence_len);
 
 	hash = base64_decode(hash_base64.c_str(), &hash_len);
-	ver_ret = librats_verify_evidence(&evidence, hash);
+	ver_ret = librats_verify_evidence(&evidence, hash, NULL, NULL);
 	if (ver_ret != RATS_VERIFIER_ERR_NONE) {
 		RATS_ERR("Failed to verify evidence %#x\n", ver_ret);
 		goto err;

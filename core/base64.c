@@ -10,7 +10,7 @@
 static const unsigned char base64_table[65] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-int base64_encode(const uint8_t *src, size_t len, unsigned char **output, size_t *output_len)
+int rats_base64_encode(const uint8_t *src, size_t len, unsigned char **output, size_t *output_len)
 {
 	*output = NULL;
 	unsigned char *out, *pos;
@@ -56,7 +56,7 @@ int base64_encode(const uint8_t *src, size_t len, unsigned char **output, size_t
 	return 0;
 }
 
-int base64_decode(const unsigned char *src, size_t len, uint8_t **output, size_t *output_len)
+int rats_base64_decode(const unsigned char *src, size_t len, uint8_t **output, size_t *output_len)
 {
 	*output = NULL;
 	unsigned char dtable[256], *out, *pos, block[4], tmp;
