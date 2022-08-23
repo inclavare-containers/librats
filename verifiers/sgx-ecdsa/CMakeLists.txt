@@ -4,8 +4,8 @@ project(verifier_sgx_ecdsa)
 # Set include directory
 list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${SGXSDK_INSTALL_INCLUDE_PATH})
 if(WASM)
-    list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../wasm/dcap/SGXDataCenterAttestationPrimitives/QuoteVerification/dcap_quoteverify/inc
-                             ${CMAKE_CURRENT_SOURCE_DIR}/../../wasm/dcap/SGXDataCenterAttestationPrimitives/QuoteGeneration/quote_wrapper/ql/inc
+    list(APPEND INCLUDE_DIRS ${WASM_SRCS_DIR}/dcap/SGXDataCenterAttestationPrimitives/QuoteVerification/dcap_quoteverify/inc
+                             ${WASM_SRCS_DIR}/dcap/SGXDataCenterAttestationPrimitives/QuoteGeneration/quote_wrapper/ql/inc
                              )
 endif()
 include_directories(${INCLUDE_DIRS})

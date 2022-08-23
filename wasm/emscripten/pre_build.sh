@@ -16,4 +16,4 @@ cd ${EMSDK_DIR} && source build.sh
 cd ${OPENSSL_DIR} && ./build.sh
 cd ${DCAP_DIR} && ./build.sh
 
-cd ${SOURCE_DIR}/../
+cd ${SOURCE_DIR}/../../

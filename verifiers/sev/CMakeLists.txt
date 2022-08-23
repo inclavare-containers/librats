@@ -7,7 +7,7 @@ set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../include
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/internal
                  )
 if(WASM)
-    list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../wasm/openssl/install/include)
+    list(APPEND INCLUDE_DIRS ${WASM_SRCS_DIR}/openssl/install/include)
 endif()
 include_directories(${INCLUDE_DIRS})
 

@@ -52,16 +52,33 @@
 
  3. Wasm support
 
- Librats provides support for [WebAssembly](https://webassembly.org), which enables it to run in the browser. To build it, please type the following command.
+ Librats provides support for [WebAssembly](https://webassembly.org), which enables it to run in the browser and [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime).
 
+ If you want to run it in browser, please type the following command.
  ```shell
- source wasm/pre_build.sh
+ source wasm/emscripten/pre_build.sh
  cmake -DRATS_BUILD_MODE="wasm"  -H. -Bbuild
  make -C build
  ```
 
  When the compilation is finished, you can find the results in build/wasm.
 
+ If you want to run it in WAMR, please type the following command.
+ ```shell
+ # install librats in host mode first
+ cmake -H. -Bbuild
+ make -C build install
+
+ # export librats APIs to wamr
+ cd wasm/wamr
+ cmake -H. -Bbuild
+ make -C build
+
+ # run the sample
+ cd build
+ ./iwasm --native-lib=librats_wamr.so sample/test.wasm
+ ```
+ 
  # RUN
 
  Right now, Librats supports the following instance types:
