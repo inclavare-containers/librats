@@ -108,6 +108,13 @@ if(ENABLE_JSON)
     add_definitions(-DENABLE_JSON)
 endif()
 
+# Include custom modules
+include(CustomInstallDirs)
+include(CompilerOptions)
+if(SGX)
+    include(SGXCommon)
+endif()
+
 # Set include directory
 set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if(SGX)
@@ -115,14 +122,7 @@ if(SGX)
                              ${CMAKE_CURRENT_BINARY_DIR}/tee/sgx/trust
                              )
 elseif(WASM)
-    list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/openssl/install/include)
-endif()
-
-# Include custom modules
-include(CustomInstallDirs)
-include(CompilerOptions)
-if(SGX)
-    include(SGXCommon)
+    list(APPEND INCLUDE_DIRS ${WASM_SRCS_DIR}/openssl/install/include)
 endif()
 
 include_directories(${INCLUDE_DIRS})
@@ -161,7 +161,7 @@ if(SGX)
                         ${CMAKE_CURRENT_SOURCE_DIR}/tee/sgx/trust/rats_syscalls.c
                         )
 elseif(WASM)
-    list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/wasm/wasm.cpp)
+    list(APPEND SOURCES ${WASM_SRCS_DIR}/wasm.cpp)
 endif()
 
 if(ENABLE_JSON)
@@ -188,8 +188,8 @@ elseif(WASM)
                     verifier_csv
                     )
     set(WASM_LINER_LIBRARIES "-L${WASM_BUILD_DIR} \
-                              -L${CMAKE_CURRENT_SOURCE_DIR}/wasm/dcap/lib \
-                              -L${CMAKE_CURRENT_SOURCE_DIR}/wasm/openssl/install/lib \
+                              -L${WASM_SRCS_DIR}/dcap/lib \
+                              -L${WASM_SRCS_DIR}/openssl/install/lib \
                               -lcrypto -lsgx_dcap_quoteverify \
                               -lsgx_dcap_qvl_attestation \
                               -lsgx_dcap_qvl_parser \
@@ -211,10 +211,10 @@ elseif(WASM)
                       --preload-file ${CMAKE_CURRENT_BINARY_DIR}/${ASK_ARK_MILAN_FILE}@${SEV_DEFAULT_DIR}/${ASK_ARK_MILAN_FILE}"
                       )
 
-    # Put dumped evidence.bin in ${CMAKE_CURRENT_SOURCE_DIR}/wasm if need to
+    # Put dumped evidence.bin in ${CMAKE_CURRENT_SOURCE_DIR}/wasm/emscripten if need to
     # test librats_wasm for evidence in file.
-    if(DEBUG AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/wasm/evidence.bin")
-        set(PRELOAD_FILE "${PRELOAD_FILE} --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/wasm/evidence.bin@evidence.bin")
+    if(DEBUG AND EXISTS "${WASM_SRCS_DIR}/evidence.bin")
+        set(PRELOAD_FILE "${PRELOAD_FILE} --preload-file ${WASM_SRCS_DIR}/evidence.bin@evidence.bin")
     endif()
 endif()
 
@@ -238,7 +238,7 @@ elseif(WASM)
     if(DEBUG)
         add_custom_command(TARGET ${RATS_LIB}
                            POST_BUILD
-                           COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/wasm/sample.html ${WASM_BUILD_DIR}
+                           COMMAND ${CMAKE_COMMAND} -E copy ${WASM_SRCS_DIR}/sample.html ${WASM_BUILD_DIR}
                            )
     else()
         add_custom_command(TARGET ${RATS_LIB}
