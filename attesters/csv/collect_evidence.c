@@ -81,13 +81,19 @@ static int do_hypercall(unsigned int p1, unsigned long p2, unsigned long p3)
 	return (int)ret;
 }
 
+static size_t get_csv_evidence_extend_length(void)
+{
+	return HYGON_HSK_CEK_CERT_SIZE;
+}
+
 static size_t curl_writefunc_callback(void *contents, size_t size, size_t nmemb, void *userp)
 {
 	size_t realsize = size * nmemb;
+	size_t limit_size = get_csv_evidence_extend_length();
 	csv_evidence *evidence = (csv_evidence *)userp;
 
-	if (evidence->hsk_cek_cert_len + realsize > HYGON_HSK_CEK_CERT_SIZE) {
-		RATS_ERR("hsk_cek size is large than %d bytes.", HYGON_HSK_CEK_CERT_SIZE);
+	if (evidence->hsk_cek_cert_len + realsize > limit_size) {
+		RATS_ERR("hsk_cek size is large than %d bytes.", limit_size);
 		return 0;
 	}
 	memcpy(&(evidence->hsk_cek_cert[evidence->hsk_cek_cert_len]), contents, realsize);
@@ -106,7 +112,7 @@ static size_t curl_writefunc_callback(void *contents, size_t size, size_t nmemb,
  * 	0: success
  * 	otherwise error
  */
-static int csv_get_hsk_cek_cert(const char *chip_id, csv_evidence *evidence_buffer)
+static int csv_get_hsk_cek_cert(const char *chip_id, csv_evidence *evidence)
 {
 	/* Download HSK and CEK cert by ChipId */
 	char url[200] = {
@@ -126,9 +132,9 @@ static int csv_get_hsk_cek_cert(const char *chip_id, csv_evidence *evidence_buff
 	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writefunc_callback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)evidence_buffer);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)evidence);
 	for (int i = 0; i < 5; i++) {
-		evidence_buffer->hsk_cek_cert_len = 0;
+		evidence->hsk_cek_cert_len = 0;
 		if ((curl_ret = curl_easy_perform(curl)) == CURLE_OK) {
 			break;
 		}
@@ -179,7 +185,7 @@ typedef struct {
  * 	otherwise error
  */
 static int collect_attestation_evidence(const uint8_t *hash, uint32_t hash_len,
-					csv_attestation_evidence_t *evidence)
+					csv_evidence *evidence)
 {
 	int ret = 0;
 	uint64_t user_data_pa;
@@ -205,7 +211,7 @@ static int collect_attestation_evidence(const uint8_t *hash, uint32_t hash_len,
 	/* Prepare user defined data (challenge and mnonce) */
 	memcpy(user_data->data, hash,
 	       hash_len <= CSV_ATTESTATION_USER_DATA_SIZE ? hash_len :
-							    CSV_ATTESTATION_USER_DATA_SIZE);
+								  CSV_ATTESTATION_USER_DATA_SIZE);
 	gen_random_bytes(user_data->mnonce, CSV_ATTESTATION_MNONCE_SIZE);
 
 	/* Prepare hash of user defined data */
@@ -246,29 +252,25 @@ static int collect_attestation_evidence(const uint8_t *hash, uint32_t hash_len,
 
 	/* Fill evidence buffer with attestation report */
 	assert(sizeof(csv_attestation_report) <= CSV_GUEST_MAP_LEN);
-	memcpy(evidence->report, (void *)user_data, sizeof(csv_attestation_report));
 
-	/* Fill in CEK cert and HSK cert */
-	csv_evidence *evidence_buffer = (csv_evidence *)evidence->report;
-
-	assert(sizeof(csv_evidence) <= sizeof(evidence->report));
+	attestation_report = &evidence->attestation_report;
+	memcpy(attestation_report, user_data, sizeof(csv_attestation_report));
 
 	/* Retreive ChipId from attestation report */
 	uint8_t chip_id[CSV_ATTESTATION_CHIP_SN_SIZE + 1] = {
 		0,
 	};
-	attestation_report = &evidence_buffer->attestation_report;
 
 	for (i = 0; i < CSV_ATTESTATION_CHIP_SN_SIZE / sizeof(uint32_t); i++)
 		((uint32_t *)chip_id)[i] = ((uint32_t *)attestation_report->chip_id)[i] ^
 					   attestation_report->anonce;
 
-	if (csv_get_hsk_cek_cert((const char *)chip_id, evidence_buffer)) {
+	/* Fill in CEK cert and HSK cert */
+	if (csv_get_hsk_cek_cert((const char *)chip_id, evidence)) {
 		RATS_ERR("failed to load HSK and CEK cert\n");
 		ret = -1;
 		goto err_munmap;
 	}
-	evidence->report_len = sizeof(csv_evidence);
 
 	ret = 0;
 
@@ -284,11 +286,29 @@ rats_attester_err_t csv_collect_evidence(rats_attester_ctx_t *ctx, attestation_e
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
-	csv_attestation_evidence_t *c_evidence = &evidence->csv;
+	/* For csv guest, the hsk_cek certs should be combined with attestation report */
+	uint32_t csv_evidence_len = sizeof(csv_evidence) + get_csv_evidence_extend_length();
+	csv_evidence *c_evidence = NULL;
+	csv_attestation_evidence_t *csv_report = &evidence->csv;
+
+	assert(csv_evidence_len <= sizeof(csv_report->report));
+
+	if (!(c_evidence = (csv_evidence *)malloc(csv_evidence_len))) {
+		RATS_ERR("failed to allocate csv evidence buffer\n");
+		return RATS_ATTESTER_ERR_NO_MEM;
+	}
+	memset(c_evidence, 0, csv_evidence_len);
+
 	if (collect_attestation_evidence(hash, hash_len, c_evidence)) {
 		RATS_ERR("failed to get attestation_evidence\n");
+		free(c_evidence);
 		return RATS_ATTESTER_ERR_INVALID;
 	}
+
+	memcpy(csv_report->report, c_evidence, csv_evidence_len);
+	csv_report->report_len = csv_evidence_len;
+
+	free(c_evidence);
 
 	RATS_DEBUG("Success to generate attestation_evidence\n");
 
