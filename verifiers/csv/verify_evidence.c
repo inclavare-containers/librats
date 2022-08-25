@@ -120,12 +120,13 @@ rats_verifier_err_t csv_verify_evidence(rats_verifier_ctx_t *ctx, attestation_ev
 
 	if (memcmp(hash, user_data,
 		   hash_len <= CSV_ATTESTATION_USER_DATA_SIZE ? hash_len :
-								CSV_ATTESTATION_USER_DATA_SIZE)) {
+								      CSV_ATTESTATION_USER_DATA_SIZE)) {
 		RATS_ERR("unmatched hash value in evidence\n");
 		return RATS_VERIFIER_ERR_INVALID;
 	}
 
-	assert(sizeof(csv_evidence) <= sizeof(evidence->csv.report));
+	assert((sizeof(csv_evidence) + c_evidence->hsk_cek_cert_len) <=
+	       sizeof(evidence->csv.report));
 	err = verify_cert_chain(c_evidence);
 	if (err != RATS_VERIFIER_ERR_NONE) {
 		RATS_ERR("failed to verify csv cert chain\n");
