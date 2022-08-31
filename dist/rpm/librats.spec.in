@@ -138,5 +138,5 @@ rm -rf %{LIBRATS_LIBDIR} %{LIBRATS_INCDIR} $(dirname %{LIBRATS_BINDIR})
 %files %{mode} -f %{SOURCE10}
 
 %changelog
-* Mon Aug 31 2022 Shirong Hao <shirong@linux.alibaba.com> - 0.7.0
+* Mon Aug 31 2022 Sinuo Liu <984354607@qq.com> - 0.7.0
 - Package init.
