@@ -1,0 +1,6 @@
+/usr/local/include/librats/*.h
+/usr/local/include/librats/*.edl
+/usr/local/include/librats/edl/*.edl
+/usr/local/lib/librats/*.a
+/usr/local/lib/librats/attesters/libattester*.a
+/usr/local/lib/librats/verifiers/libverifier*.a

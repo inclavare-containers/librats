@@ -1,0 +1,142 @@
+%define anolis_release 1
+%define _debugsource_template %{nil}
+
+%global _find_debuginfo_dwz_opts %{nil}
+%global _dwz_low_mem_die_limit 0
+%undefine _missing_build_ids_terminate_build
+%define _unpackaged_files_terminate_build 0
+
+%global PROJECT librats
+
+Name: librats 
+Version: %{LIBRATS_VERSION}
+Release: %{anolis_release}%{?dist}
+Summary: librats is a remote attestation primitive library to support various HW-TEEs
+
+Group: Development/Tools
+License: Apache License 2.0
+URL: https://github.com/inclavare-containers/%{PROJECT}
+Source0: https://github.com/inclavare-containers/%{PROJECT}/archive/v%{version}.tar.gz
+
+BuildRequires: git
+BuildRequires: cmake
+BuildRequires: make
+BuildRequires: autoconf
+BuildRequires: libtool
+BuildRequires: libcurl
+BuildRequires: gcc
+BuildRequires: gcc-c++
+BuildRequires: libsgx-dcap-quote-verify-devel
+BuildRequires: libsgx-dcap-ql-devel
+BuildRequires: libsgx-uae-service
+ExclusiveArch: x86_64
+
+%if %{mode} == host
+Conflicts: librats-client
+Conflicts: Name=librats-occlum
+Conflicts: Name=librats-sgx
+Conflicts: Name=librats-tdx
+#Conflicts: Name=librats-wasm
+Conflicts: librats-server
+Source10: librats-filelist
+%endif
+
+%if %{mode} == occlum
+Conflicts: librats-client
+Conflicts: Name=librats-host
+Conflicts: Name=librats-sgx
+Conflicts: Name=librats-tdx
+#Conflicts: Name=librats-wasm
+Conflicts: librats-server
+Source10: librats-filelist
+%endif
+
+%if %{mode} == sgx
+Conflicts: librats-client
+Conflicts: Name=librats-host
+Conflicts: Name=librats-occlum
+Conflicts: Name=librats-tdx
+#Conflicts: Name=librats-wasm
+Conflicts: librats-server
+Source10: librats-sgx-filelist
+%define __spec_install_post \
+    %{?__debug_package:%{__debug_install_post}}\
+    %{__arch_install_post}\
+    %{__os_install_post}
+%endif
+
+%if %{mode} == tdx
+Conflicts: librats-client
+Conflicts: Name=librats-host
+Conflicts: Name=librats-occlum
+Conflicts: Name=librats-sgx
+#Conflicts: Name=librats-wasm
+Conflicts: librats-server
+Source10: librats-filelist
+%endif
+
+%description
+librats is a remote attestation primitive library to support various HW-TEEs.
+
+%package host
+Summary: host mode package for librats
+
+%description host
+librats-host is the "host" build mode package of librats.
+
+%package occlum
+Summary: occlum mode package for librats
+
+%description occlum
+librats-occlum is the "occlum" build mode package of librats.
+
+%package sgx
+Summary: sgx mode package for librats
+
+%description sgx
+librats-sgx is the "sgx" build mode package of librats.
+
+%package tdx
+Summary: tdx mode package for librats
+
+%description tdx
+librats-tdx is the "tdx" build mode package of librats.
+
+%prep
+%setup -q -n %{PROJECT}-%{version}
+
+
+%build
+if [ -z "$SGX_SDK" ]; then
+        SGX_SDK="/opt/intel/sgxsdk"
+fi
+
+# If the SGX SDK is not prepared well in build environment, stop the build
+if [ ! -d "$SGX_SDK" ]; then
+        echo 'Error: The SGX_SDK environment variable value is not correct'
+        exit 1
+fi
+
+#If the mode is not specified, stop the build
+if [ -z %{mode} ]; then
+	echo 'Error: Please input variable "mode"'
+	exit 1
+fi
+
+pushd %{name}
+cmake -DRATS_BUILD_MODE=%{mode} -H. -Bbuild
+popd
+
+%install
+pushd %{name}
+make -C build DESTDIR=%{?buildroot} install
+popd
+
+%postun
+rm -rf %{LIBRATS_LIBDIR} %{LIBRATS_INCDIR} $(dirname %{LIBRATS_BINDIR})
+
+%files %{mode} -f %{SOURCE10}
+
+%changelog
+* Mon Aug 31 2022 Shirong Hao <shirong@linux.alibaba.com> - 0.7.0
+- Package init.

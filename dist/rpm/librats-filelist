@@ -1,0 +1,4 @@
+/usr/local/include/librats/*.h
+/usr/local/lib/librats/librats*.so*
+/usr/local/lib/librats/attesters/libattester*.so*
+/usr/local/lib/librats/verifiers/libverifier*.so*
