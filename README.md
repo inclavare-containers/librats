@@ -8,7 +8,10 @@
  - libtool
  - libcurl
  - gcc
- - g++ (ubuntu 18.04)
+ - g++
+ - openssl-devel / libssl-dev
+ - cargo (only needed in host mode)
+ - python, bzip2 (only needed in wasm mode)
  - SGX driver, Intel SGX SDK & PSW: Please refer to this [guide](https://download.01.org/intel-sgx/sgx-linux/2.14/docs/Intel_SGX_SW_Installation_Guide_for_Linux.pdf) to install.
  - [SGX DCAP](https://github.com/intel/SGXDataCenterAttestationPrimitives): please download and install the packages from this [page](https://download.01.org/intel-sgx/sgx-dcap/#version#linux/distro).
    - ubuntu 18.04: `libsgx-dcap-quote-verify-dev`, `libsgx-dcap-ql-dev`, `libsgx-uae-service`
