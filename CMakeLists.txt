@@ -19,6 +19,9 @@ option(SGX_HW "Run SGX on hardware, OFF for simulation" ON)
 # Define build mode
 set(RATS_BUILD_MODE "host"
     CACHE STRING "Select build mode for librats(host|occlum|sgx｜wasm)")
+set(SGX_ATTESTER "ecdsa"
+    CACHE STRING "Select sgx attester(ecdsa|la|null)")
+
 
 # Print build mode
 message(STATUS "Build Mode: ${RATS_BUILD_MODE}")
@@ -43,6 +46,11 @@ if(RATS_BUILD_MODE STREQUAL "host")
 elseif(RATS_BUILD_MODE STREQUAL "occlum")
     set(OCCLUM 1)
     add_definitions(-DOCCLUM)
+    if (SGX_ATTESTER STREQUAL "ecdsa")
+        add_definitions(-DSGX_ECDSA)
+    elseif(SGX_ATTESTER STREQUAL "la")
+        add_definitions(-DSGX_LA)
+    endif()
 elseif(RATS_BUILD_MODE STREQUAL "sgx")
     include(FindSGX)
     if(NOT SGX_FOUND)
@@ -53,6 +61,11 @@ elseif(RATS_BUILD_MODE STREQUAL "sgx")
 
     set(SGX 1)
     add_definitions(-DSGX)
+    if (SGX_ATTESTER STREQUAL "ecdsa")
+        add_definitions(-DSGX_ECDSA)
+    elseif(SGX_ATTESTER STREQUAL "la")
+        add_definitions(-DSGX_LA)
+    endif()
 elseif(RATS_BUILD_MODE STREQUAL "tdx")
     set(TDX 1)
     add_definitions(-DTDX)

@@ -21,17 +21,29 @@
 #ifdef SGX
 #include "rats_t.h"
 
-extern void libattester_null_init(void);
-extern void libverifier_null_init(void);
-extern void libattester_sgx_ecdsa_init(void);
-extern void libverifier_sgx_ecdsa_init(void);
-extern void libverifier_sgx_ecdsa_qve_init(void);
-extern void libattester_sgx_la_init(void);
-extern void libverifier_sgx_la_init(void);
+extern rats_attester_err_t libattester_null_init(void);
+extern rats_verifier_err_t libverifier_null_init(void);
+extern rats_attester_err_t libattester_sgx_ecdsa_init(void);
+extern rats_verifier_err_t libverifier_sgx_ecdsa_init(void);
+extern rats_verifier_err_t libverifier_sgx_ecdsa_qve_init(void);
+extern rats_attester_err_t libattester_sgx_la_init(void);
+extern rats_verifier_err_t libverifier_sgx_la_init(void);
 #endif
 //clang-format on
 
-rats_core_context_t rats_global_core_context;
+rats_core_context_t rats_global_core_context = {
+    .config = {
+        .api_version = RATS_API_VERSION_DEFAULT,
+        .flags = 0L,
+        .log_level = RATS_LOG_LEVEL_DEFAULT,
+        .attester_type = "\0",
+        .verifier_type = "\0",
+        .enclave_id = 0L
+    },
+    .flags = 0L,
+    .attester = NULL,
+    .verifier = NULL
+};
 
 /* The global log level used by log.h */
 rats_log_level_t rats_global_log_level = RATS_LOG_LEVEL_DEFAULT;
@@ -82,20 +94,26 @@ rats_log_level_t rats_loglevel_getenv(const char *name)
 rats_attester_err_t rats_attester_init(const char *name, __attribute__((unused)) const char *realpath,
         __attribute__((unused)) void **handle)
 {
-    rats_attester_err_t err;
+    rats_attester_err_t err = RATS_ATTESTER_ERR_UNKNOWN;
 
     if (!strcmp(name, "nullattester")) {
-        libattester_null_init();
+        err = libattester_null_init();
+        if (err != RATS_ATTESTER_ERR_NONE)
+            return err;
         err = rats_attester_post_init(name, NULL);
         if (err != RATS_ATTESTER_ERR_NONE)
             return err;
     } else if (!strcmp(name, "sgx_ecdsa")) {
-        libattester_sgx_ecdsa_init();
+        err = libattester_sgx_ecdsa_init();
+        if (err != RATS_ATTESTER_ERR_NONE)
+            return err;
         err = rats_attester_post_init(name, NULL);
         if (err != RATS_ATTESTER_ERR_NONE)
             return err;
     } else if (!strcmp(name, "sgx_la")) {
-        libattester_sgx_la_init();
+        err = libattester_sgx_la_init();
+        if (err != RATS_ATTESTER_ERR_NONE)
+            return err;
         err = rats_attester_post_init(name, NULL);
         if (err != RATS_ATTESTER_ERR_NONE)
             return err;
@@ -109,25 +127,33 @@ rats_attester_err_t rats_attester_init(const char *name, __attribute__((unused))
 rats_verifier_err_t rats_verifier_init(const char *name, __attribute__((unused)) const char *realpath,
         __attribute__((unused)) void **handle)
 {
-	rats_verifier_err_t err;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 
     if (!strcmp(name, "nullverifier")) {
-        libverifier_null_init();
-        err = rats_verifier_post_init(name, NULL);
+        err = libverifier_null_init();
         if (err != RATS_VERIFIER_ERR_NONE)
             return err;
+        err = rats_verifier_post_init(name, NULL);
+        if (err != RATS_VERIFIER_ERR_NONE)
+                return err;
     } else if (!strcmp(name, "sgx_ecdsa")) {
-        libverifier_sgx_ecdsa_init();
+        err = libverifier_sgx_ecdsa_init();
+        if (err != RATS_VERIFIER_ERR_NONE)
+            return err;
         err = rats_verifier_post_init(name, NULL);
         if (err != RATS_VERIFIER_ERR_NONE)
             return err;
     } else if (!strcmp(name, "sgx_ecdsa_qve")) {
-        libverifier_sgx_ecdsa_qve_init();
+        err = libverifier_sgx_ecdsa_qve_init();
+        if (err != RATS_VERIFIER_ERR_NONE)
+            return err;
         err = rats_verifier_post_init(name, NULL);
         if (err != RATS_VERIFIER_ERR_NONE)
             return err;
     } else if (!strcmp(name, "sgx_la")) {
-        libverifier_sgx_la_init();
+        err = libverifier_sgx_la_init();
+        if (err != RATS_VERIFIER_ERR_NONE)
+            return err;
         err = rats_verifier_post_init(name, NULL);
         if (err != RATS_VERIFIER_ERR_NONE)
             return err;

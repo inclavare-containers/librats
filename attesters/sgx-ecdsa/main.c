@@ -29,7 +29,7 @@ static rats_attester_opts_t sgx_ecdsa_attester_opts = {
 };
 
 #ifdef SGX
-void libattester_sgx_ecdsa_init(void)
+rats_attester_err_t libattester_sgx_ecdsa_init(void)
 #else
 void __attribute__((constructor)) libattester_sgx_ecdsa_init(void)
 #endif
@@ -39,4 +39,7 @@ void __attribute__((constructor)) libattester_sgx_ecdsa_init(void)
 	rats_attester_err_t err = rats_attester_register(&sgx_ecdsa_attester_opts);
 	if (err != RATS_ATTESTER_ERR_NONE)
 		RATS_DEBUG("failed to register the rats attester 'sgx_ecdsa' %#x\n", err);
+#ifdef SGX
+	return err;
+#endif
 }

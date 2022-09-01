@@ -30,7 +30,7 @@ static rats_verifier_opts_t sgx_ecdsa_verifier_opts = {
 };
 
 #ifdef SGX
-void libverifier_sgx_ecdsa_init(void)
+rats_verifier_err_t libverifier_sgx_ecdsa_init(void)
 #else
 void __attribute__((constructor)) libverifier_sgx_ecdsa_init(void)
 #endif
@@ -40,4 +40,7 @@ void __attribute__((constructor)) libverifier_sgx_ecdsa_init(void)
 	rats_verifier_err_t err = rats_verifier_register(&sgx_ecdsa_verifier_opts);
 	if (err != RATS_VERIFIER_ERR_NONE)
 		RATS_DEBUG("failed to register the rats verifier 'sgx_ecdsa' %#x\n", err);
+#ifdef SGX
+	return err;
+#endif
 }

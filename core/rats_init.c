@@ -24,16 +24,17 @@
 #define RATS_VERIFIER_NUM	4
 #define RATS_NAME   		32
 // clang-format on
-char rats_attester_name[RATS_ATTESTER_NUM][RATS_NAME] = { "nullattester", "sgx_ecdsa", "sgx_la" };
-char rats_verifier_name[RATS_VERIFIER_NUM][RATS_NAME] = { "nullverifier", "sgx_ecdsa",
-							  "sgx_ecdsa_qve", "sgx_la" };
+char rats_attester_name[RATS_ATTESTER_NUM][RATS_NAME] = { "nullattester", "sgx_la", "sgx_ecdsa" };
+char rats_verifier_name[RATS_VERIFIER_NUM][RATS_NAME] = { "nullverifier", "sgx_la", "sgx_ecdsa",
+							  "sgx_ecdsa_qve" };
 #endif
 
 rats_attester_err_t rats_attest_init(rats_conf_t *conf, rats_core_context_t *ctx)
 {
 	RATS_DEBUG("called\n");
 
-	char *choice = NULL;
+	char attester_type[32] = "nullattester";
+
 	rats_global_log_level = rats_loglevel_getenv("RATS_GLOBAL_LOG_LEVEL");
 	if (rats_global_log_level == (rats_log_level_t)-1) {
 		RATS_FATAL("failed to get log level from env\n");
@@ -86,17 +87,24 @@ rats_attester_err_t rats_attest_init(rats_conf_t *conf, rats_core_context_t *ctx
 			RATS_FATAL("failed to load any rats attester %#x\n", err);
 			rats_exit();
 		}
-
 #endif
 	}
-	/* Select the target attester to be used */
-	choice = ctx->config.attester_type;
-	if (choice[0] == '\0') {
-		choice = rats_global_core_context.config.attester_type;
-		if (choice[0] == '\0')
-			choice = NULL;
-	}
-	err = rats_attester_select(ctx, choice);
+// clang-format off
+#if defined(SGX) || defined(OCCLUM)
+	memset(attester_type, 0, 32);
+#ifdef SGX_ECDSA
+	memcpy(attester_type, "sgx_ecdsa", 32);
+#elif defined(SGX_LA)
+	memcpy(attester_type, "sgx_la", 32);
+#endif
+#else
+	memcpy(attester_type, rats_attesters_ctx[0]->opts->name, 32);
+	if (rats_global_core_context.config.attester_type[0] != '\0')
+		memcpy(attester_type, rats_global_core_context.config.attester_type, 32);
+#endif
+// clang-format on
+
+	err = rats_attester_select(ctx, attester_type);
 	if (err != RATS_ATTESTER_ERR_NONE)
 		goto err_ctx;
 
@@ -148,8 +156,8 @@ rats_verifier_err_t rats_verify_init(rats_conf_t *conf, rats_core_context_t *ctx
 		for (uint8_t i = 0; i < RATS_VERIFIER_NUM; i++) {
 			err = rats_verifier_init(rats_verifier_name[i], NULL, NULL);
 			if (err != RATS_VERIFIER_ERR_NONE) {
-				RATS_ERR("failed to initialize rats instance: %s\n",
-					 rats_verifier_name[i]);
+				RATS_ERR("failed to initialize rats instance %s %#x\n",
+					 rats_verifier_name[i], err);
 				rats_exit();
 			}
 		}
@@ -167,7 +175,7 @@ rats_verifier_err_t rats_verify_init(rats_conf_t *conf, rats_core_context_t *ctx
 	if (choice[0] == '\0') {
 		choice = rats_global_core_context.config.verifier_type;
 		if (choice[0] == '\0')
-			choice = NULL;
+			choice = "nullverifier";
 	}
 	err = rats_verifier_select(ctx, choice);
 	if (err != RATS_VERIFIER_ERR_NONE)

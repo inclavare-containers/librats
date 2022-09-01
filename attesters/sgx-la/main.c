@@ -12,7 +12,7 @@ extern rats_attester_err_t rats_attester_register(rats_attester_opts_t *);
 extern rats_attester_err_t sgx_la_attester_pre_init(void);
 extern rats_attester_err_t sgx_la_attester_init(rats_attester_ctx_t *);
 extern rats_attester_err_t sgx_la_collect_evidence(rats_attester_ctx_t *, attestation_evidence_t *,
-						   uint8_t *, uint32_t hash_len);
+						   const uint8_t *hash, uint32_t hash_len);
 extern rats_attester_err_t sgx_la_attester_cleanup(rats_attester_ctx_t *);
 
 static rats_attester_opts_t sgx_la_attester_opts = {
@@ -28,7 +28,7 @@ static rats_attester_opts_t sgx_la_attester_opts = {
 };
 
 #ifdef SGX
-void libattester_sgx_la_init(void)
+rats_attester_err_t libattester_sgx_la_init(void)
 #else
 void __attribute__((constructor)) libattester_sgx_la_init(void)
 #endif
@@ -38,4 +38,7 @@ void __attribute__((constructor)) libattester_sgx_la_init(void)
 	rats_attester_err_t err = rats_attester_register(&sgx_la_attester_opts);
 	if (err != RATS_ATTESTER_ERR_NONE)
 		RATS_ERR("failed to register the rats attester 'sgx_la' %#x\n", err);
+#ifdef SGX
+	return err;
+#endif
 }
