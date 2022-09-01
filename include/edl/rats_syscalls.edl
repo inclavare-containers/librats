@@ -7,7 +7,7 @@ enclave {
 		void rats_ocall_exit(void);
 		void rats_ocall_cpuid([in, out] int *eax, [in, out] int *ebx, [in, out] int *ecx,
 				 [in, out] int *edx);
-		void rats_ocall_is_sgx_dev([in, out] bool *retval, [in] const char *dev);
+		void rats_ocall_is_sgx_dev([in, out] bool *retval, [in, string] const char *dev);
 		void rats_ocall_print_string([in, string] const char *str);
 		uint64_t rats_ocall_opendir([in, string] const char *name) propagate_errno;
 		int rats_ocall_readdir(uint64_t dirp, [out, count=1] struct rats_ocall_dirent * entry)

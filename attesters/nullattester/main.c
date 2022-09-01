@@ -29,7 +29,7 @@ static rats_attester_opts_t nullattester_opts = {
 };
 
 #ifdef SGX
-void libattester_null_init(void)
+rats_attester_err_t libattester_null_init(void)
 #else
 void __attribute__((constructor)) libattester_null_init(void)
 #endif
@@ -39,4 +39,7 @@ void __attribute__((constructor)) libattester_null_init(void)
 	rats_attester_err_t err = rats_attester_register(&nullattester_opts);
 	if (err != RATS_ATTESTER_ERR_NONE)
 		RATS_ERR("failed to register the rats attester 'nullattester' %#x\n", err);
+#ifdef SGX
+	return err;
+#endif
 }

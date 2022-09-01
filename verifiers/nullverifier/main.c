@@ -30,7 +30,7 @@ static rats_verifier_opts_t nullverifier_opts = {
 };
 
 #ifdef SGX
-void libverifier_null_init(void)
+rats_verifier_err_t libverifier_null_init(void)
 #else
 void __attribute__((constructor)) libverifier_null_init(void)
 #endif
@@ -40,4 +40,7 @@ void __attribute__((constructor)) libverifier_null_init(void)
 	rats_verifier_err_t err = rats_verifier_register(&nullverifier_opts);
 	if (err != RATS_VERIFIER_ERR_NONE)
 		RATS_ERR("failed to register the rats verifier 'nullverifier' %#x\n", err);
+#ifdef SGX
+	return err;
+#endif
 }

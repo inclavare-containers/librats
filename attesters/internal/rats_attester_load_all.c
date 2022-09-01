@@ -29,7 +29,7 @@ static int rats_attester_cmp(const void *a, const void *b)
 	       (*(rats_attester_ctx_t **)a)->opts->priority;
 }
 
-rats_attester_err_t rats_attester_load_all(void)
+rats_attester_err_t rats_attester_load_all()
 {
 	RATS_DEBUG("called\n");
 
