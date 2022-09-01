@@ -93,7 +93,7 @@ static size_t curl_writefunc_callback(void *contents, size_t size, size_t nmemb,
 	csv_evidence *evidence = (csv_evidence *)userp;
 
 	if (evidence->hsk_cek_cert_len + realsize > limit_size) {
-		RATS_ERR("hsk_cek size is large than %d bytes.", limit_size);
+		RATS_ERR("hsk_cek size is large than %lu bytes.", limit_size);
 		return 0;
 	}
 	memcpy(&(evidence->hsk_cek_cert[evidence->hsk_cek_cert_len]), contents, realsize);
