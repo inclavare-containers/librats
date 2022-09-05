@@ -219,6 +219,17 @@ int rats_closedir(uint64_t dir)
 
     return ret;
 }
+
+char *rats_strcpy(char *dest, const char *src)
+{
+    if (dest == NULL)
+        return NULL;
+    size_t src_size = strlen(src);
+    strncpy(dest, src, src_size);
+    dest[src_size] = '\0';
+    return dest;
+}
+
 #else
 void rats_exit(void)
 {
@@ -308,5 +319,10 @@ int rats_readdir(uint64_t dirp, rats_dirent **ptr)
 int rats_closedir(uint64_t dir)
 {
     return closedir((DIR *)dir);
+}
+
+char *rats_strcpy(char *dest, const char *src)
+{
+    return strcpy(dest, src);
 }
 #endif

@@ -9,6 +9,7 @@
 
 // clang-format off
 #include <sys/types.h>
+#include <librats/attester.h>
 
 #ifdef SGX
 #include "librats/rats_syscalls.h"
@@ -36,6 +37,8 @@ extern uint64_t rats_opendir(const char *name);
 extern int rats_readdir(uint64_t dirp, rats_dirent **ptr);
 
 extern int rats_closedir(uint64_t dir);
+
+extern char *rats_strcpy(char *dest, const char *src);
 
 // Whether the quote instance is initialized
 #define RATS_CTX_FLAGS_QUOTING_INITIALIZED (1 << 0)

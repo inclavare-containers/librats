@@ -44,6 +44,9 @@
 #include <limits.h>
 #include <ctype.h>
 #include <float.h>
+#include "internal/core.h"
+
+#define strcpy(x, y) rats_strcpy(x, y)
 
 #ifdef ENABLE_LOCALES
 #include <locale.h>

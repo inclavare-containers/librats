@@ -76,14 +76,6 @@ void printf(const char *fmt, ...)
 	rats_ocall_print_string(buf);
 }
 
-char *strcpy(char *dest, const char *src)
-{
-	if (dest == NULL)
-		return NULL;
-	strncpy(dest, src, strlen(src));
-	return dest;
-}
-
 int sprintf(char *str, const char *fmt, ...)
 {
 	char buf[BUFSIZ] = { '\0' };
