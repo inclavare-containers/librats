@@ -7,7 +7,7 @@ wasm/lib/*
 *.bin
 *.dat
 .vscode
-sample
+/sample
 SGXDataCenterAttestationPrimitives
 emsdk-*
 openssl-*
