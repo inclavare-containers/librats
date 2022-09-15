@@ -216,6 +216,22 @@ static uint64_t read_msr(uint32_t reg)
 }
 #endif
 
+#define X86_CPUID_VENDOR_HygonGenuine_ebx 0x6f677948
+#define X86_CPUID_VENDOR_HygonGenuine_ecx 0x656e6975
+#define X86_CPUID_VENDOR_HygonGenuine_edx 0x6e65476e
+
+/* check CPU vendor of the guest */
+bool is_hygon_cpu(void)
+{
+	int cpu_info[4] = { 0, 0, 0, 0 };
+
+	__cpuidex(cpu_info, 0, 0);
+
+	return (cpu_info[1] == X86_CPUID_VENDOR_HygonGenuine_ebx &&
+		cpu_info[2] == X86_CPUID_VENDOR_HygonGenuine_ecx &&
+		cpu_info[3] == X86_CPUID_VENDOR_HygonGenuine_edx);
+}
+
 /* check whether running in AMD SEV-SNP guest */
 bool is_snpguest_supported(void)
 {
@@ -230,9 +246,13 @@ bool is_snpguest_supported(void)
 bool is_sevguest_supported(void)
 {
 #ifndef SGX
-	uint64_t data = read_msr(SEV_STATUS_MSR);
+	if (!is_hygon_cpu()) {
+		uint64_t data = read_msr(SEV_STATUS_MSR);
 
-	return !!data || !!(data & (1 << SEV_ES_FLAG));
+		return !!data || !!(data & (1 << SEV_ES_FLAG));
+	} else {
+		return false;
+	}
 #else
 	return false;
 #endif
@@ -242,9 +262,13 @@ bool is_sevguest_supported(void)
 bool is_csvguest_supported(void)
 {
 #ifndef SGX
-	uint64_t data = read_msr(SEV_STATUS_MSR);
+	if (is_hygon_cpu()) {
+		uint64_t data = read_msr(SEV_STATUS_MSR);
 
-	return !!(data & ((1 << SEV_FLAG) | (1 << SEV_ES_FLAG)));
+		return !!(data & ((1 << SEV_FLAG) | (1 << SEV_ES_FLAG)));
+	} else {
+		return false;
+	}
 #else
 	return false;
 #endif
