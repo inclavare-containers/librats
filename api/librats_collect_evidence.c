@@ -18,6 +18,10 @@ rats_attester_err_t librats_collect_evidence(attestation_evidence_t *evidence, c
 	rats_core_context_t ctx;
 	rats_conf_t conf;
 
+	memset(&ctx, 0, sizeof(rats_core_context_t));
+	memset(&conf, 0, sizeof(rats_conf_t));
+	memset(evidence, 0, sizeof(attestation_evidence_t));
+
 	conf.api_version = RATS_API_VERSION_DEFAULT;
 	conf.log_level = RATS_LOG_LEVEL_DEFAULT;
 
