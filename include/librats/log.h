@@ -15,7 +15,7 @@
 #include <librats/conf.h>
 
 #ifdef SGX
-#include <librats/sgx.h>
+#define fprintf(stream, fmt, ...) printf(fmt, ##__VA_ARGS__)
 #elif defined(OCCLUM)
   #define FPRINTF(io, fmt, ...)                  \
 	do {                                     \

@@ -7,6 +7,9 @@
 #ifndef _LIBRATS_EVIDENCE_H
 #define _LIBRATS_EVIDENCE_H
 
+#include <stddef.h>
+#include <stdint.h>
+
 #define VECK_MAX_SIZE 2 * 1024
 #define JSON_MAX_SIZE 10 * 1024
 
@@ -67,5 +70,9 @@ struct attestation_evidence {
 		csv_attestation_evidence_t csv;
 	};
 };
+
+rats_err_t serialize_evidence(const attestation_evidence_t *evidence, uint8_t **buffer,
+			      size_t *buffer_size);
+rats_err_t deserialize_evidence(attestation_evidence_t *evidence, uint8_t **buffer);
 
 #endif

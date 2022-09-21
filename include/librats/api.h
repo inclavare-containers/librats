@@ -37,8 +37,10 @@ typedef struct rats_verifier_ctx rats_verifier_ctx_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern rats_attester_err_t librats_collect_evidence(attestation_evidence_t *evidence,
-						    const uint8_t *hash);
+extern rats_attester_err_t
+librats_collect_evidence(const claim_t *custom_claims, size_t custom_claims_size,
+			 uint8_t **evidence_buffer, size_t *evidence_buffer_size,
+			 uint8_t **endorsements_buffer, size_t *endorsements_buffer_size);
 #ifdef __cplusplus
 }
 #endif
@@ -46,9 +48,11 @@ extern rats_attester_err_t librats_collect_evidence(attestation_evidence_t *evid
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evidence,
-						   const uint8_t *hash, claim_t **claims,
-						   size_t *claims_length);
+extern rats_verifier_err_t librats_verify_evidence(uint8_t *evidence_buffer,
+						   size_t evidence_buffer_size,
+						   uint8_t *endorsements_buffer,
+						   size_t endorsements_buffer_size,
+						   claim_t **claims, size_t *claims_length);
 #ifdef __cplusplus
 }
 #endif
@@ -56,10 +60,26 @@ extern rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evide
 #ifdef __cplusplus
 extern "C" {
 #endif
-int get_evidence_from_json(const char *json_string, attestation_evidence_t *evidence);
-int convert_evidence_to_json(attestation_evidence_t *evidence, char **json_string);
-int librats_collect_evidence_to_json(const uint8_t *hash,char **evidence_json);
+int librats_collect_evidence_to_json(const uint8_t *hash, char **evidence_json);
 int librats_verify_evidence_from_json(const char *json_string, const uint8_t *hash);
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern rats_attester_err_t librats_get_attestation_certificate(
+	const char *subject_name, uint8_t *private_key, size_t private_key_size,
+	uint8_t *public_key, size_t public_key_size, const claim_t *custom_claims,
+	size_t custom_claims_size, uint8_t **output_certificate, size_t *output_certificate_size);
+
+extern rats_verifier_err_t
+librats_verify_attestation_certificate(uint8_t *certificate, size_t certificate_size,
+				       rats_verify_claims_callback_t verify_claims_callback,
+				       void *args);
+
 #ifdef __cplusplus
 }
 #endif

@@ -152,8 +152,13 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/cpu.c
     ${CMAKE_CURRENT_SOURCE_DIR}/core/rats_init.c
     ${CMAKE_CURRENT_SOURCE_DIR}/core/claim.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/cert.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/dice.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/evidence.c
     ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_collect_evidence.c
     ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_verify_evidence.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_get_attestation_certificate.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_verify_attestation_certificate.c
     ${CMAKE_CURRENT_SOURCE_DIR}/attesters/api/rats_attester_register.c
     ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/rats_attester.c
     ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/rats_attester_load_all.c
@@ -274,7 +279,6 @@ set(RATS_INCLUDE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/api.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/err.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/log.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/conf.h
-                       ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/sgx.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/evidence.h
                        )
 
