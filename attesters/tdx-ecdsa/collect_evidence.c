@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
@@ -24,6 +25,9 @@
 #endif
 // clang-format on
 
+#define TDEL_INFO "/sys/firmware/acpi/tables/TDEL"
+#define TDEL_DATA "/sys/firmware/acpi/tables/data/TDEL"
+
 static int tdx_get_report(const tdx_report_data_t *report_data, tdx_report_t *tdx_report)
 {
 	/* Get report by tdcall */
@@ -33,6 +37,71 @@ static int tdx_get_report(const tdx_report_data_t *report_data, tdx_report_t *td
 	}
 
 	return 0;
+}
+
+rats_attester_err_t tdx_get_tdel_info(rats_attester_ctx_t *ctx,
+                                      attestation_evidence_t *evidence,
+                                      int *tdel_info_len)
+{
+	RATS_DEBUG("ctx %p, evidence %p\n", ctx, evidence);
+
+	int fd = open(TDEL_INFO, O_RDONLY);
+	if (fd < 0) {
+	        RATS_INFO("failed to open TDEL info device\n");
+	        /* TDEL is optional */
+	        return RATS_ATTESTER_ERR_NONE;
+	}
+
+	unsigned char tdel_info[TDEL_INFO_SZ];
+	int tdel_info_sz = read(fd, tdel_info, sizeof(tdel_info));
+	if (tdel_info_sz != sizeof(tdel_info)) {
+	        close(fd);
+	        RATS_INFO("failed to read TDEL info\n");
+	        return -RATS_ATTESTER_ERR_INVALID;
+	}
+
+	*tdel_info_len = tdel_info_sz;
+	memcpy(&(evidence->tdx.quote[TDX_ECDSA_QUOTE_SZ]), tdel_info, tdel_info_sz);
+
+	close(fd);
+
+	RATS_DEBUG("TDEL info size %d-byte\n", tdel_info_sz);
+
+	return RATS_ATTESTER_ERR_NONE;
+}
+
+rats_attester_err_t tdx_get_tdel_data(rats_attester_ctx_t *ctx,
+				      attestation_evidence_t *evidence,
+                                      int *tdel_data_len)
+{
+	RATS_DEBUG("ctx %p, evidence %p\n", ctx, evidence);
+
+	int fd = open(TDEL_DATA, O_RDONLY);
+	if (fd < 0) {
+	        RATS_ERR("failed to open TDEL info device\n");
+	        return -RATS_ATTESTER_ERR_INVALID;
+	}
+
+
+	unsigned char tdel_data[TDEL_DATA_SZ];
+	int tdel_data_sz = read(fd, tdel_data, sizeof(tdel_data));
+	if (tdel_data_sz <= 0) {
+	        close(fd);
+	        RATS_INFO("failed to read TDEL data\n");
+	        return -RATS_ATTESTER_ERR_INVALID;
+	}
+
+	if (tdel_data_sz == sizeof(tdel_data))
+	        RATS_WARN("TDEL data buffer (%d-byte) may be too small\n", sizeof(tdel_data));
+
+	*tdel_data_len = tdel_data_sz;
+	memcpy(&(evidence->tdx.quote[TDX_ECDSA_QUOTE_SZ + TDEL_INFO_SZ]), tdel_data, tdel_data_sz);
+
+	close(fd);
+
+	RATS_DEBUG("TDEL data size %d-byte\n", tdel_data_sz);
+
+	return RATS_ATTESTER_ERR_NONE;
 }
 
 static int tdx_gen_quote(const uint8_t *hash, uint8_t *quote_buf, uint32_t *quote_size)
@@ -96,10 +165,21 @@ rats_attester_err_t tdx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 
 	RATS_DEBUG("Succeed to generate the quote!\n");
 
+    int tdel_info_len = 0;
+    if (tdx_get_tdel_info(ctx, evidence, &tdel_info_len) != RATS_ATTESTER_ERR_NONE)
+            return -RATS_ATTESTER_ERR_INVALID;
+
+    /* TDEL information is optional */
+    int tdel_data_len = 0;
+    if (tdel_info_len && tdx_get_tdel_data(ctx, evidence, &tdel_data_len) != RATS_ATTESTER_ERR_NONE)
+            return -RATS_ATTESTER_ERR_INVALID;
+
 	/* Essentially speaking, QGS generates the same
 	 * format of quote as sgx_ecdsa.
 	 */
 	snprintf(evidence->type, sizeof(evidence->type), "tdx_ecdsa");
+    evidence->tdx.tdel_info_len = tdel_info_len;
+    evidence->tdx.tdel_data_len = tdel_data_len;
 
 	RATS_DEBUG("ctx %p, evidence %p, quote_size %u\n", ctx, evidence, evidence->tdx.quote_len);
 

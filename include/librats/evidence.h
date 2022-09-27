@@ -10,6 +10,10 @@
 #define VECK_MAX_SIZE 2 * 1024
 #define JSON_MAX_SIZE 10 * 1024
 
+#define TDX_ECDSA_QUOTE_SZ 8192
+#define TDEL_INFO_SZ	   56
+#define TDEL_DATA_SZ	   65536
+
 typedef struct attestation_evidence attestation_evidence_t;
 
 typedef struct attestation_verification_report {
@@ -34,8 +38,10 @@ typedef struct la_attestation_evidence {
 } la_attestation_evidence_t;
 
 typedef struct tdx_attestation_evidence {
-	uint8_t quote[8192];
+	uint8_t quote[TDX_ECDSA_QUOTE_SZ + TDEL_INFO_SZ + TDEL_DATA_SZ];
 	uint32_t quote_len;
+	uint32_t tdel_info_len;
+	uint32_t tdel_data_len;
 } tdx_attestation_evidence_t;
 
 typedef struct snp_attestation_evidence {
