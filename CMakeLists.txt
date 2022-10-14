@@ -5,6 +5,7 @@ endif()
 project(librats)
 set(RATS_LIB rats_lib)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(RATS_SRC_PATH ${CMAKE_CURRENT_LIST_DIR})
 
 # Software version
 file(STRINGS "VERSION" RATS_VERSION)
@@ -19,7 +20,7 @@ option(SGX_HW "Run SGX on hardware, OFF for simulation" ON)
 
 # Define build mode
 set(RATS_BUILD_MODE "host"
-    CACHE STRING "Select build mode for librats(host|occlum|sgx｜wasm)")
+    CACHE STRING "Select build mode for librats(host|occlum|sgx|wasm)")
 set(SGX_ATTESTER "ecdsa"
     CACHE STRING "Select sgx attester(ecdsa|la|null)")
 
@@ -114,6 +115,7 @@ include(CustomInstallDirs)
 include(CompilerOptions)
 if(SGX)
     include(SGXCommon)
+    include(SGXSSL)
 endif()
 include(LibCBOR)
 
@@ -139,6 +141,9 @@ if(SGX)
 endif()
 
 include_directories(${LIBCBOR_INC_PATH})
+if(SGX)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/sgx-ssl/intel-sgx-ssl/src/intel-sgx-ssl/Linux/package/include)
+endif()
 
 # Set source file
 set(SOURCES
@@ -177,6 +182,7 @@ endif()
 # Static library dependencies
 if(SGX)
     set(DEPEND_TRUSTED_LIBS rats_edl_t
+                            intel-sgx-ssl
                             attester_nullattester
                             attester_sgx_ecdsa
                             attester_sgx_la
