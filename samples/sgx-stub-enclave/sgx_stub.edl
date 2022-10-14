@@ -1,0 +1,22 @@
+enclave {
+        include "librats/api.h"
+        include "internal/core.h"
+        include "sgx_eid.h"
+        include "stdbool.h"
+
+        from "../../include/edl/rats.edl" import *;
+        from "../../external/sgx-ssl/intel-sgx-ssl/src/intel-sgx-ssl/Linux/package/include/sgx_tsgxssl.edl" import *;
+
+        trusted {
+                public int ecall_get_attestation_certificate(bool no_privkey,
+                                [user_check] const claim_t *custom_claims,
+                                size_t custom_claims_size,
+                                size_t certificate_capacity,
+                                [out, count=certificate_capacity] uint8_t *certificate_out,
+                                [out] size_t *certificate_size_out);
+
+                public int ecall_verify_attestation_certificate([in, count=certificate_size] uint8_t *certificate,
+                                size_t certificate_size,
+                                [user_check] void *args);
+        };
+};
