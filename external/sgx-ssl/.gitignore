@@ -1,0 +1,3 @@
+intel-sgx-ssl
+*.cmake
+*.sh
