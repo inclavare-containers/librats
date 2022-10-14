@@ -1,5 +1,6 @@
 # Reference https://github.com/xzhangxa/SGX-CMake.git
 include(CMakeParseArguments)
+include(FindSGXSSL)
 
 # Build edl to *_t.h and *_t.c.
 # Default not support mutiple edl which cause repeated definition for sgx edl common structure.
@@ -170,8 +171,8 @@ function(add_enclave_library target)
     endforeach()
     set(ENCLAVE_LINK_FLAGS "-m64 -Wall -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L${SGX_LIBRARY_PATH}")
     set(ENCLAVE_LINK_FLAGS "${ENCLAVE_LINK_FLAGS} -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -pie")
-    set(ENCLAVE_LINK_FLAGS "${ENCLAVE_LINK_FLAGS} -Wl,--whole-archive ${TLIB_LIST} -l${SGX_TRTS_LIB} -Wl,--no-whole-archive")
-    set(ENCLAVE_LINK_FLAGS "${ENCLAVE_LINK_FLAGS} -Wl,--start-group -lsgx_tstdc -lsgx_pthread -lsgx_tcrypto -lsgx_tcxx -lsgx_tkey_exchange -lsgx_trts -lsgx_tservice -l${SGX_TSVC_LIB} -l${SGX_DCAP_TVL} -Wl,--end-group")
+    set(ENCLAVE_LINK_FLAGS "${ENCLAVE_LINK_FLAGS} -Wl,--whole-archive ${TLIB_LIST} -l${SGX_TRTS_LIB} -lsgx_tsgxssl -Wl,--no-whole-archive")
+    set(ENCLAVE_LINK_FLAGS "${ENCLAVE_LINK_FLAGS} -Wl,--start-group -lsgx_tstdc -lsgx_pthread -lsgx_tcxx -lsgx_tkey_exchange -lsgx_tcrypto -lsgx_trts -lsgx_tservice -lsgx_tsgxssl_crypto -l${SGX_TSVC_LIB} -l${SGX_DCAP_TVL} -Wl,--end-group")
     set(ENCLAVE_LINK_FLAGS "${ENCLAVE_LINK_FLAGS} -Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined")
     set(ENCLAVE_LINK_FLAGS "${ENCLAVE_LINK_FLAGS} -Wl,-pie,-eenclave_entry -Wl,--export-dynamic")
     set(ENCLAVE_LINK_FLAGS "${ENCLAVE_LINK_FLAGS} ${LDSCRIPT_FLAG}")
@@ -262,7 +263,7 @@ function(add_untrusted_library target mode)
         add_library(${target} ${mode} ${SGX_SRCS} $<TARGET_OBJECTS:${target}-edlobj>)
     endif()
 
-    set(UNTRUSTED_LINK_FLAGS "-L${SGX_LIBRARY_PATH} -l${SGX_URTS_LIB} -l${SGX_USVC_LIB} -l${SGX_DACP_QL} -l${SGX_DACP_QUOTEVERIFY} -lsgx_ukey_exchange")
+    set(UNTRUSTED_LINK_FLAGS "-L${SGX_LIBRARY_PATH} -l${SGX_URTS_LIB} -l${SGX_USVC_LIB} -l${SGX_DACP_QL} -l${SGX_DACP_QUOTEVERIFY} -lsgx_ukey_exchange -L${INTEL_SGXSSL_LIB} -lsgx_usgxssl")
 
     set_target_properties(${target} PROPERTIES COMPILE_FLAGS ${APP_C_FLAGS})
     target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${APP_INCLUDES})
@@ -302,7 +303,7 @@ function(add_untrusted_executable target)
         set (ULIB_LIST "${ULIB_LIST} ${ULIB}")
     endforeach()
 
-    set(UNTRUSTED_LINK_FLAGS "-L${SGX_LIBRARY_PATH} ${ULIB_LIST} -l${SGX_URTS_LIB} -l${SGX_USVC_LIB} -l${SGX_DACP_QL} -l${SGX_DACP_QUOTEVERIFY} -lsgx_ukey_exchange")
+    set(UNTRUSTED_LINK_FLAGS "-L${SGX_LIBRARY_PATH} ${ULIB_LIST} -l${SGX_URTS_LIB} -l${SGX_USVC_LIB} -l${SGX_DACP_QL} -l${SGX_DACP_QUOTEVERIFY} -lsgx_ukey_exchange -L${INTEL_SGXSSL_LIB} -lsgx_usgxssl")
 
     set_target_properties(${target} PROPERTIES COMPILE_FLAGS ${APP_C_FLAGS})
     target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${APP_INCLUDES})

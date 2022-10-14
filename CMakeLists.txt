@@ -4,6 +4,7 @@ if(RATS_BUILD_MODE STREQUAL "wasm")
 endif()
 project(librats)
 set(RATS_LIB rats_lib)
+set(RATS_SRC_PATH ${CMAKE_CURRENT_LIST_DIR})
 
 # Software version
 file(STRINGS "VERSION" RATS_VERSION)
@@ -18,7 +19,7 @@ option(SGX_HW "Run SGX on hardware, OFF for simulation" ON)
 
 # Define build mode
 set(RATS_BUILD_MODE "host"
-    CACHE STRING "Select build mode for librats(host|occlum|sgx｜wasm)")
+    CACHE STRING "Select build mode for librats(host|occlum|sgx|wasm)")
 set(SGX_ATTESTER "ecdsa"
     CACHE STRING "Select sgx attester(ecdsa|la|null)")
 
@@ -113,6 +114,7 @@ include(CustomInstallDirs)
 include(CompilerOptions)
 if(SGX)
     include(SGXCommon)
+    include(SGXSSL)
 endif()
 
 # Set include directory
@@ -120,6 +122,7 @@ set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if(SGX)
     list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/edl
                              ${CMAKE_CURRENT_BINARY_DIR}/tee/sgx/trust
+                             ${CMAKE_BINARY_DIR}/../external/sgx-ssl/intel-sgx-ssl/src/intel-sgx-ssl/Linux/package/include
                              )
 elseif(WASM)
     list(APPEND INCLUDE_DIRS ${WASM_SRCS_DIR}/openssl/install/include)
@@ -128,6 +131,7 @@ endif()
 include_directories(${INCLUDE_DIRS})
 
 # Add third party and instance directory
+add_subdirectory(external)
 if(NOT WASM)
     add_subdirectory(attesters)
 endif()
@@ -172,6 +176,7 @@ endif()
 # Static library dependencies
 if(SGX)
     set(DEPEND_TRUSTED_LIBS rats_edl_t
+                            intel-sgx-ssl
                             attester_nullattester
                             attester_sgx_ecdsa
                             attester_sgx_la
