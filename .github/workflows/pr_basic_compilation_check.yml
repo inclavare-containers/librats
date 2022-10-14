@@ -21,18 +21,18 @@ jobs:
        
       - name: Compile "librats" host mode
         run:
-          source /root/.bashrc && cmake -DRATS_BUILD_MODE="host" -H. -Bbuild && make -C build install && make -C build clean && rm -rf build
+          source /root/.bashrc && cmake -DRATS_BUILD_MODE="host" -DBUILD_SAMPLES=on -H. -Bbuild && make -C build install && make -C build clean && rm -rf build
         env:
           HOME: /root
           
       - name: Compile "librats" occlum mode
         run:
-          source /root/.bashrc && cmake -DRATS_BUILD_MODE="occlum" -H. -Bbuild && make -C build install && make -C build clean && rm -rf build
+          source /root/.bashrc && cmake -DRATS_BUILD_MODE="occlum" -DBUILD_SAMPLES=on -H. -Bbuild && make -C build install && make -C build clean && rm -rf build
         env:
           HOME: /root
           
       - name: Compile "librats" sgx mode
         run:
-          source /root/.bashrc && cmake -DRATS_BUILD_MODE="sgx" -H. -Bbuild && make -C build install && make -C build clean && rm -rf build
+          source /root/.bashrc && cmake -DRATS_BUILD_MODE="sgx" -DBUILD_SAMPLES=on -H. -Bbuild && make -C build install && make -C build clean && rm -rf build
         env:
           HOME: /root

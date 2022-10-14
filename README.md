@@ -31,23 +31,31 @@
 
  2. Build and install librats
 
+ ```shell
+ cd rats-tls
+ cmake -DBUILD_SAMPLES=on -H. -Bbuild
+ make -C build install
+ ```
+
+ `cert-app` will be installed to `/usr/share/librats/samples/cert-app` on your system. All instances are placed in `/opt/rats-tls/lib`.
+
  If you want to build instances related to sgx(sgx\_ecdsa, sgx\_ecdsa\_qve, sgx\_la), please type the following command.
 
  ```shell
- cmake -DRATS_BUILD_MODE="sgx"  -H. -Bbuild
+ cmake -DRATS_BUILD_MODE="sgx" -DBUILD_SAMPLES=on -H. -Bbuild
  make -C build install
  ```
 
  If you want to run instances on libos occlum, please type the following command.
 
  ```shell
- cmake -DRATS_BUILD_MODE="occlum" -H. -Bbuild
+ cmake -DRATS_BUILD_MODE="occlum" -DBUILD_SAMPLES=on -H. -Bbuild
  make -C build install
  ```
 
  If you want to run TDX instances, please type the following command.
  ```shell
- cmake -DRATS_BUILD_MODE="tdx"  -H. -Bbuild
+ cmake -DRATS_BUILD_MODE="tdx" -DBUILD_SAMPLES=on -H. -Bbuild
  make -C build install
  ```
 
