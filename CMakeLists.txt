@@ -14,6 +14,7 @@ list(GET VERSION_LIST 1 VERSION_MINOR)
 list(GET VERSION_LIST 2 VERSION_PATCH)
 
 # Build options
+option(BUILD_SAMPLES "Compile sample code along with libraries" ON)
 option(SGX_HW "Run SGX on hardware, OFF for simulation" ON)
 
 # Define build mode
@@ -134,6 +135,10 @@ endif()
 add_subdirectory(verifiers)
 if(SGX)
     add_subdirectory(tee)
+endif()
+if(BUILD_SAMPLES)
+    message(STATUS "Build Samples: on")
+    add_subdirectory(samples)
 endif()
 
 # Set source file

@@ -13,6 +13,9 @@ set(RATS_INSTALL_LIBV_PATH "${RATS_INSTALL_LIB_PATH}/verifiers")
 # include/rats
 set(RATS_INSTALL_INCLUDE_PATH "${RATS_INSTALL_PATH}/include/")
 
+# /usr/share/rats
+set(RATS_INSTALL_BIN_PATH "/usr/share/librats/samples")
+
 # sgx sdk
 if(EXISTS $ENV{SGX_SDK})
     set(SGXSDK_INSTALL_PATH "$ENV{SGX_SDK}")
