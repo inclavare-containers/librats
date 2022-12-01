@@ -3,6 +3,8 @@ if(RATS_BUILD_MODE STREQUAL "wasm")
     set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Emscripten.cmake")
 endif()
 project(librats)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(RATS_LIB rats_lib)
 set(RATS_SRC_PATH ${CMAKE_CURRENT_LIST_DIR})
 
