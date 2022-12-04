@@ -119,6 +119,8 @@ if(SGX)
     include(SGXSSL)
 endif()
 
+include(LibCBOR)
+
 # Set include directory
 set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if(SGX)
@@ -129,6 +131,8 @@ if(SGX)
 elseif(WASM)
     list(APPEND INCLUDE_DIRS ${WASM_SRCS_DIR}/openssl/install/include)
 endif()
+
+list(APPEND INCLUDE_DIRS ${LIBCBOR_INC_PATH})
 
 include_directories(${INCLUDE_DIRS})
 
@@ -186,6 +190,7 @@ if(SGX)
                             verifier_sgx_ecdsa
                             verifier_sgx_ecdsa_qve
                             verifier_sgx_la
+                            libcbor
                             )
 elseif(WASM)
     set(DEPEND_LIBS verifier_nullverifier
@@ -255,7 +260,8 @@ elseif(WASM)
     endif()
 else()
     add_library(${RATS_LIB} SHARED ${SOURCES})
-    target_link_libraries(${RATS_LIB} ${RATS_LDFLAGS})
+    add_dependencies(${RATS_LIB} libcbor)
+    target_link_libraries(${RATS_LIB} ${RATS_LDFLAGS} ${LIBCBOR_LIB_FILES})
     set_target_properties(${RATS_LIB} PROPERTIES VERSION ${VERSION} SOVERSION ${VERSION_MAJOR})
 endif()
 
