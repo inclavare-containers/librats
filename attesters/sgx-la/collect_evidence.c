@@ -11,7 +11,7 @@
 #include <sgx_report.h>
 #include "sgx_la.h"
 
-extern sgx_status_t sgx_generate_evidence(const uint8_t *hash, sgx_report_t *app_report);
+extern sgx_status_t sgx_generate_evidence(sgx_report_data_t *report_data, sgx_report_t *app_report);
 
 /* The local attestation requires to exchange the target info between ISV
  * ratss as the prerequisite. This is out of scope in librats because it
@@ -24,13 +24,22 @@ extern sgx_status_t sgx_generate_evidence(const uint8_t *hash, sgx_report_t *app
  */
 rats_attester_err_t sgx_la_collect_evidence(rats_attester_ctx_t *ctx,
 					    attestation_evidence_t *evidence, const uint8_t *hash,
-					    __attribute__((unused)) uint32_t hash_len)
+					    uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
+	sgx_report_data_t report_data;
+	if (sizeof(report_data.d) < hash_len) {
+		RATS_ERR("hash_len(%zu) shall be larger than user-data filed size (%zu)\n",
+			 hash_len, sizeof(report_data.d));
+		return RATS_ATTESTER_ERR_INVALID;
+	}
+	memset(&report_data, 0, sizeof(sgx_report_data_t));
+	memcpy(report_data.d, hash, hash_len);
+
 	sgx_report_t isv_report;
 	sgx_status_t generate_evidence_ret;
-	generate_evidence_ret = sgx_generate_evidence(hash, &isv_report);
+	generate_evidence_ret = sgx_generate_evidence(&report_data, &isv_report);
 	if (generate_evidence_ret != SGX_SUCCESS) {
 		RATS_ERR("failed to generate evidence %#x\n", generate_evidence_ret);
 		return SGX_LA_ATTESTER_ERR_CODE((int)generate_evidence_ret);

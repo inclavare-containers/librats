@@ -25,13 +25,8 @@
 #ifdef SGX
 #include "rats_t.h"
 
-sgx_status_t sgx_generate_evidence(const uint8_t *hash, sgx_report_t *app_report)
+sgx_status_t sgx_generate_evidence(sgx_report_data_t *report_data, sgx_report_t *app_report)
 {
-	sgx_report_data_t report_data;
-	assert(sizeof(report_data.d) >= SHA256_HASH_SIZE);
-	memset(&report_data, 0, sizeof(sgx_report_data_t));
-	memcpy(report_data.d, hash, SHA256_HASH_SIZE);
-
 	sgx_target_info_t qe_target_info;
 	memset(&qe_target_info, 0, sizeof(sgx_target_info_t));
 	sgx_status_t sgx_error = rats_ocall_get_target_info(&qe_target_info);
@@ -39,7 +34,7 @@ sgx_status_t sgx_generate_evidence(const uint8_t *hash, sgx_report_t *app_report
 		return sgx_error;
 
 	/* Generate the report for the app_rats */
-	sgx_error = sgx_create_report(&qe_target_info, &report_data, app_report);
+	sgx_error = sgx_create_report(&qe_target_info, report_data, app_report);
 	return sgx_error;
 }
 #elif defined(OCCLUM)
@@ -66,8 +61,7 @@ int generate_quote(int sgx_fd, sgxioc_gen_dcap_quote_arg_t *gen_quote_arg)
 
 rats_attester_err_t sgx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 					       attestation_evidence_t *evidence,
-					       const uint8_t *hash,
-					       __attribute__((unused)) uint32_t hash_len)
+					       const uint8_t *hash, uint32_t hash_len)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
@@ -81,8 +75,12 @@ rats_attester_err_t sgx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 	sgx_report_data_t report_data = {
 		0,
 	};
-	assert(sizeof(report_data.d) > SHA256_HASH_SIZE);
-	memcpy(report_data.d, hash, SHA256_HASH_SIZE);
+	if (sizeof(report_data.d) < hash_len) {
+		RATS_ERR("hash_len(%u) shall be larger than user-data filed size (%zu)\n",
+			 hash_len, sizeof(report_data.d));
+		return RATS_ATTESTER_ERR_INVALID;
+	}
+	memcpy(report_data.d, hash, hash_len);
 
 	uint32_t quote_size = 0;
 	if (ioctl(sgx_fd, SGXIOC_GET_DCAP_QUOTE_SIZE, &quote_size) < 0) {
@@ -101,8 +99,17 @@ rats_attester_err_t sgx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 	}
 #else
 
+	sgx_report_data_t report_data;
+	if (sizeof(report_data.d) < hash_len) {
+		RATS_ERR("hash_len(%zu) shall be larger than user-data filed size (%zu)\n",
+			 hash_len, sizeof(report_data.d));
+		return RATS_ATTESTER_ERR_INVALID;
+	}
+	memset(&report_data, 0, sizeof(sgx_report_data_t));
+	memcpy(report_data.d, hash, hash_len);
+
 	sgx_report_t app_report;
-	sgx_status_t status = sgx_generate_evidence(hash, &app_report);
+	sgx_status_t status = sgx_generate_evidence(&report_data, &app_report);
 	if (status != SGX_SUCCESS) {
 		RATS_ERR("failed to generate evidence %#x\n", status);
 		return SGX_ECDSA_ATTESTER_ERR_CODE((int)status);
