@@ -10,7 +10,6 @@
 #include <librats/log.h>
 #include <librats/attester.h>
 #include <stddef.h>
-#include <sgx_uae_service.h>
 #include <sgx_quote_3.h>
 #include <sgx_ql_quote.h>
 #ifndef SGX
@@ -20,7 +19,6 @@
 #include <sgx_ql_lib_common.h>
 #include <assert.h>
 #include <sgx_error.h>
-#include <sgx_utils.h>
 #include "sgx_ecdsa.h"
 #ifdef SGX
 #include "rats_t.h"
@@ -43,7 +41,6 @@ sgx_status_t sgx_generate_evidence(const uint8_t *hash, sgx_report_t *app_report
 	return sgx_error;
 }
 #elif defined(OCCLUM)
-#include "sgx_edger8r.h"
 #include "sgx_report.h"
 #include "quote_generation.h"
 
