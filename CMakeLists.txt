@@ -4,6 +4,7 @@ if(RATS_BUILD_MODE STREQUAL "wasm")
 endif()
 project(librats)
 set(RATS_LIB rats_lib)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Software version
 file(STRINGS "VERSION" RATS_VERSION)
