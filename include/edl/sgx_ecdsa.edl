@@ -23,10 +23,8 @@ enclave {
 		rats_verifier_err_t rats_ocall_ecdsa_verify_evidence([user_check] rats_verifier_ctx_t *ctx,
                                                                 sgx_enclave_id_t enclave_id,
                                                                 [in, string] const char *name,
-                                                                [in, size=evidence_len] attestation_evidence_t *evidence,
-                                                                uint32_t evidence_len,
-                                                                [in, size=hash_len] const uint8_t *hash,
-                                                                uint32_t hash_len)
+                                                                [in, size=quote_size] sgx_quote3_t *pquote,
+                                                                uint32_t quote_size)
 			allow(rats_ecall_get_target_info, sgx_tvl_verify_qve_report_and_identity);
 	};
 };
