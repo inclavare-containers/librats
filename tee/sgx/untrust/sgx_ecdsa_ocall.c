@@ -42,7 +42,8 @@ rats_attester_err_t rats_ocall_qe_get_quote_size(uint32_t *quote_size)
 	return RATS_ATTESTER_ERR_NONE;
 }
 
-rats_attester_err_t rats_ocall_qe_get_quote(sgx_report_t *report, uint32_t quote_size, uint8_t *quote)
+rats_attester_err_t rats_ocall_qe_get_quote(sgx_report_t *report, uint32_t quote_size,
+					    uint8_t *quote)
 {
 	quote3_error_t qe3_ret = sgx_qe_get_quote(report, quote_size, quote);
 	if (SGX_QL_SUCCESS != qe3_ret) {
@@ -53,11 +54,10 @@ rats_attester_err_t rats_ocall_qe_get_quote(sgx_report_t *report, uint32_t quote
 	return RATS_ATTESTER_ERR_NONE;
 }
 
-rats_verifier_err_t rats_ocall_ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_ctx_t *ctx,
-						sgx_enclave_id_t enclave_id, const char *name,
-						attestation_evidence_t *evidence,
-						__attribute__((unused)) uint32_t evidence_len,
-						const uint8_t *hash, uint32_t hash_len)
+rats_verifier_err_t rats_ocall_ecdsa_verify_evidence(__attribute__((unused))
+						     rats_verifier_ctx_t *ctx,
+						     sgx_enclave_id_t enclave_id, const char *name,
+						     sgx_quote3_t *pquote, uint32_t quote_size)
 {
 	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 	uint32_t supplemental_data_size = 0;
@@ -71,25 +71,6 @@ rats_verifier_err_t rats_ocall_ecdsa_verify_evidence(__attribute__((unused)) rat
 	quote3_error_t dcap_ret = SGX_QL_ERROR_UNEXPECTED;
 	sgx_ql_qe_report_info_t *qve_report_info = NULL;
 	uint8_t rand_nonce[16];
-
-	sgx_quote3_t *pquote = (sgx_quote3_t *)malloc(8192);
-	if (!pquote) {
-		RATS_ERR("failed to malloc sgx quote3 data space.\n");
-		return RATS_VERIFIER_ERR_NO_MEM;
-	}
-
-	memcpy(pquote, evidence->ecdsa.quote, evidence->ecdsa.quote_len);
-
-	uint32_t quote_size = (uint32_t)sizeof(sgx_quote3_t) + pquote->signature_data_len;
-	RATS_DEBUG("quote size is %d, quote signature_data_len is %d\n", quote_size,
-		   pquote->signature_data_len);
-
-	/* First verify the hash value */
-	if (memcmp(hash, pquote->report_body.report_data.d, hash_len) != 0) {
-		RATS_ERR("unmatched hash value in evidence.\n");
-		err = RATS_VERIFIER_ERR_INVALID;
-		goto errout;
-	}
 
 	/* sgx_ecdsa_qve instance re-uses this code and thus we need to distinguish
 	 * it from sgx_ecdsa instance.
@@ -106,7 +87,7 @@ rats_verifier_err_t rats_ocall_ecdsa_verify_evidence(__attribute__((unused)) rat
 
 		sgx_status_t get_target_info_ret;
 		sgx_ret = rats_ecall_get_target_info(enclave_id, &get_target_info_ret,
-						&qve_report_info->app_enclave_target_info);
+						     &qve_report_info->app_enclave_target_info);
 		if (sgx_ret != SGX_SUCCESS || get_target_info_ret != SGX_SUCCESS) {
 			RATS_ERR(
 				"failed to get target info sgx_ret and get_target_info_ret. %04x, %04x\n",
@@ -143,10 +124,10 @@ rats_verifier_err_t rats_ocall_ecdsa_verify_evidence(__attribute__((unused)) rat
 
 	current_time = time(NULL);
 
-	dcap_ret = sgx_qv_verify_quote(evidence->ecdsa.quote, (uint32_t)quote_size, NULL,
-				       current_time, &collateral_expiration_status,
-				       &quote_verification_result, qve_report_info,
-				       supplemental_data_size, p_supplemental_data);
+	dcap_ret = sgx_qv_verify_quote((uint8_t *)pquote, (uint32_t)quote_size, NULL, current_time,
+				       &collateral_expiration_status, &quote_verification_result,
+				       qve_report_info, supplemental_data_size,
+				       p_supplemental_data);
 	if (dcap_ret == SGX_QL_SUCCESS)
 		RATS_INFO("sgx qv verifies quote successfully.\n");
 	else {
@@ -157,7 +138,7 @@ rats_verifier_err_t rats_ocall_ecdsa_verify_evidence(__attribute__((unused)) rat
 
 	if (!strcmp(name, "sgx_ecdsa_qve")) {
 		sgx_ret = sgx_tvl_verify_qve_report_and_identity(
-			enclave_id, &verify_qveid_ret, evidence->ecdsa.quote, (uint32_t)quote_size,
+			enclave_id, &verify_qveid_ret, (uint8_t *)pquote, (uint32_t)quote_size,
 			qve_report_info, current_time, collateral_expiration_status,
 			quote_verification_result, p_supplemental_data, supplemental_data_size,
 			qve_isvsvn_threshold);
@@ -208,7 +189,6 @@ errret:
 	free(p_supplemental_data);
 errout:
 	free(qve_report_info);
-	free(pquote);
 
 	return err;
 }
