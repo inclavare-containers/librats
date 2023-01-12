@@ -148,6 +148,15 @@ rats_verifier_err_t ecdsa_verify_evidence(rats_verifier_ctx_t *ctx, sgx_quote3_t
 			RATS_INFO("verify QvE report and identity successfully.\n");
 	}
 
+	/* Note that even if the Verify Quote API returns SGX_QL_SUCCESS, we still need to check collateral_expiration_status and quote_verification_result. */
+
+	/* Check collateral expiration status */
+	if (collateral_expiration_status != 0) {
+		RATS_ERR("verification failed because collateral is expired.\n");
+		err = -RATS_VERIFIER_ERR_UNKNOWN;
+		goto errret;
+	}
+
 	/* Check verification result */
 	switch (quote_verification_result) {
 	case SGX_QL_QV_RESULT_OK:
@@ -251,6 +260,13 @@ rats_verifier_err_t ecdsa_verify_evidence(sgx_quote3_t *pquote, uint32_t quote_s
 		goto errret;
 	}
 
+	/* Check collateral expiration status */
+	if (collateral_expiration_status != 0) {
+		RATS_ERR("verification failed because collateral is expired.\n");
+		err = -RATS_VERIFIER_ERR_UNKNOWN;
+		goto errret;
+	}
+
 	/* Check verification result */
 	switch (quote_verification_result) {
 	case SGX_QL_QV_RESULT_OK:
@@ -348,6 +364,13 @@ sgx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx, attestation_evidence_t *evid
 	}
 
 	close(sgx_fd);
+
+	/* Check collateral expiration status */
+	if (collateral_expiration_status != 0) {
+		RATS_ERR("verification failed because collateral is expired.\n");
+		free(p_supplemental_data);
+		return -RATS_VERIFIER_ERR_UNKNOWN;
+	}
 
 	/* Check verification result */
 	switch (quote_verification_result) {
