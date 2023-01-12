@@ -14,6 +14,7 @@
 #ifdef SGX
 #include <sgx_lfence.h>
 #include "rats_t.h"
+#include <sgx_ql_quote.h>
 // clang-format on
 
 rats_attester_err_t sgx_ecdsa_collect_endorsements(rats_attester_ctx_t *ctx,
