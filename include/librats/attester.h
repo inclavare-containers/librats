@@ -57,7 +57,6 @@ typedef struct rats_attester_opts {
 struct rats_attester_ctx {
 	rats_attester_opts_t *opts;
 	void *attester_private;
-	unsigned long long enclave_id;
 	rats_log_level_t log_level;
 	void *handle;
 

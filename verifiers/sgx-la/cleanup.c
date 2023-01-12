@@ -6,15 +6,10 @@
 
 #include <librats/log.h>
 #include <librats/verifier.h>
-#include "sgx_la.h"
 
-rats_verifier_err_t sgx_la_verifier_cleanup(rats_verifier_ctx_t *ctx)
+rats_verifier_err_t sgx_la_verifier_cleanup(__attribute__((unused)) rats_verifier_ctx_t *ctx)
 {
 	RATS_DEBUG("called\n");
-
-	sgx_la_ctx_t *la_ctx = (sgx_la_ctx_t *)ctx->verifier_private;
-
-	free(la_ctx);
 
 	return RATS_VERIFIER_ERR_NONE;
 }

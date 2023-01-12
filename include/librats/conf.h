@@ -24,7 +24,6 @@ typedef struct rats_conf {
 	rats_log_level_t log_level;
 	char attester_type[32];
 	char verifier_type[32];
-	unsigned long long enclave_id;
 } rats_conf_t;
 
 #endif

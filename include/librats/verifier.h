@@ -56,7 +56,6 @@ typedef struct rats_verifier_opts {
 struct rats_verifier_ctx {
 	rats_verifier_opts_t *opts;
 	void *verifier_private;
-	unsigned long long enclave_id;
 	rats_log_level_t log_level;
 	void *handle;
 
