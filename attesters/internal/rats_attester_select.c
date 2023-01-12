@@ -48,7 +48,6 @@ rats_attester_err_t rats_attester_select(rats_core_context_t *ctx, const char *n
 		/* Set necessary configurations from rats_init() to
 		 * make init() working correctly.
 		 */
-		attester_ctx->enclave_id = ctx->config.enclave_id;
 		attester_ctx->log_level = ctx->config.log_level;
 
 		if (init_rats_attester(ctx, attester_ctx) == RATS_ATTESTER_ERR_NONE)

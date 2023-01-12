@@ -9,14 +9,13 @@
 #include <librats/attester.h>
 #include <librats/verifier.h>
 #include "sgx_error.h"
-#include "sgx_la.h"
 #include "sgx_quote_3.h"
 #include "sgx_dcap_ql_wrapper.h"
 
 rats_verifier_err_t rats_ocall_la_verify_evidence(rats_verifier_ctx_t *ctx,
-					     attestation_evidence_t *evidence,
-					     __attribute__((unused)) uint32_t evidence_len,
-					     const uint8_t *hash, uint32_t hash_len)
+						  attestation_evidence_t *evidence,
+						  __attribute__((unused)) uint32_t evidence_len,
+						  const uint8_t *hash, uint32_t hash_len)
 {
 	uint32_t quote_size = 0;
 	unsigned char quote[8192];

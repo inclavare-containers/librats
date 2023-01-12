@@ -38,7 +38,6 @@ rats_core_context_t rats_global_core_context = {
         .log_level = RATS_LOG_LEVEL_DEFAULT,
         .attester_type = "\0",
         .verifier_type = "\0",
-        .enclave_id = 0L
     },
     .flags = 0L,
     .attester = NULL,

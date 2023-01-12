@@ -7,7 +7,6 @@
 #include <librats/log.h>
 #include <librats/verifier.h>
 #include "sgx_error.h"
-#include "sgx_la.h"
 #include "rats_t.h"
 
 /* Refer to explanation in sgx_la_collect_evidence */

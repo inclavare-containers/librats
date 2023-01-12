@@ -10,7 +10,7 @@
 
 extern rats_verifier_err_t rats_verifier_register(rats_verifier_opts_t *opts);
 extern rats_verifier_err_t sgx_ecdsa_verifier_pre_init(void);
-extern rats_verifier_err_t sgx_ecdsa_qve_verifier_init(rats_verifier_ctx_t *ctx);
+extern rats_verifier_err_t sgx_ecdsa_verifier_init(rats_verifier_ctx_t *ctx);
 extern rats_verifier_err_t sgx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
 						     attestation_evidence_t *evidence,
 						     const uint8_t *hash, uint32_t hash_len,
@@ -25,7 +25,7 @@ static rats_verifier_opts_t sgx_ecdsa_qve_opts = {
 	.type = "sgx_ecdsa",
 	.priority = 53,
 	.pre_init = sgx_ecdsa_verifier_pre_init,
-	.init = sgx_ecdsa_qve_verifier_init,
+	.init = sgx_ecdsa_verifier_init,
 	.verify_evidence = sgx_ecdsa_verify_evidence,
 	.cleanup = sgx_ecdsa_verifier_cleanup,
 };

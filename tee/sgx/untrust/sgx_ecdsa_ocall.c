@@ -13,7 +13,6 @@
 #include <sgx_ql_quote.h>
 #include <sgx_dcap_quoteverify.h>
 #include <sgx_dcap_ql_wrapper.h>
-#include "sgx_ecdsa.h"
 #include "rats_u.h"
 
 rats_log_level_t rats_global_log_level = RATS_LOG_LEVEL_DEFAULT;
