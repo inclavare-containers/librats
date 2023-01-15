@@ -117,6 +117,13 @@ rats_attester_err_t sgx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 		return SGX_ECDSA_ATTESTER_ERR_CODE((int)qe3_ret);
 	}
 
+	if (quote_size > sizeof(evidence->ecdsa.quote)) {
+		RATS_ERR(
+			"The value of quote_size exceeds the maximum quote size. quote_size: %u, maximum quote size: %u\n",
+			quote_size, sizeof(evidence->ecdsa.quote));
+		return RATS_ATTESTER_ERR_INVALID;
+	}
+
 	sgx_status = rats_ocall_qe_get_quote(&qe3_ret, &app_report, quote_size, evidence->ecdsa.quote);
 	if (SGX_SUCCESS != sgx_status || RATS_ATTESTER_ERR_NONE != qe3_ret) {
 		RATS_ERR("sgx_qe_get_quote(): 0x%04x, 0x%04x\n", sgx_status, qe3_ret);
