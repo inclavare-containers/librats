@@ -165,6 +165,7 @@ rats_verifier_err_t sgx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
 
 	if (ioctl(sgx_fd, SGXIOC_VER_DCAP_QUOTE, &ver_quote_arg) < 0) {
 		RATS_ERR("failed to ioctl verify quote: %s\n", strerror(errno));
+		free(p_supplemental_data);
 		close(sgx_fd);
 		return -RATS_VERIFIER_ERR_INVALID;
 	}
@@ -195,6 +196,7 @@ rats_verifier_err_t sgx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
 		err = SGX_ECDSA_VERIFIER_ERR_CODE((int)quote_verification_result);
 		break;
 	}
+	free(p_supplemental_data);
 #elif defined(SGX)
 	sgx_ecdsa_ctx_t *ecdsa_ctx = (sgx_ecdsa_ctx_t *)ctx->verifier_private;
 	sgx_enclave_id_t eid = (sgx_enclave_id_t)ecdsa_ctx->eid;
