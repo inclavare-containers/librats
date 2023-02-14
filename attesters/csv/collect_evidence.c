@@ -14,6 +14,7 @@
 #include <librats/csv.h>
 #include <curl/curl.h>
 #include "csv_utils.h"
+#include "../../verifiers/sev/sev_utils.c"
 
 #define PAGE_MAP_FILENAME   "/proc/self/pagemap"
 #define PAGE_MAP_PFN_MASK   0x007fffffffffffffUL
@@ -102,17 +103,29 @@ static size_t curl_writefunc_callback(void *contents, size_t size, size_t nmemb,
 	return realsize;
 }
 
-/**
- * Download HSK and CEK cert, and then save them to @hsk_cek_cert.
- *
- * Params:
- * 	hsk_cek_cert [in]: the buffer to save HSK and CEK cert
- * 	chip_id      [in]: platform's ChipId
- * Return:
- * 	0: success
- * 	otherwise error
- */
-static int csv_get_hsk_cek_cert(const char *chip_id, csv_evidence *evidence)
+static int read_hsk_cek_cert_from_localfs(const char *chip_id, csv_evidence *evidence)
+{
+	int count = 0;
+	char cert_path[200] = {
+		0,
+	};
+
+	count = snprintf(cert_path, sizeof(cert_path), "%s/%s/%s", CSV_HSK_CEK_DEFAULT_DIR, chip_id,
+			 HYGON_HSK_CEK_CERT_FILENAME);
+	cert_path[count] = '\0';
+
+	if (get_file_size(cert_path) != HYGON_HSK_CEK_CERT_SIZE)
+		return -1;
+
+	if (read_file(cert_path, evidence->hsk_cek_cert, HYGON_HSK_CEK_CERT_SIZE) !=
+	    HYGON_HSK_CEK_CERT_SIZE)
+		return -1;
+
+	evidence->hsk_cek_cert_len = HYGON_HSK_CEK_CERT_SIZE;
+	return 0;
+}
+
+static int download_hsk_cek_cert(const char *chip_id, csv_evidence *evidence)
 {
 	/* Download HSK and CEK cert by ChipId */
 	char url[200] = {
@@ -146,6 +159,27 @@ static int csv_get_hsk_cek_cert(const char *chip_id, csv_evidence *evidence)
 			 curl_easy_strerror(curl_ret));
 		return -1;
 	}
+
+	return 0;
+}
+
+/**
+ * Download HSK and CEK cert, and then save them to @hsk_cek_cert.
+ *
+ * Params:
+ * 	chip_id         [in]: platform's ChipId
+ * 	evidence        [in]: the buffer to save HSK and CEK cert, which follows the attestation
+ * 			      report
+ * Return:
+ * 	0: success
+ * 	otherwise error
+ */
+static int csv_get_hsk_cek_cert(const char *chip_id, csv_evidence *evidence)
+{
+	/* First read hsk_cek cert from local file system, and then download
+	 * hsk_cek cert through network when the reading fails */
+	if (read_hsk_cek_cert_from_localfs(chip_id, evidence))
+		return download_hsk_cek_cert(chip_id, evidence);
 
 	return 0;
 }
@@ -211,7 +245,7 @@ static int collect_attestation_evidence(const uint8_t *hash, uint32_t hash_len,
 	/* Prepare user defined data (challenge and mnonce) */
 	memcpy(user_data->data, hash,
 	       hash_len <= CSV_ATTESTATION_USER_DATA_SIZE ? hash_len :
-								  CSV_ATTESTATION_USER_DATA_SIZE);
+							    CSV_ATTESTATION_USER_DATA_SIZE);
 	gen_random_bytes(user_data->mnonce, CSV_ATTESTATION_MNONCE_SIZE);
 
 	/* Prepare hash of user defined data */
