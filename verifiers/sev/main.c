@@ -13,6 +13,7 @@ extern rats_verifier_err_t sev_verifier_init(rats_verifier_ctx_t *ctx);
 extern rats_verifier_err_t sev_verify_evidence(rats_verifier_ctx_t *ctx,
 					       attestation_evidence_t *evidence,
 					       const uint8_t *hash, uint32_t hash_len,
+					       attestation_endorsement_t *endorsements,
 					       claim_t **claims, size_t *claims_length);
 extern rats_verifier_err_t sev_verifier_cleanup(rats_verifier_ctx_t *ctx);
 

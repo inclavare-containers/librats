@@ -143,6 +143,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/cpu.c
     ${CMAKE_CURRENT_SOURCE_DIR}/core/rats_init.c
     ${CMAKE_CURRENT_SOURCE_DIR}/core/claim.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/endorsement.c
     ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_collect_evidence.c
     ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_verify_evidence.c
     ${CMAKE_CURRENT_SOURCE_DIR}/attesters/api/rats_attester_register.c

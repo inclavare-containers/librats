@@ -99,6 +99,8 @@ static rats_verifier_err_t verify_attestation_report(csv_attestation_report *rep
 
 rats_verifier_err_t csv_verify_evidence(rats_verifier_ctx_t *ctx, attestation_evidence_t *evidence,
 					const uint8_t *hash, uint32_t hash_len,
+					__attribute__((unused))
+					attestation_endorsement_t *endorsements,
 					__attribute__((unused)) claim_t **claims,
 					__attribute__((unused)) size_t *claims_length)
 {
@@ -120,7 +122,7 @@ rats_verifier_err_t csv_verify_evidence(rats_verifier_ctx_t *ctx, attestation_ev
 
 	if (memcmp(hash, user_data,
 		   hash_len <= CSV_ATTESTATION_USER_DATA_SIZE ? hash_len :
-								      CSV_ATTESTATION_USER_DATA_SIZE)) {
+								CSV_ATTESTATION_USER_DATA_SIZE)) {
 		RATS_ERR("unmatched hash value in evidence\n");
 		return RATS_VERIFIER_ERR_INVALID;
 	}

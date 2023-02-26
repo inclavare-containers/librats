@@ -29,7 +29,8 @@
 
 rats_verifier_err_t ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_ctx_t *ctx,
 					  const char *name, sgx_quote3_t *pquote,
-					  uint32_t quote_size)
+					  uint32_t quote_size,
+					  attestation_endorsement_t *endorsements)
 {
 	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 	uint32_t supplemental_data_size = 0;
@@ -61,10 +62,38 @@ rats_verifier_err_t ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_
 
 	current_time = time(NULL);
 
-	dcap_ret = sgx_qv_verify_quote((uint8_t *)pquote, (uint32_t)quote_size, NULL, current_time,
-				       &collateral_expiration_status, &quote_verification_result,
-				       qve_report_info, supplemental_data_size,
-				       p_supplemental_data);
+	if (endorsements) {
+		sgx_ql_qve_collateral_t collateral = {
+			.version = endorsements->ecdsa.version,
+			.tee_type = 0x00000000, /* SGX */
+			.pck_crl_issuer_chain = endorsements->ecdsa.pck_crl_issuer_chain,
+			.pck_crl_issuer_chain_size = endorsements->ecdsa.pck_crl_issuer_chain_size,
+			.root_ca_crl = endorsements->ecdsa.root_ca_crl,
+			.root_ca_crl_size = endorsements->ecdsa.root_ca_crl_size,
+			.pck_crl = endorsements->ecdsa.pck_crl,
+			.pck_crl_size = endorsements->ecdsa.pck_crl_size,
+			.tcb_info_issuer_chain = endorsements->ecdsa.tcb_info_issuer_chain,
+			.tcb_info_issuer_chain_size =
+				endorsements->ecdsa.tcb_info_issuer_chain_size,
+			.tcb_info = endorsements->ecdsa.tcb_info,
+			.tcb_info_size = endorsements->ecdsa.tcb_info_size,
+			.qe_identity_issuer_chain = endorsements->ecdsa.qe_identity_issuer_chain,
+			.qe_identity_issuer_chain_size =
+				endorsements->ecdsa.qe_identity_issuer_chain_size,
+			.qe_identity = endorsements->ecdsa.qe_identity,
+			.qe_identity_size = endorsements->ecdsa.qe_identity_size,
+		};
+
+		dcap_ret = sgx_qv_verify_quote((uint8_t *)pquote, (uint32_t)quote_size, &collateral,
+					       current_time, &collateral_expiration_status,
+					       &quote_verification_result, qve_report_info,
+					       supplemental_data_size, p_supplemental_data);
+	} else {
+		dcap_ret = sgx_qv_verify_quote((uint8_t *)pquote, (uint32_t)quote_size, NULL,
+					       current_time, &collateral_expiration_status,
+					       &quote_verification_result, qve_report_info,
+					       supplemental_data_size, p_supplemental_data);
+	}
 	if (dcap_ret == SGX_QL_SUCCESS)
 		RATS_INFO("sgx qv verifies quote successfully.\n");
 	else {
@@ -107,11 +136,12 @@ errout:
 }
 #endif
 
-rats_verifier_err_t sgx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
-					      attestation_evidence_t *evidence, const uint8_t *hash,
-					      __attribute__((unused)) uint32_t hash_len,
-					      __attribute__((unused)) claim_t **claims,
-					      __attribute__((unused)) size_t *claims_length)
+rats_verifier_err_t
+sgx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx, attestation_evidence_t *evidence,
+			  const uint8_t *hash, __attribute__((unused)) uint32_t hash_len,
+			  attestation_endorsement_t *endorsements /* optional */,
+			  __attribute__((unused)) claim_t **claims,
+			  __attribute__((unused)) size_t *claims_length)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
@@ -200,12 +230,30 @@ rats_verifier_err_t sgx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
 #elif defined(SGX)
 	sgx_ecdsa_ctx_t *ecdsa_ctx = (sgx_ecdsa_ctx_t *)ctx->verifier_private;
 	sgx_enclave_id_t eid = (sgx_enclave_id_t)ecdsa_ctx->eid;
-	sgx_status_t sgx_ret = rats_ocall_ecdsa_verify_evidence(&err, ctx, eid, ctx->opts->name,
-								pquote, quote_size);
-	if (sgx_ret != SGX_SUCCESS || err != RATS_VERIFIER_ERR_NONE)
-		RATS_ERR("failed to verify ecdsa, %04x, %04x\n", sgx_ret, err);
+	int sgx_status;
+	if (endorsements) {
+		sgx_status = rats_ocall_ecdsa_verify_evidence(
+			&err, ctx, eid, ctx->opts->name, pquote, quote_size,
+			endorsements->ecdsa.version, endorsements->ecdsa.pck_crl_issuer_chain,
+			endorsements->ecdsa.pck_crl_issuer_chain_size,
+			endorsements->ecdsa.root_ca_crl, endorsements->ecdsa.root_ca_crl_size,
+			endorsements->ecdsa.pck_crl, endorsements->ecdsa.pck_crl_size,
+			endorsements->ecdsa.tcb_info_issuer_chain,
+			endorsements->ecdsa.tcb_info_issuer_chain_size,
+			endorsements->ecdsa.tcb_info, endorsements->ecdsa.tcb_info_size,
+			endorsements->ecdsa.qe_identity_issuer_chain,
+			endorsements->ecdsa.qe_identity_issuer_chain_size,
+			endorsements->ecdsa.qe_identity, endorsements->ecdsa.qe_identity_size);
+	} else {
+		sgx_status = rats_ocall_ecdsa_verify_evidence(&err, ctx, eid, ctx->opts->name,
+							      pquote, quote_size, 0, NULL, 0, NULL,
+							      0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
+							      NULL, 0);
+	}
+	if (sgx_status != SGX_SUCCESS || err != RATS_VERIFIER_ERR_NONE)
+		RATS_ERR("failed to verify ecdsa, %04x, %04x\n", sgx_status, err);
 #else
-	err = ecdsa_verify_evidence(ctx, ctx->opts->name, pquote, quote_size);
+	err = ecdsa_verify_evidence(ctx, ctx->opts->name, pquote, quote_size, endorsements);
 	if (err != RATS_VERIFIER_ERR_NONE)
 		RATS_ERR("failed to verify ecdsa\n");
 #endif

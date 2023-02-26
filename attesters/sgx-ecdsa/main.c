@@ -14,6 +14,9 @@ extern rats_attester_err_t sgx_ecdsa_attester_init(rats_attester_ctx_t *ctx);
 extern rats_attester_err_t sgx_ecdsa_collect_evidence(rats_attester_ctx_t *ctx,
 						      attestation_evidence_t *evidence,
 						      const uint8_t *hash, uint32_t hash_len);
+extern rats_attester_err_t sgx_ecdsa_collect_endorsements(rats_attester_ctx_t *ctx,
+							  attestation_evidence_t *evidence,
+							  attestation_endorsement_t *endorsements);
 extern rats_attester_err_t sgx_ecdsa_attester_cleanup(rats_attester_ctx_t *ctx);
 
 static rats_attester_opts_t sgx_ecdsa_attester_opts = {
@@ -25,6 +28,7 @@ static rats_attester_opts_t sgx_ecdsa_attester_opts = {
 	.pre_init = sgx_ecdsa_attester_pre_init,
 	.init = sgx_ecdsa_attester_init,
 	.collect_evidence = sgx_ecdsa_collect_evidence,
+	.collect_endorsements = sgx_ecdsa_collect_endorsements,
 	.cleanup = sgx_ecdsa_attester_cleanup,
 };
 

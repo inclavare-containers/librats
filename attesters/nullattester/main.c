@@ -14,6 +14,9 @@ extern rats_attester_err_t nullattester_init(rats_attester_ctx_t *);
 extern rats_attester_err_t nullattester_collect_evidence(rats_attester_ctx_t *,
 							 attestation_evidence_t *, const uint8_t *,
 							 uint32_t hash_len);
+extern rats_attester_err_t
+nullattester_collect_endorsements(rats_attester_ctx_t *ctx, attestation_evidence_t *evidence,
+				  attestation_endorsement_t *endorsements);
 extern rats_attester_err_t nullattester_cleanup(rats_attester_ctx_t *);
 
 static rats_attester_opts_t nullattester_opts = {
@@ -25,6 +28,7 @@ static rats_attester_opts_t nullattester_opts = {
 	.pre_init = nullattester_pre_init,
 	.init = nullattester_init,
 	.collect_evidence = nullattester_collect_evidence,
+	.collect_endorsements = nullattester_collect_endorsements,
 	.cleanup = nullattester_cleanup,
 };
 

@@ -8,13 +8,14 @@
 #include <librats/verifier.h>
 #include <librats/log.h>
 
-extern rats_verifier_err_t rats_verifier_register(rats_verifier_opts_t *);
+extern rats_verifier_err_t rats_verifier_register(rats_verifier_opts_t *opts);
 extern rats_verifier_err_t nullverifier_pre_init(void);
 extern rats_verifier_err_t nullverifier_init(rats_verifier_ctx_t *);
 extern rats_verifier_err_t nullverifier_verify_evidence(rats_verifier_ctx_t *,
 							attestation_evidence_t *, const uint8_t *,
-							uint32_t hash_len, claim_t **claims,
-							size_t *claims_length);
+							uint32_t hash_len,
+							attestation_endorsement_t *endorsements,
+							claim_t **claims, size_t *claims_length);
 extern rats_verifier_err_t nullverifier_cleanup(rats_verifier_ctx_t *);
 
 static rats_verifier_opts_t nullverifier_opts = {

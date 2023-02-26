@@ -25,7 +25,7 @@ rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evidence, co
 		return RATS_VERIFIER_ERR_INIT;
 
 	rats_verifier_err_t err = ctx.verifier->opts->verify_evidence(
-		ctx.verifier, evidence, hash, hash_len, claims, claims_length);
+		ctx.verifier, evidence, hash, hash_len, NULL, claims, claims_length);
 
 	if (ctx.verifier->opts->cleanup(ctx.verifier) != RATS_VERIFIER_ERR_NONE) {
 		RATS_ERR("failed to clean up verifier\n");
@@ -70,7 +70,8 @@ int get_evidence_from_json(const char *json_string, attestation_evidence_t *evid
 		ret_code = 0;
 		goto err;
 	}
-	if (rats_base64_decode((const unsigned char *)report_base64, strlen(report_base64), &report, &report_len) != 0 ||
+	if (rats_base64_decode((const unsigned char *)report_base64, strlen(report_base64), &report,
+			       &report_len) != 0 ||
 	    !report || !report_len) {
 		RATS_ERR("failed to get_evidence_from_json, rats_base64_decode report error\n");
 		goto err;
@@ -94,14 +95,15 @@ int get_evidence_from_json(const char *json_string, attestation_evidence_t *evid
 		    cJSON_IsNumber(cJSON_GetObjectItem(evidence_json, "vcek_base64"))) {
 			vcek_base64 =
 				cJSON_GetObjectItem(evidence_json, "vcek_base64")->valuestring;
-			if (rats_base64_decode((const unsigned char *)vcek_base64, strlen(vcek_base64), &vcek, &vcek_len) !=
-				    0 ||
+			if (rats_base64_decode((const unsigned char *)vcek_base64,
+					       strlen(vcek_base64), &vcek, &vcek_len) != 0 ||
 			    !vcek || !vcek_len) {
 				RATS_ERR(
 					"failed to get_evidence_from_json, rats_base64_decode vcek error\n");
 				goto err;
 			}
-			if (vcek_len != (size_t)cJSON_GetObjectItem(evidence_json, "vcek_len")->valueint) {
+			if (vcek_len !=
+			    (size_t)cJSON_GetObjectItem(evidence_json, "vcek_len")->valueint) {
 				RATS_ERR("failed to get_evidence_from_json, vcek_len mismatched\n");
 				goto err;
 			}
