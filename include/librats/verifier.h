@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <librats/api.h>
 #include <librats/claim.h>
+#include <librats/endorsement.h>
 
 #define RATS_VERIFIER_TYPE_NAME_SIZE 32
 #define RATS_VERIFIER_TYPE_MAX	     32
@@ -45,11 +46,10 @@ typedef struct rats_verifier_opts {
 	/* Optional */
 	rats_verifier_err_t (*pre_init)(void);
 	rats_verifier_err_t (*init)(rats_verifier_ctx_t *ctx);
-	rats_verifier_err_t (*verify_evidence)(rats_verifier_ctx_t *ctx,
-					       attestation_evidence_t *evidence,
-					       const uint8_t *hash, uint32_t hash_len,
-					       claim_t **claims, size_t *claims_length);
-	rats_verifier_err_t (*collect_collateral)(rats_verifier_ctx_t *ctx);
+	rats_verifier_err_t (*verify_evidence)(
+		rats_verifier_ctx_t *ctx, attestation_evidence_t *evidence, const uint8_t *hash,
+		uint32_t hash_len, attestation_endorsement_t *endorsements /* optional */,
+		claim_t **claims, size_t *claims_length);
 	rats_verifier_err_t (*cleanup)(rats_verifier_ctx_t *ctx);
 } rats_verifier_opts_t;
 
