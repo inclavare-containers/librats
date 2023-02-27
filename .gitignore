@@ -1,5 +1,4 @@
 build
-Cargo.lock
 aeb.rs
 aeb_ttrpc.rs
 wasm/lib/*
