@@ -5,7 +5,11 @@ on: [push, pull_request]
 jobs:
   basic_complication_check:
     # Run all steps in the compilation testing containers
-    container: runetest/compilation-testing-librats:anolis8.4
+    strategy:
+      matrix:
+        tag: [anolis8.6, ubuntu20.04]
+
+    container: runetest/compilation-testing:${{ matrix.tag }}
 
     # Use GitHub-hosted runner Ubuntu 20.04
     runs-on: ubuntu-20.04
@@ -34,5 +38,11 @@ jobs:
       - name: Compile "librats" sgx mode
         run:
           source /root/.bashrc && cmake -DRATS_BUILD_MODE="sgx" -H. -Bbuild && make -C build install && make -C build clean && rm -rf build
+        env:
+          HOME: /root
+
+      - name: Compile "librats" tdx mode
+        run:
+          source /root/.bashrc && cmake -DRATS_BUILD_MODE="tdx" -H. -Bbuild && make -C build install && make -C build clean && rm -rf build
         env:
           HOME: /root
