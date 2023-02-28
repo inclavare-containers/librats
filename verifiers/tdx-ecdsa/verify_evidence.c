@@ -10,7 +10,6 @@
 #include <librats/verifier.h>
 #include <sgx_dcap_quoteverify.h>
 #include "tdx-ecdsa.h"
-#include "sgx_quote_4.h"
 
 rats_verifier_err_t ecdsa_verify_evidence(__attribute__((unused)) rats_verifier_ctx_t *ctx,
 					  const char *name, attestation_evidence_t *evidence,
@@ -129,17 +128,13 @@ errret:
 #define TDX_CLAIM_RTMR2 "rtmr2"
 #define TDX_CLAIM_RTMR3 "rtmr3"
 
-rats_verifier_err_t tdx_parse_claims(sgx_quote4_t *quote4, claim_t **claims_out,
+rats_verifier_err_t tdx_parse_claims(tdx_quote_t *quote, claim_t **claims_out,
 				     size_t *claims_length_out)
 {
-	if (!quote4 || !claims_out || !claims_length_out)
+	if (!quote || !claims_out || !claims_length_out)
 		return RATS_ERR_INVALID_PARAMETER;
 
 	rats_err_t err = RATS_ERR_UNKNOWN;
-	tee_measurement_t rtmr0 = quote4->report_body.rt_mr[0];
-	tee_measurement_t rtmr1 = quote4->report_body.rt_mr[1];
-	tee_measurement_t rtmr2 = quote4->report_body.rt_mr[2];
-	tee_measurement_t rtmr3 = quote4->report_body.rt_mr[3];
 
 	size_t claims_index = 0;
 	uint64_t claims_size = TDX_CLAIMS_COUNT * sizeof(claim_t);
@@ -148,16 +143,20 @@ rats_verifier_err_t tdx_parse_claims(sgx_quote4_t *quote4, claim_t **claims_out,
 		return RATS_ERR_NO_MEM;
 
 	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], TDX_CLAIM_RTMR0,
-				      sizeof(TDX_CLAIM_RTMR0), &rtmr0, sizeof(rtmr0)));
+				      sizeof(TDX_CLAIM_RTMR0), quote->report_body.rtmr[0],
+				      sizeof(quote->report_body.rtmr[0])));
 
 	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], TDX_CLAIM_RTMR1,
-				      sizeof(TDX_CLAIM_RTMR1), &rtmr1, sizeof(rtmr1)));
+				      sizeof(TDX_CLAIM_RTMR1), quote->report_body.rtmr[1],
+				      sizeof(quote->report_body.rtmr[1])));
 
 	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], TDX_CLAIM_RTMR2,
-				      sizeof(TDX_CLAIM_RTMR2), &rtmr2, sizeof(rtmr2)));
+				      sizeof(TDX_CLAIM_RTMR2), quote->report_body.rtmr[2],
+				      sizeof(quote->report_body.rtmr[2])));
 
 	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], TDX_CLAIM_RTMR3,
-				      sizeof(TDX_CLAIM_RTMR3), &rtmr3, sizeof(rtmr3)));
+				      sizeof(TDX_CLAIM_RTMR3), quote->report_body.rtmr[3],
+				      sizeof(quote->report_body.rtmr[3])));
 
 	*claims_out = claims;
 	*claims_length_out = claims_index;
@@ -189,7 +188,7 @@ rats_verifier_err_t tdx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
 		return err;
 	}
 
-	err = tdx_parse_claims((sgx_quote4_t *)evidence->tdx.quote, claims, claims_length);
+	err = tdx_parse_claims((tdx_quote_t *)evidence->tdx.quote, claims, claims_length);
 	if (err != RATS_VERIFIER_ERR_NONE)
 		RATS_ERR("failed to parse tdx claims\n");
 
