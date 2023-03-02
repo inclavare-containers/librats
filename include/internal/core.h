@@ -28,19 +28,6 @@ extern void rats_exit(void);
 
 extern rats_log_level_t rats_loglevel_getenv(const char *name);
 
-extern ssize_t rats_write(int fd, const void *buf, size_t count);
-
-extern ssize_t rats_read(int fd, void *buf, size_t count);
-
-extern uint64_t rats_opendir(const char *name);
-
-extern int rats_readdir(uint64_t dirp, rats_dirent **ptr);
-
-extern int rats_closedir(uint64_t dir);
-
 extern char *rats_strcpy(char *dest, const char *src);
-
-// Whether the quote instance is initialized
-#define RATS_CTX_FLAGS_QUOTING_INITIALIZED (1 << 0)
 
 #endif

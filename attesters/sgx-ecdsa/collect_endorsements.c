@@ -26,16 +26,16 @@ rats_attester_err_t sgx_ecdsa_collect_endorsements(rats_attester_ctx_t *ctx,
 
 	RATS_DEBUG("ctx %p, evidence %p, endorsements %p\n", ctx, evidence, endorsements);
 
-	int sgx_status = ocall_tee_qv_get_collateral(
+	int sgx_status = rats_ocall_tee_qv_get_collateral(
 		&ret, evidence->ecdsa.quote, evidence->ecdsa.quote_len, &collateral_untrusted);
 	if (sgx_status != SGX_SUCCESS || ret != RATS_ATTESTER_ERR_NONE) {
-		RATS_ERR("ocall_tee_qv_get_collateral() failed: sgx_status: %#x, ret: %#x\n",
+		RATS_ERR("rats_ocall_tee_qv_get_collateral() failed: sgx_status: %#x, ret: %#x\n",
 			 sgx_status, ret);
 		if (sgx_status != SGX_SUCCESS)
 			ret = RATS_ATTESTER_ERR_UNKNOWN;
 		goto err;
 	}
-	RATS_DEBUG("ocall_tee_qv_get_collateral() succeeded. collateral_untrusted: %p\n",
+	RATS_DEBUG("rats_ocall_tee_qv_get_collateral() succeeded. collateral_untrusted: %p\n",
 		   collateral_untrusted);
 
 	/* Since we have to access memory pointed to by collateral_untrusted, before that we check if this memory is in the untrusted-app. */
@@ -96,10 +96,10 @@ rats_attester_err_t sgx_ecdsa_collect_endorsements(rats_attester_ctx_t *ctx,
 err:
 	if (collateral_untrusted) {
 		rats_attester_err_t q_ret;
-		sgx_status = ocall_tee_qv_free_collateral(&q_ret, collateral_untrusted);
+		sgx_status = rats_ocall_tee_qv_free_collateral(&q_ret, collateral_untrusted);
 		if (sgx_status != SGX_SUCCESS || ret != RATS_ATTESTER_ERR_NONE) {
 			RATS_ERR(
-				"ocall_tee_qv_free_collateral() failed: sgx_status: %#x, q_ret: %#x\n",
+				"rats_ocall_tee_qv_free_collateral() failed: sgx_status: %#x, q_ret: %#x\n",
 				sgx_status, q_ret);
 		}
 	}

@@ -24,304 +24,161 @@
 extern rats_attester_err_t libattester_null_init(void);
 extern rats_verifier_err_t libverifier_null_init(void);
 extern rats_attester_err_t libattester_sgx_ecdsa_init(void);
-extern rats_verifier_err_t libverifier_sgx_ecdsa_init(void);
 extern rats_verifier_err_t libverifier_sgx_ecdsa_qve_init(void);
 extern rats_attester_err_t libattester_sgx_la_init(void);
 extern rats_verifier_err_t libverifier_sgx_la_init(void);
+extern crypto_wrapper_err_t libcrypto_wrapper_nullcrypto_init(void);
+extern crypto_wrapper_err_t libcrypto_wrapper_openssl_init(void);
 #endif
-//clang-format on
+// clang-format on
 
 rats_core_context_t rats_global_core_context = {
     .config = {
         .api_version = RATS_API_VERSION_DEFAULT,
         .flags = 0L,
-        .log_level = RATS_LOG_LEVEL_DEFAULT,
         .attester_type = "\0",
         .verifier_type = "\0",
+		.crypto_type = "\0",
     },
     .flags = 0L,
     .attester = NULL,
-    .verifier = NULL
+    .verifier = NULL,
+    .crypto_wrapper = NULL,
 };
 
 /* The global log level used by log.h */
 rats_log_level_t rats_global_log_level = RATS_LOG_LEVEL_DEFAULT;
 
+rats_log_level_t _log_level_from_str(const char *log_level_str)
+{
+	if (log_level_str) {
+		if (!strcmp(log_level_str, "debug") || !strcmp(log_level_str, "DEBUG")) {
+			return RATS_LOG_LEVEL_DEBUG;
+		} else if (!strcmp(log_level_str, "info") || !strcmp(log_level_str, "INFO")) {
+			return RATS_LOG_LEVEL_INFO;
+		} else if (!strcmp(log_level_str, "warn") || !strcmp(log_level_str, "WARN")) {
+			return RATS_LOG_LEVEL_WARN;
+		} else if (!strcmp(log_level_str, "error") || !strcmp(log_level_str, "ERROR")) {
+			return RATS_LOG_LEVEL_ERROR;
+		} else if (!strcmp(log_level_str, "fatal") || !strcmp(log_level_str, "FATAL")) {
+			return RATS_LOG_LEVEL_FATAL;
+		} else if (!strcmp(log_level_str, "off") || !strcmp(log_level_str, "OFF")) {
+			return RATS_LOG_LEVEL_NONE;
+		}
+	}
+	return RATS_LOG_LEVEL_DEFAULT;
+}
+
 #ifdef SGX
 void rats_exit(void)
 {
-    rats_ocall_exit();
+	rats_ocall_exit();
 }
 
 rats_log_level_t rats_loglevel_getenv(const char *name)
 {
-    char *log_level_str = NULL;
-    size_t log_level_len = 32;
+	const size_t log_level_len = 32;
+	char log_level_str[log_level_len];
+	memset(log_level_str, 0, log_level_len);
 
-    log_level_str = (char *)calloc(1, log_level_len);
-    if (!log_level_str) {
-        RATS_ERR("failed to calloc log level string\n");
-        return -1;
-    }
-
-    rats_ocall_getenv(name, log_level_str, log_level_len);
-    if (log_level_str) {
-        if (!strcmp(log_level_str, "debug") || !strcmp(log_level_str, "DEBUG")) {
-            free(log_level_str);
-            return RATS_LOG_LEVEL_DEBUG;
-        } else if (!strcmp(log_level_str, "info") || !strcmp(log_level_str, "INFO")) {
-            free(log_level_str);
-            return RATS_LOG_LEVEL_INFO;
-        } else if (!strcmp(log_level_str, "warn") || !strcmp(log_level_str, "WARN")) {
-            free(log_level_str);
-            return RATS_LOG_LEVEL_WARN;
-        } else if (!strcmp(log_level_str, "error") || !strcmp(log_level_str, "ERROR")) {
-            free(log_level_str);
-            return RATS_LOG_LEVEL_ERROR;
-        } else if (!strcmp(log_level_str, "fatal") || !strcmp(log_level_str, "FATAL")) {
-            free(log_level_str);
-            return RATS_LOG_LEVEL_FATAL;
-        } else if (!strcmp(log_level_str, "off") || !strcmp(log_level_str, "OFF")) {
-            free(log_level_str);
-            return RATS_LOG_LEVEL_NONE;
-        }
-    }
-
-    return RATS_LOG_LEVEL_DEFAULT;
+	rats_ocall_getenv(name, log_level_str, log_level_len);
+	log_level_str[log_level_len - 1] = '\0';
+	return _log_level_from_str(log_level_str);
 }
 
-rats_attester_err_t rats_attester_init(const char *name, __attribute__((unused)) const char *realpath,
-        __attribute__((unused)) void **handle)
+rats_attester_err_t rats_attester_init_static(const char *name)
 {
-    rats_attester_err_t err = RATS_ATTESTER_ERR_UNKNOWN;
+	rats_attester_err_t err = RATS_ATTESTER_ERR_UNKNOWN;
 
-    if (!strcmp(name, "nullattester")) {
-        err = libattester_null_init();
-        if (err != RATS_ATTESTER_ERR_NONE)
-            return err;
-        err = rats_attester_post_init(name, NULL);
-        if (err != RATS_ATTESTER_ERR_NONE)
-            return err;
-    } else if (!strcmp(name, "sgx_ecdsa")) {
-        err = libattester_sgx_ecdsa_init();
-        if (err != RATS_ATTESTER_ERR_NONE)
-            return err;
-        err = rats_attester_post_init(name, NULL);
-        if (err != RATS_ATTESTER_ERR_NONE)
-            return err;
-    } else if (!strcmp(name, "sgx_la")) {
-        err = libattester_sgx_la_init();
-        if (err != RATS_ATTESTER_ERR_NONE)
-            return err;
-        err = rats_attester_post_init(name, NULL);
-        if (err != RATS_ATTESTER_ERR_NONE)
-            return err;
-    }
-    else
-        return RATS_ATTESTER_ERR_INVALID;
+	if (!strcmp(name, "nullattester")) {
+		err = libattester_null_init();
+	} else if (!strcmp(name, "sgx_ecdsa")) {
+		err = libattester_sgx_ecdsa_init();
+	} else if (!strcmp(name, "sgx_la")) {
+		err = libattester_sgx_la_init();
+	} else
+		return RATS_ATTESTER_ERR_INVALID;
 
-    return RATS_ATTESTER_ERR_NONE;
+	if (err != RATS_ATTESTER_ERR_NONE)
+		return err;
+
+	err = rats_attester_post_init(name, NULL);
+	if (err != RATS_ATTESTER_ERR_NONE)
+		return err;
+
+	return RATS_ATTESTER_ERR_NONE;
 }
 
-rats_verifier_err_t rats_verifier_init(const char *name, __attribute__((unused)) const char *realpath,
-        __attribute__((unused)) void **handle)
+rats_verifier_err_t rats_verifier_init_static(const char *name)
 {
 	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 
-    if (!strcmp(name, "nullverifier")) {
-        err = libverifier_null_init();
-        if (err != RATS_VERIFIER_ERR_NONE)
-            return err;
-        err = rats_verifier_post_init(name, NULL);
-        if (err != RATS_VERIFIER_ERR_NONE)
-                return err;
-    } else if (!strcmp(name, "sgx_ecdsa")) {
-        err = libverifier_sgx_ecdsa_init();
-        if (err != RATS_VERIFIER_ERR_NONE)
-            return err;
-        err = rats_verifier_post_init(name, NULL);
-        if (err != RATS_VERIFIER_ERR_NONE)
-            return err;
-    } else if (!strcmp(name, "sgx_ecdsa_qve")) {
-        err = libverifier_sgx_ecdsa_qve_init();
-        if (err != RATS_VERIFIER_ERR_NONE)
-            return err;
-        err = rats_verifier_post_init(name, NULL);
-        if (err != RATS_VERIFIER_ERR_NONE)
-            return err;
-    } else if (!strcmp(name, "sgx_la")) {
-        err = libverifier_sgx_la_init();
-        if (err != RATS_VERIFIER_ERR_NONE)
-            return err;
-        err = rats_verifier_post_init(name, NULL);
-        if (err != RATS_VERIFIER_ERR_NONE)
-            return err;
-    }
-    else
-        return RATS_VERIFIER_ERR_INVALID;
+	if (!strcmp(name, "nullverifier")) {
+		err = libverifier_null_init();
+	} else if (!strcmp(name, "sgx_ecdsa_qve")) {
+		err = libverifier_sgx_ecdsa_qve_init();
+	} else if (!strcmp(name, "sgx_la")) {
+		err = libverifier_sgx_la_init();
+	} else
+		return RATS_VERIFIER_ERR_INVALID;
 
-    return RATS_VERIFIER_ERR_NONE;
+	if (err != RATS_VERIFIER_ERR_NONE)
+		return err;
+
+	err = rats_verifier_post_init(name, NULL);
+	if (err != RATS_VERIFIER_ERR_NONE)
+		return err;
+
+	return RATS_VERIFIER_ERR_NONE;
 }
 
-ssize_t rats_write(int fd, const void *buf, size_t count)
+crypto_wrapper_err_t crypto_wrapper_init_static(const char *name)
 {
-    ssize_t rc;
-    int sgx_status = rats_ocall_write(&rc, fd, buf, count);
-    if (SGX_SUCCESS != sgx_status) {
-        RATS_ERR("sgx failed to write data, sgx status: 0x%04x\n", sgx_status);
-    }
+	crypto_wrapper_err_t err = CRYPTO_WRAPPER_ERR_UNKNOWN;
 
-    return rc;
-}
+	if (!strcmp(name, "nullcrypto")) {
+		err = libcrypto_wrapper_nullcrypto_init();
+	} else if (!strcmp(name, "openssl")) {
+		err = libcrypto_wrapper_openssl_init();
+	} else {
+		return CRYPTO_WRAPPER_ERR_INVALID;
+	}
 
-ssize_t rats_read(int fd, void *buf, size_t count)
-{
-    ssize_t rc;
-    int sgx_status = rats_ocall_read(&rc, fd, buf, count);
-    if (SGX_SUCCESS != sgx_status) {
-        RATS_ERR("sgx failed to read data, sgx status: 0x%04x\n", sgx_status);
-    }
+	if (err != CRYPTO_WRAPPER_ERR_NONE)
+		return err;
 
-    return rc;
-}
+	err = crypto_wrapper_post_init(name, NULL);
+	if (err != CRYPTO_WRAPPER_ERR_NONE)
+		return err;
 
-uint64_t rats_opendir(const char *name)
-{
-    uint64_t dir;
-
-    int sgx_status = rats_ocall_opendir(&dir, name);
-    if (sgx_status != SGX_SUCCESS) {
-        RATS_ERR("sgx failed to open %s, sgx status: 0x%04x\n", name, sgx_status);
-    }
-
-    return dir;
-}
-
-int rats_readdir(uint64_t dirp, rats_dirent **ptr)
-{
-    int ret = 0;
-
-    *ptr = (rats_dirent *)calloc(1, sizeof(rats_dirent));
-    if (!ptr) {
-        RATS_ERR("failed to calloc memory in rats_readdir\n");
-        return -1;
-    }
-    rats_ocall_readdir(&ret, dirp, *ptr);
-
-    return ret;
-}
-
-int rats_closedir(uint64_t dir)
-{
-    int ret = 0;
-    rats_ocall_closedir(&ret, dir);
-
-    return ret;
+	return CRYPTO_WRAPPER_ERR_NONE;
 }
 
 char *rats_strcpy(char *dest, const char *src)
 {
-    if (dest == NULL)
-        return NULL;
-    size_t src_size = strlen(src);
-    strncpy(dest, src, src_size);
-    dest[src_size] = '\0';
-    return dest;
+	if (dest == NULL)
+		return NULL;
+	size_t src_size = strlen(src);
+	strncpy(dest, src, src_size);
+	dest[src_size] = '\0';
+	return dest;
 }
 
 #else
 void rats_exit(void)
 {
-    exit(EXIT_FAILURE);
+	exit(EXIT_FAILURE);
 }
 
 rats_log_level_t rats_loglevel_getenv(const char *name)
 {
-    char *log_level_str = log_level_str = getenv(name);
-    if (log_level_str) {
-        if (!strcasecmp(log_level_str, "debug"))
-            return RATS_LOG_LEVEL_DEBUG;
-        else if (!strcasecmp(log_level_str, "info"))
-            return RATS_LOG_LEVEL_INFO;
-        else if (!strcasecmp(log_level_str, "warn"))
-            return RATS_LOG_LEVEL_WARN;
-        else if (!strcasecmp(log_level_str, "error"))
-            return RATS_LOG_LEVEL_ERROR;
-        else if (!strcasecmp(log_level_str, "fatal"))
-            return RATS_LOG_LEVEL_FATAL;
-        else if (!strcasecmp(log_level_str, "off"))
-            return RATS_LOG_LEVEL_NONE;
-    }
+	char *log_level_str = log_level_str = getenv(name);
 
-    return RATS_LOG_LEVEL_DEFAULT;
-}
-
-rats_attester_err_t rats_attester_init(const char *name, __attribute__((unused)) const char *realpath,
-        __attribute__((unused)) void **handle)
-{
-    *handle = dlopen(realpath, RTLD_LAZY);
-    if (*handle == NULL) {
-        RATS_ERR("failed on dlopen(): %s\n", dlerror());
-        return RATS_ATTESTER_ERR_DLOPEN;
-    }
-
-    return RATS_ATTESTER_ERR_NONE;
-}
-
-rats_verifier_err_t rats_verifier_init(const char *name, __attribute__((unused)) const char *realpath,
-        __attribute__((unused)) void **handle)
-{
-    *handle = dlopen(realpath, RTLD_LAZY);
-    if (*handle == NULL) {
-        RATS_ERR("failed on dlopen(): %s\n", dlerror());
-        return RATS_VERIFIER_ERR_DLOPEN;
-    }
-
-    return RATS_VERIFIER_ERR_NONE;
-}
-
-ssize_t rats_write(int fd, const void *buf, size_t count)
-{
-    ssize_t rc;
-    rc = write(fd, buf, count);
-
-    return rc;
-}
-
-ssize_t rats_read(int fd, void *buf, size_t count)
-{
-    ssize_t rc;
-    rc = read(fd, buf, count);
-
-    return rc;
-}
-
-uint64_t rats_opendir(const char *name)
-{
-    uint64_t dir;
-    dir = (uint64_t)opendir(name);
-
-    return dir;
-}
-
-int rats_readdir(uint64_t dirp, rats_dirent **ptr)
-{
-    int ret = 0;
-
-    *ptr = readdir((DIR *)dirp);
-    if (*ptr == NULL)
-        ret = 1;
-
-    return ret;
-}
-
-int rats_closedir(uint64_t dir)
-{
-    return closedir((DIR *)dir);
+	return _log_level_from_str(log_level_str);
 }
 
 char *rats_strcpy(char *dest, const char *src)
 {
-    return strcpy(dest, src);
+	return strcpy(dest, src);
 }
 #endif

@@ -18,22 +18,17 @@ endif()
 link_directories(${LIBRARY_DIRS})
 
 # Set source file
-if(SGX)
-    set(SOURCES init.c
-                main.c
-                )
-else()
-    set(SOURCES cleanup.c
-                init.c
-                main.c
-                pre_init.c
-                verify_evidence.c
-                )
-endif()
+set(SOURCES cleanup.c
+            init.c
+            main.c
+            pre_init.c
+            verify_evidence.c
+            )
 
 # Generate library
 if(SGX)
     add_trusted_library(${PROJECT_NAME} SRCS ${SOURCES})
+    add_dependencies(${PROJECT_NAME} rats_edl_t)
 else()
     add_library(${PROJECT_NAME} SHARED ${SOURCES})
     target_link_libraries(${PROJECT_NAME} ${EXTRA_LINK_LIBRARY} ${RATS_LDFLAGS} ${RATS_LIB})

@@ -40,11 +40,6 @@ rats_verifier_err_t rats_verifier_select(rats_core_context_t *ctx, const char *n
 
 		memcpy(verifier_ctx, rats_verifiers_ctx[i], sizeof(*verifier_ctx));
 
-		/* Set necessary configurations from rats_init() to
-		 * make init() working correctly.
-		 */
-		verifier_ctx->log_level = ctx->config.log_level;
-
 		if (init_rats_verifier(ctx, verifier_ctx) == RATS_VERIFIER_ERR_NONE)
 			break;
 
@@ -60,10 +55,6 @@ rats_verifier_err_t rats_verifier_select(rats_core_context_t *ctx, const char *n
 
 		return RATS_VERIFIER_ERR_INVALID;
 	}
-
-	/* Explicitly specify the rats verifier which will never be changed */
-	if (name)
-		ctx->flags |= RATS_CONF_FLAGS_VERIFIER_ENFORCED;
 
 	ctx->verifier = verifier_ctx;
 

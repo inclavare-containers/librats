@@ -29,7 +29,7 @@
 typedef struct rats_core_context rats_core_context_t;
 typedef struct rats_attester_ctx rats_attester_ctx_t;
 
-extern rats_attester_err_t rats_attest_init(rats_conf_t *conf, rats_core_context_t *ctx);
+extern rats_attester_err_t rats_attester_init(rats_conf_t *conf, rats_core_context_t *ctx);
 
 typedef struct rats_attester_opts {
 	uint8_t api_version;
@@ -57,7 +57,6 @@ typedef struct rats_attester_opts {
 struct rats_attester_ctx {
 	rats_attester_opts_t *opts;
 	void *attester_private;
-	rats_log_level_t log_level;
 	void *handle;
 
 	union {
@@ -77,5 +76,11 @@ struct rats_attester_ctx {
 		} tdx;
 	} config;
 };
+
+static inline int rats_attester_cmp(const void *a, const void *b)
+{
+	return (*(rats_attester_ctx_t **)b)->opts->priority -
+	       (*(rats_attester_ctx_t **)a)->opts->priority;
+}
 
 #endif

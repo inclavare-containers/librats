@@ -30,7 +30,7 @@
 typedef struct rats_core_context rats_core_context_t;
 typedef struct rats_verifier_ctx rats_verifier_ctx_t;
 
-extern rats_verifier_err_t rats_verify_init(rats_conf_t *conf, rats_core_context_t *ctx);
+extern rats_verifier_err_t rats_verifier_init(rats_conf_t *conf, rats_core_context_t *ctx);
 
 typedef struct rats_verifier_opts {
 	uint8_t api_version;
@@ -56,7 +56,6 @@ typedef struct rats_verifier_opts {
 struct rats_verifier_ctx {
 	rats_verifier_opts_t *opts;
 	void *verifier_private;
-	rats_log_level_t log_level;
 	void *handle;
 
 	union {
@@ -71,5 +70,11 @@ struct rats_verifier_ctx {
 		} tdx;
 	} config;
 };
+
+static inline int rats_verifier_cmp(const void *a, const void *b)
+{
+	return (*(rats_verifier_ctx_t **)b)->opts->priority -
+	       (*(rats_verifier_ctx_t **)a)->opts->priority;
+}
 
 #endif

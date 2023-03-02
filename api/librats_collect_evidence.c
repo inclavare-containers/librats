@@ -23,9 +23,8 @@ rats_attester_err_t librats_collect_evidence(attestation_evidence_t *evidence, c
 	memset(evidence, 0, sizeof(attestation_evidence_t));
 
 	conf.api_version = RATS_API_VERSION_DEFAULT;
-	conf.log_level = RATS_LOG_LEVEL_DEFAULT;
 
-	if (rats_attest_init(&conf, &ctx) != RATS_ATTESTER_ERR_NONE)
+	if (rats_attester_init(&conf, &ctx) != RATS_ATTESTER_ERR_NONE)
 		return RATS_ATTESTER_ERR_INIT;
 	rats_attester_err_t q_err =
 		ctx.attester->opts->collect_evidence(ctx.attester, evidence, hash, hash_len);
@@ -52,41 +51,41 @@ int convert_evidence_to_json(attestation_evidence_t *evidence, char **json_strin
 		return -1;
 	cJSON_AddStringToObject(evidence_json, "type", evidence->type);
 	if (strcmp(evidence->type, "csv") == 0) {
-		if (rats_base64_encode(evidence->csv.report, evidence->csv.report_len, &report_base64,
-				  NULL) != 0)
+		if (rats_base64_encode(evidence->csv.report, evidence->csv.report_len,
+				       &report_base64, NULL) != 0)
 			goto err;
 		report_len = evidence->csv.report_len;
 	} else if (strcmp(evidence->type, "sev") == 0) {
-		if (rats_base64_encode(evidence->sev.report, evidence->sev.report_len, &report_base64,
-				  NULL) != 0)
+		if (rats_base64_encode(evidence->sev.report, evidence->sev.report_len,
+				       &report_base64, NULL) != 0)
 			goto err;
 		report_len = evidence->sev.report_len;
 	} else if (strcmp(evidence->type, "sev_snp") == 0) {
-		if (rats_base64_encode(evidence->snp.report, evidence->snp.report_len, &report_base64,
-				  NULL) != 0)
+		if (rats_base64_encode(evidence->snp.report, evidence->snp.report_len,
+				       &report_base64, NULL) != 0)
 			goto err;
 		report_len = evidence->snp.report_len;
 		if (evidence->snp.vcek_len) {
-			if (rats_base64_encode(evidence->snp.vcek, evidence->snp.vcek_len, &vcek_base64,
-					  NULL) != 0)
+			if (rats_base64_encode(evidence->snp.vcek, evidence->snp.vcek_len,
+					       &vcek_base64, NULL) != 0)
 				goto err;
 			cJSON_AddStringToObject(evidence_json, "vcek_base64",
 						(const char *)vcek_base64);
 			cJSON_AddNumberToObject(evidence_json, "vcek_len", evidence->snp.vcek_len);
 		}
 	} else if (strcmp(evidence->type, "sgx_ecdsa") == 0) {
-		if (rats_base64_encode(evidence->ecdsa.quote, evidence->ecdsa.quote_len, &report_base64,
-				  NULL) != 0)
+		if (rats_base64_encode(evidence->ecdsa.quote, evidence->ecdsa.quote_len,
+				       &report_base64, NULL) != 0)
 			goto err;
 		report_len = evidence->ecdsa.quote_len;
 	} else if (strcmp(evidence->type, "sgx_la") == 0) {
 		if (rats_base64_encode(evidence->la.report, evidence->la.report_len, &report_base64,
-				  NULL) != 0)
+				       NULL) != 0)
 			goto err;
 		report_len = evidence->la.report_len;
 	} else if (strcmp(evidence->type, "tdx_ecdsa") == 0) {
 		if (rats_base64_encode(evidence->tdx.quote, evidence->tdx.quote_len, &report_base64,
-				  NULL) != 0)
+				       NULL) != 0)
 			goto err;
 		report_len = evidence->tdx.quote_len;
 	}

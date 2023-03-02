@@ -7,6 +7,9 @@
 #ifndef _LIBRATS_EVIDENCE_H
 #define _LIBRATS_EVIDENCE_H
 
+#include <stddef.h>
+#include <stdint.h>
+
 #define VECK_MAX_SIZE 2 * 1024
 #define JSON_MAX_SIZE 10 * 1024
 

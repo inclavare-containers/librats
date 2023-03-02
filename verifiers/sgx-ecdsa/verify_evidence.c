@@ -66,9 +66,9 @@ rats_verifier_err_t ecdsa_verify_evidence(rats_verifier_ctx_t *ctx, sgx_quote3_t
 	}
 
 	int sgx_status =
-		ocall_sgx_qv_get_quote_supplemental_data_size(&err, &supplemental_data_size);
+		rats_ocall_sgx_qv_get_quote_supplemental_data_size(&err, &supplemental_data_size);
 	if (sgx_status != SGX_SUCCESS || err != RATS_VERIFIER_ERR_NONE) {
-		RATS_ERR("ocall_ecdsa_verify_evidence() failed. sgx_status: %#x, err: %#x\n",
+		RATS_ERR("rats_ocall_ecdsa_verify_evidence() failed. sgx_status: %#x, err: %#x\n",
 			 sgx_status, err);
 		if (sgx_status == SGX_SUCCESS)
 			err = -RATS_VERIFIER_ERR_UNKNOWN;
@@ -86,10 +86,10 @@ rats_verifier_err_t ecdsa_verify_evidence(rats_verifier_ctx_t *ctx, sgx_quote3_t
 	{
 		// TODO: get current time from a trusted clock source
 		double t;
-		sgx_status = ocall_current_time(&t);
+		sgx_status = rats_ocall_current_time(&t);
 		if (sgx_status != SGX_SUCCESS) {
 			RATS_ERR(
-				"failed to get current time, since ocall_current_time() failed. sgx_status: %#x\n",
+				"failed to get current time, since rats_ocall_current_time() failed. sgx_status: %#x\n",
 				sgx_status);
 			err = -RATS_VERIFIER_ERR_UNKNOWN;
 			goto errret;
@@ -98,7 +98,7 @@ rats_verifier_err_t ecdsa_verify_evidence(rats_verifier_ctx_t *ctx, sgx_quote3_t
 	}
 
 	if (endorsements) {
-		sgx_status = ocall_ecdsa_verify_evidence(
+		sgx_status = rats_ocall_ecdsa_verify_evidence(
 			&err, (uint8_t *)pquote, quote_size, endorsements->ecdsa.version,
 			endorsements->ecdsa.pck_crl_issuer_chain,
 			endorsements->ecdsa.pck_crl_issuer_chain_size,
@@ -114,7 +114,7 @@ rats_verifier_err_t ecdsa_verify_evidence(rats_verifier_ctx_t *ctx, sgx_quote3_t
 			is_sgx_ecdsa_qve ? &qve_report_info : NULL, supplemental_data_size,
 			p_supplemental_data);
 	} else {
-		sgx_status = ocall_ecdsa_verify_evidence(
+		sgx_status = rats_ocall_ecdsa_verify_evidence(
 			&err, (uint8_t *)pquote, quote_size, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0,
 			NULL, 0, NULL, 0, NULL, 0, current_time, &collateral_expiration_status,
 			&quote_verification_result, is_sgx_ecdsa_qve ? &qve_report_info : NULL,
@@ -122,7 +122,7 @@ rats_verifier_err_t ecdsa_verify_evidence(rats_verifier_ctx_t *ctx, sgx_quote3_t
 	}
 	if (sgx_status != SGX_SUCCESS || err != RATS_VERIFIER_ERR_NONE) {
 		RATS_ERR(
-			"ocall_ecdsa_verify_evidence() failed. sgx_status: %#x, err: %#x, collateral_expiration_status: %#x, quote_verification_result: %#x\n",
+			"rats_ocall_ecdsa_verify_evidence() failed. sgx_status: %#x, err: %#x, collateral_expiration_status: %#x, quote_verification_result: %#x\n",
 			sgx_status, err, collateral_expiration_status, quote_verification_result);
 		if (sgx_status == SGX_SUCCESS)
 			err = -RATS_VERIFIER_ERR_UNKNOWN;
@@ -133,7 +133,7 @@ rats_verifier_err_t ecdsa_verify_evidence(rats_verifier_ctx_t *ctx, sgx_quote3_t
 		quote_verification_result, collateral_expiration_status);
 
 	if (is_sgx_ecdsa_qve) {
-		/* For security purposes, we have to re-full the rand field before calling sgx_tvl_verify_qve_report_and_identity(), since the parameter 'p_qve_reporret_info' is marked as '[in, out]' in ocall_ecdsa_verify_evidence() */
+		/* For security purposes, we have to re-full the rand field before calling sgx_tvl_verify_qve_report_and_identity(), since the parameter 'p_qve_reporret_info' is marked as '[in, out]' in rats_ocall_ecdsa_verify_evidence() */
 		memcpy(qve_report_info.nonce.rand, rand_nonce, sizeof(rand_nonce));
 
 		quote3_error_t verify_qveid_ret = sgx_tvl_verify_qve_report_and_identity(
