@@ -13,7 +13,12 @@ if(TDX)
 endif()
 
 if(OCCLUM OR SGX)
-    add_subdirectory(sgx-ecdsa)
+    include(FindSgxDcapQuoteVerify)
+    if(SGXDCAPQV_FOUND)
+        add_subdirectory(sgx-ecdsa)
+    else()
+        message(WARNING "It will not build sgx_ecdsa attester due to libsgx_dcap_quoteverify.so not found")
+    endif()
 endif()
 
 if(SGX)

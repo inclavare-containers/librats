@@ -18,10 +18,9 @@ rats_verifier_err_t librats_verify_evidence(attestation_evidence_t *evidence, co
 	rats_conf_t conf;
 
 	conf.api_version = RATS_API_VERSION_DEFAULT;
-	conf.log_level = RATS_LOG_LEVEL_DEFAULT;
 	memcpy(conf.verifier_type, evidence->type, sizeof(conf.verifier_type));
 
-	if (rats_verify_init(&conf, &ctx) != RATS_VERIFIER_ERR_NONE)
+	if (rats_verifier_init(&conf, &ctx) != RATS_VERIFIER_ERR_NONE)
 		return RATS_VERIFIER_ERR_INIT;
 
 	rats_verifier_err_t err = ctx.verifier->opts->verify_evidence(

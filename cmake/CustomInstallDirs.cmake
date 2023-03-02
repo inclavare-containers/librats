@@ -10,6 +10,9 @@ set(RATS_INSTALL_LIBA_PATH "${RATS_INSTALL_LIB_PATH}/attesters")
 # rats/verifiers
 set(RATS_INSTALL_LIBV_PATH "${RATS_INSTALL_LIB_PATH}/verifiers")
 
+# rats/crypto_wrappers
+set(RATS_INSTALL_LIBCW_PATH "${RATS_INSTALL_LIB_PATH}/crypto_wrappers")
+
 # include/rats
 set(RATS_INSTALL_INCLUDE_PATH "${RATS_INSTALL_PATH}/include/")
 

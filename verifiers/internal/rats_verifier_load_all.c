@@ -4,44 +4,68 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// clang-format off
 #include <string.h>
 #include <stdlib.h>
-#ifndef SGX
 #include <dirent.h>
-#endif
+#include <dlfcn.h>
 #include <librats/err.h>
 #include <librats/log.h>
 #include "internal/verifier.h"
 #include "internal/core.h"
-#define PATTERN_SUFFIX ".so"
-#ifdef SGX
-#include <sgx_error.h>
-#include "rats_t.h"
-#define DT_REG 8
-#define DT_LNK 10
-#endif
-// clang-format on
 
-static int rats_verifier_cmp(const void *a, const void *b)
+#define PATTERN_PREFIX "libverifier_"
+#define PATTERN_SUFFIX ".so"
+
+rats_verifier_err_t rats_verifier_load_single(const char *fname)
 {
-	return (*(rats_verifier_ctx_t **)b)->opts->priority -
-	       (*(rats_verifier_ctx_t **)a)->opts->priority;
+	RATS_DEBUG("loading the rats verifier instance '%s' ...\n", fname);
+
+	/* Check whether the filename pattern matches up librats_verifier_<name>.so */
+	if (strlen(fname) <= strlen(PATTERN_PREFIX) + strlen(PATTERN_SUFFIX) ||
+	    strncmp(fname, PATTERN_PREFIX, strlen(PATTERN_PREFIX)) ||
+	    strncmp(fname + strlen(fname) - strlen(PATTERN_SUFFIX), PATTERN_SUFFIX,
+		    strlen(PATTERN_SUFFIX))) {
+		RATS_ERR("The filename pattern of '%s' NOT match " PATTERN_PREFIX
+			 "<name>" PATTERN_SUFFIX "\n",
+			 fname);
+		return RATS_VERIFIER_ERR_INVALID;
+	}
+
+	char realpath[strlen(RATS_VERIFIERS_DIR) + strlen(fname) + 1];
+	snprintf(realpath, sizeof(realpath), "%s%s", RATS_VERIFIERS_DIR, fname);
+
+	size_t name_len = strlen(fname) - strlen(PATTERN_PREFIX) - strlen(PATTERN_SUFFIX);
+	char name[name_len + 1];
+	snprintf(name, sizeof(name), "%s", fname + strlen(PATTERN_PREFIX));
+
+	void *handle = dlopen(realpath, RTLD_LAZY);
+	if (handle == NULL) {
+		RATS_ERR("failed on dlopen(): %s\n", dlerror());
+		return RATS_VERIFIER_ERR_DLOPEN;
+	}
+
+	rats_verifier_err_t err = rats_verifier_post_init(name, handle);
+	if (err != RATS_VERIFIER_ERR_NONE)
+		return err;
+
+	RATS_DEBUG("the rats verifier '%s' loaded\n", name);
+
+	return RATS_VERIFIER_ERR_NONE;
 }
 
 rats_verifier_err_t rats_verifier_load_all(void)
 {
 	RATS_DEBUG("called\n");
 
-	uint64_t dir = rats_opendir(RATS_VERIFIERS_DIR);
+	DIR *dir = opendir(RATS_VERIFIERS_DIR);
 	if (!dir) {
-		RATS_ERR("failed to open %s", RATS_VERIFIERS_DIR);
+		RATS_ERR("failed to open %s\n", RATS_VERIFIERS_DIR);
 		return RATS_VERIFIER_ERR_UNKNOWN;
 	}
 
 	unsigned int total_loaded = 0;
-	rats_dirent *ptr;
-	while (rats_readdir(dir, &ptr) != 1) {
+	struct dirent *ptr = NULL;
+	while ((ptr = readdir(dir)) != NULL) {
 		if (!strcmp(ptr->d_name, ".") || !strcmp(ptr->d_name, ".."))
 			continue;
 		if (strncmp(ptr->d_name + strlen(ptr->d_name) - strlen(PATTERN_SUFFIX),
@@ -60,18 +84,11 @@ rats_verifier_err_t rats_verifier_load_all(void)
 		}
 	}
 
-	rats_closedir((uint64_t)dir);
+	closedir(dir);
 
 	if (!total_loaded) {
 		RATS_ERR("unavailable rats verifier instance under %s\n", RATS_VERIFIERS_DIR);
 		return RATS_VERIFIER_ERR_INIT;
 	}
-
-	/* Sort all rats_verifier_ctx_t instances in the rats_verifiers_ctx, and the higher priority
-	 * instance should be sorted in front of the rats_verifiers_ctx array.
-	 */
-	qsort(rats_verifiers_ctx, rats_verifier_nums, sizeof(rats_verifier_ctx_t *),
-	      rats_verifier_cmp);
-
 	return RATS_VERIFIER_ERR_NONE;
 }

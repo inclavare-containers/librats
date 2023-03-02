@@ -30,10 +30,6 @@ rats_attester_err_t rats_attester_select(rats_core_context_t *ctx, const char *n
 {
 	RATS_DEBUG("selecting the rats attester '%s'...\n", name);
 
-	/* Explicitly specify the rats attester which will never be changed */
-	if (name)
-		ctx->flags |= RATS_CONF_FLAGS_ATTESTER_ENFORCED;
-
 	rats_attester_ctx_t *attester_ctx = NULL;
 	for (unsigned int i = 0; i < rats_attester_nums; ++i) {
 		if (name && strcmp(name, rats_attesters_ctx[i]->opts->name))
@@ -44,11 +40,6 @@ rats_attester_err_t rats_attester_select(rats_core_context_t *ctx, const char *n
 			return RATS_ATTESTER_ERR_NO_MEM;
 
 		memcpy(attester_ctx, rats_attesters_ctx[i], sizeof(*attester_ctx));
-
-		/* Set necessary configurations from rats_init() to
-		 * make init() working correctly.
-		 */
-		attester_ctx->log_level = ctx->config.log_level;
 
 		if (init_rats_attester(ctx, attester_ctx) == RATS_ATTESTER_ERR_NONE)
 			break;
@@ -67,7 +58,6 @@ rats_attester_err_t rats_attester_select(rats_core_context_t *ctx, const char *n
 	}
 
 	ctx->attester = attester_ctx;
-	ctx->flags |= RATS_CTX_FLAGS_QUOTING_INITIALIZED;
 
 	RATS_INFO("the rats attester '%s' selected\n", ctx->attester->opts->name);
 

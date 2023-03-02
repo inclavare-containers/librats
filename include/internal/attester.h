@@ -12,17 +12,11 @@
 #include <librats/err.h>
 #include <librats/core.h>
 
-#ifdef OCCLUM
-	#define RATS_ATTESTERS_DIR "/opt/occlum/glibc/lib/attesters/"
-#else
-	#define RATS_ATTESTERS_DIR "/usr/local/lib/librats/attesters/"
-#endif
+#define RATS_ATTESTERS_DIR "/usr/local/lib/librats/attesters/"
 
-extern rats_attester_err_t rats_attester_init(const char *name,
-					      __attribute__((unused)) const char *realpath,
-					      __attribute__((unused)) void **handle);
+extern rats_attester_err_t rats_attester_init_static(const char *name);
 extern rats_attester_err_t rats_attester_load_all(void);
-extern rats_attester_err_t rats_attester_load_single(const char *);
+extern rats_attester_err_t rats_attester_post_init(const char *name, void *handle);
 extern rats_attester_err_t rats_attester_select(rats_core_context_t *, const char *);
 extern rats_attester_opts_t *rats_attesters_opts[RATS_ATTESTER_TYPE_MAX];
 extern rats_attester_ctx_t *rats_attesters_ctx[RATS_ATTESTER_TYPE_MAX];

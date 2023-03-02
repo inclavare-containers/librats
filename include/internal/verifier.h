@@ -9,17 +9,11 @@
 
 #include <librats/core.h>
 
-#ifdef OCCLUM
-	#define RATS_VERIFIERS_DIR "/opt/occlum/glibc/lib/verifiers/"
-#else
-	#define RATS_VERIFIERS_DIR "/usr/local/lib/librats/verifiers/"
-#endif
+#define RATS_VERIFIERS_DIR "/usr/local/lib/librats/verifiers/"
 
-extern rats_verifier_err_t rats_verifier_init(const char *name,
-					      __attribute__((unused)) const char *realpath,
-					      __attribute__((unused)) void **handle);
+extern rats_verifier_err_t rats_verifier_init_static(const char *name);
 extern rats_verifier_err_t rats_verifier_load_all(void);
-extern rats_verifier_err_t rats_verifier_load_single(const char *);
+extern rats_verifier_err_t rats_verifier_post_init(const char *name, void *handle);
 extern rats_verifier_err_t rats_verifier_select(rats_core_context_t *, const char *);
 extern rats_verifier_opts_t *rats_verifiers_opts[RATS_VERIFIER_TYPE_MAX];
 extern rats_verifier_ctx_t *rats_verifiers_ctx[RATS_VERIFIER_TYPE_MAX];

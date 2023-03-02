@@ -39,6 +39,7 @@ endif()
 # Generate library
 if(SGX)
     add_trusted_library(${PROJECT_NAME} SRCS ${SOURCES})
+    add_dependencies(${PROJECT_NAME} rats_edl_t)
 elseif(WASM)
     add_library(${PROJECT_NAME} SHARED ${SOURCES})
     target_link_libraries(${PROJECT_NAME} ${RATS_LDFLAGS} ${WASM_SIDE_ASYNC_FLAGS} ${WASM_FETCH_FLAG})

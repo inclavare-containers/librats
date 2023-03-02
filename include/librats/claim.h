@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <librats/err.h>
+#include <librats/log.h>
 
 /**
  * Claims struct used for claims parameters.
@@ -21,9 +22,9 @@ struct claim {
 	size_t value_size;
 } __attribute__((packed));
 
-rats_err_t free_claims_list(claim_t *claims, size_t claims_length);
-rats_err_t librats_add_claim(claim_t *claim, const void *name, size_t name_size, const void *value,
-			     size_t value_size);
+void free_claims_list(claim_t *claims, size_t claims_length);
+int librats_add_claim(claim_t *claim, const void *name, size_t name_size, const void *value,
+		      size_t value_size);
 
 /* This macro checks whether the expression argument evaluates to RATS_ERR_NONE */
 #define CLAIM_CHECK(EXPRESSION)                           \
@@ -34,5 +35,7 @@ rats_err_t librats_add_claim(claim_t *claim, const void *name, size_t name_size,
 			goto done;                        \
 		}                                         \
 	} while (0)
+
+typedef int (*rats_verify_claims_callback_t)(claim_t *claims, size_t claims_size, void *args);
 
 #endif /* _LIBRATS_CLAIM_H_ */

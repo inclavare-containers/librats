@@ -12,7 +12,7 @@
 #define TDX_NUM_RTMRS 4
 
 typedef struct {
-	uint8_t mrowner[SHA384_HASH_SIZE];
+	uint8_t mrowner[RATS_SHA384_HASH_SIZE];
 } tdx_ctx_t;
 
 /* TDX attestation specification */
@@ -29,16 +29,16 @@ typedef struct {
 
 typedef struct {
 	uint8_t tee_tcb_svn[16];
-	uint8_t mrseam[SHA384_HASH_SIZE];
-	uint8_t mrsigner_seam[SHA384_HASH_SIZE];
+	uint8_t mrseam[RATS_SHA384_HASH_SIZE];
+	uint8_t mrsigner_seam[RATS_SHA384_HASH_SIZE];
 	uint8_t seam_attributes[8];
 	uint8_t td_attributes[8];
 	uint8_t xfam[8];
-	uint8_t mrtd[SHA384_HASH_SIZE];
-	uint8_t mrconfig_id[SHA384_HASH_SIZE];
-	uint8_t mrowner[SHA384_HASH_SIZE];
-	uint8_t mrowner_config[SHA384_HASH_SIZE];
-	uint8_t rtmr[TDX_NUM_RTMRS][SHA384_HASH_SIZE];
+	uint8_t mrtd[RATS_SHA384_HASH_SIZE];
+	uint8_t mrconfig_id[RATS_SHA384_HASH_SIZE];
+	uint8_t mrowner[RATS_SHA384_HASH_SIZE];
+	uint8_t mrowner_config[RATS_SHA384_HASH_SIZE];
+	uint8_t rtmr[TDX_NUM_RTMRS][RATS_SHA384_HASH_SIZE];
 	uint8_t report_data[64];
 } __attribute__((packed)) tdx_report_body_t;
 

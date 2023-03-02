@@ -64,6 +64,9 @@ static bool is_sgx_device(const char *dev)
 	return false;
 }
 
+// clang-format off
+
+#ifndef OCCLUM
 static bool is_legacy_oot_kernel_driver(void)
 {
 	return is_sgx_device("/dev/isgx");
@@ -84,6 +87,9 @@ static bool is_in_tree_kernel_driver(void)
 {
 	return is_sgx_device("/dev/sgx_enclave");
 }
+#endif
+// clang-format on
+
 #else
 static inline void __cpuidex(int a[4], int b, int c)
 {
@@ -156,10 +162,11 @@ bool is_sgx1_supported(void)
 	if (is_sgx2_supported())
 		return false;
 
+#ifndef OCCLUM
 	/* Check whether the kernel driver is accessible */
 	if (!is_legacy_oot_kernel_driver())
 		return false;
-
+#endif
 	return true;
 }
 
@@ -168,9 +175,11 @@ bool is_sgx2_supported(void)
 	if (!__is_sgx2_supported())
 		return false;
 
+#ifndef OCCLUM
 	/* Check whether the kernel driver is accessible */
 	if (!is_dcap_1_9_oot_kernel_driver() && !is_in_tree_kernel_driver())
 		return false;
+#endif
 
 	return true;
 }

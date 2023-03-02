@@ -20,7 +20,7 @@ option(SGX_HW "Run SGX on hardware, OFF for simulation" ON)
 
 # Define build mode
 set(RATS_BUILD_MODE "host"
-    CACHE STRING "Select build mode for librats(host|occlum|sgx|wasm)")
+    CACHE STRING "Select build mode for librats(host|occlum|sgx|tdx|wasm)")
 set(SGX_ATTESTER "ecdsa"
     CACHE STRING "Select sgx attester(ecdsa|la|null)")
 
@@ -40,11 +40,6 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 if(RATS_BUILD_MODE STREQUAL "host")
     set(HOST 1)
     add_definitions(-DHOST)
-
-    include(FindSgxDcapQuoteVerify)
-    if(NOT SGXDCAPQV_FOUND)
-        message(WARNING "libsgx_dcap_quoteverify.so not found in host mode")
-    endif()
 elseif(RATS_BUILD_MODE STREQUAL "occlum")
     set(OCCLUM 1)
     add_definitions(-DOCCLUM)
@@ -120,7 +115,9 @@ endif()
 include(LibCBOR)
 
 # Set include directory
-set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
+                 /usr/include
+                 )
 if(SGX)
     list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/edl
                              ${CMAKE_CURRENT_BINARY_DIR}/tee/sgx/trust
@@ -129,7 +126,6 @@ elseif(WASM)
     list(APPEND INCLUDE_DIRS ${WASM_SRCS_DIR}/openssl/install/include)
 endif()
 
-include_directories(${INCLUDE_DIRS})
 
 # Add third party and instance directory
 if(NOT WASM)
@@ -140,10 +136,16 @@ if(SGX)
     add_subdirectory(tee)
 endif()
 
-include_directories(${LIBCBOR_INC_PATH})
+# Add third party library required by crypto_wrappers
 if(SGX)
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/sgx-ssl/intel-sgx-ssl/src/intel-sgx-ssl/Linux/package/include)
+    list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/external/sgx-ssl/intel-sgx-ssl/src/intel-sgx-ssl/Linux/package/include)
 endif()
+
+add_subdirectory(crypto_wrappers)
+
+list(APPEND INCLUDE_DIRS ${LIBCBOR_INC_PATH})
+
+include_directories(${INCLUDE_DIRS})
 
 # Set source file
 set(SOURCES
@@ -152,18 +154,24 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/rats_init.c
     ${CMAKE_CURRENT_SOURCE_DIR}/core/claim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/core/endorsement.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/dice.c
     ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_collect_evidence.c
     ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_verify_evidence.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_get_attestation_certificate.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/librats_verify_attestation_certificate.c
     ${CMAKE_CURRENT_SOURCE_DIR}/attesters/api/rats_attester_register.c
     ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/rats_attester.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/rats_attester_load_all.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/rats_attester_load_single.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/rats_attester_post_init.c
     ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/rats_attester_select.c
     ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/api/rats_verifier_register.c
     ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/internal/rats_verifier.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/internal/rats_verifier_load_all.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/internal/rats_verifier_load_single.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/internal/rats_verifier_post_init.c
     ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/internal/rats_verifier_select.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto_wrappers/api/crypto_wrapper_register.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto_wrappers/internal/crypto_wrapper.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto_wrappers/internal/crypto_wrapper_post_init.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto_wrappers/internal/crypto_wrapper_select.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto_wrappers/api/crypto_wrapper_verify_certificate_extension.c
     )
 if(SGX)
     list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tee/sgx/trust/sgx_ecdsa_ecalls.c
@@ -172,6 +180,11 @@ if(SGX)
                         )
 elseif(WASM)
     list(APPEND SOURCES ${WASM_SRCS_DIR}/wasm.cpp)
+else()
+    list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/rats_attester_load_all.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/internal/rats_verifier_load_all.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/crypto_wrappers/internal/crypto_wrapper_load_all.c
+                        )
 endif()
 
 if(ENABLE_JSON)
@@ -183,11 +196,12 @@ endif()
 if(SGX)
     set(DEPEND_TRUSTED_LIBS rats_edl_t
                             intel-sgx-ssl
+                            crypto_wrapper_nullcrypto
+                            crypto_wrapper_openssl
                             attester_nullattester
                             attester_sgx_ecdsa
                             attester_sgx_la
                             verifier_nullverifier
-                            verifier_sgx_ecdsa
                             verifier_sgx_ecdsa_qve
                             verifier_sgx_la
                             libcbor
@@ -268,6 +282,7 @@ endif()
 
 # Install header
 set(RATS_INCLUDE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/api.h
+                       ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/crypto_wrapper.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/attester.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/verifier.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/core.h
@@ -275,8 +290,10 @@ set(RATS_INCLUDE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/api.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/err.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/log.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/conf.h
-                       ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/sgx.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/evidence.h
+                       ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/hash.h
+                       ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/endorsement.h
+                       ${CMAKE_CURRENT_SOURCE_DIR}/include/librats/cert.h
                        )
 
 if(SGX)
