@@ -14,6 +14,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <librats/conf.h>
 #include <librats/api.h>
 #include <librats/log.h>
 #include <internal/core.h>
@@ -39,6 +40,7 @@ rats_core_context_t rats_global_core_context = {
         .attester_type = "\0",
         .verifier_type = "\0",
 		.crypto_type = "\0",
+		.log_level = RATS_LOG_LEVEL_DEFAULT,
     },
     .flags = 0L,
     .attester = NULL,

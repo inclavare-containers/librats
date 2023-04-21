@@ -14,23 +14,28 @@
  * @param verify_claims_callback[IN] - A user-provided callback function pointer, which will be called during validation.
  * @param args[IN] - A pointer that will be used as one of arguments when verify_claims_callback is called.
  */
-rats_verifier_err_t
-librats_verify_attestation_certificate(uint8_t *certificate, size_t certificate_size,
-				       rats_verify_claims_callback_t verify_claims_callback,
-				       void *args)
+rats_verifier_err_t librats_verify_attestation_certificate(
+	rats_conf_t conf, uint8_t *certificate, size_t certificate_size,
+	rats_verify_claims_callback_t verify_claims_callback, void *args)
 {
 	rats_verifier_err_t ret = RATS_VERIFIER_ERR_UNKNOWN;
 	crypto_wrapper_err_t crypto_ret = CRYPTO_WRAPPER_ERR_UNKNOWN;
 
 	rats_core_context_t ctx;
-	rats_conf_t conf;
 	bool verifier_initialized = false;
 	bool crypto_wrapper_initialized = false;
 
 	memset(&ctx, 0, sizeof(rats_core_context_t));
-	memset(&conf, 0, sizeof(rats_conf_t));
 
 	conf.api_version = RATS_API_VERSION_DEFAULT;
+	if (conf.log_level < 0 || conf.log_level > RATS_LOG_LEVEL_MAX) {
+		rats_global_log_level = rats_global_core_context.config.log_level;
+		RATS_WARN("log level is illegal, reset to global value %d\n",
+			  rats_global_core_context.config.log_level);
+	} else {
+		rats_global_log_level = conf.log_level;
+	}
+
 	if ((ret = rats_verifier_init(&conf, &ctx)) != RATS_VERIFIER_ERR_NONE)
 		goto err;
 	verifier_initialized = true;

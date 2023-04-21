@@ -6,6 +6,48 @@ This program will first generate the certificate in the TEE, copy it outside the
 
 Note: Running in host mode is not supported due to the need to generate certificates.
 
+## Run cert-app
+
+```sh
+cd /usr/share/librats/samples
+./cert-app
+```
+
+### Specify the instance type
+
+The options of `cert-app` are as followed:
+
+```sh
+Options：
+
+        --debug-enclave/-d            set to enable enclave debugging
+        --no-privkey/-k               set to enable key pairs generation in librats
+        --add-claim/-C key:val        add a user-defined custom claims.
+        --attester/-a value   	      set the type of quote attester
+        --verifier/-v value   	      set the type of quote verifier
+        --crypto/-c value     	      set the type of crypto wrapper
+        --log-level/-l                set the log level
+        --help/-h                     show the usage
+```
+
+You can set command line parameters to specify different configurations.
+
+For example:
+
+```sh
+./cert-app -a nullattester -v nullverifier
+./cert-app -a sgx_ecdsa -v sgx_ecdsa_qve
+./cert-app -a sgx_la -v sgx_la
+./cert-app -c openssl
+./cert-app -C "claim_0:value_0"
+```
+
+Librats's log level can be set through `-l` option with 6 levels: `off`, `fatal`, `error`, `warn`, `info`, and `debug`. The default level is error. The most verbose level is debug.
+
+```
+./cert-app -l debug
+```
+
 ## debug
 
 The generated certificate will be dumped to `/tmp/cert.der`. Here are some code snippets to let you parse the certificate manually from the command line:

@@ -62,13 +62,13 @@ int librats_verify_evidence_from_json(const char *json_string, const uint8_t *ha
 extern "C" {
 #endif
 
-extern rats_attester_err_t librats_get_attestation_certificate(
+extern rats_attester_err_t librats_get_attestation_certificate(rats_conf_t conf, 
 	rats_cert_subject_t subject_name, uint8_t **privkey /* PEM format */, size_t *privkey_len,
 	const claim_t *custom_claims, size_t custom_claims_length, bool provide_endorsements,
 	uint8_t **certificate_out, size_t *certificate_size_out);
 
 extern rats_verifier_err_t
-librats_verify_attestation_certificate(uint8_t *certificate, size_t certificate_size,
+librats_verify_attestation_certificate(rats_conf_t conf, uint8_t *certificate, size_t certificate_size,
 				       rats_verify_claims_callback_t verify_claims_callback,
 				       void *args);
 

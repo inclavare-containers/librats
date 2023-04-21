@@ -3,6 +3,7 @@
 #include <librats/api.h>
 #include <librats/claim.h>
 #include <librats/cert.h>
+#include <librats/conf.h>
 #include <internal/dice.h>
 #include <internal/core.h>
 
@@ -19,11 +20,10 @@
  * @param certificate_out[OUT] - The *certificate_out is a pointer to hold the data of generated ceritificate, in DER format. Note that user is obliged to free the memory pointed by *certificate_out.
  * @param certificate_size_out[OUT] - Pointer to hold the size of generated ceritificate.
  */
-rats_attester_err_t
-librats_get_attestation_certificate(rats_cert_subject_t subject_name, uint8_t **privkey,
-				    size_t *privkey_len, const claim_t *custom_claims,
-				    size_t custom_claims_length, bool provide_endorsements,
-				    uint8_t **certificate_out, size_t *certificate_size_out)
+rats_attester_err_t librats_get_attestation_certificate(
+	rats_conf_t conf, rats_cert_subject_t subject_name, uint8_t **privkey, size_t *privkey_len,
+	const claim_t *custom_claims, size_t custom_claims_length, bool provide_endorsements,
+	uint8_t **certificate_out, size_t *certificate_size_out)
 {
 	rats_attester_err_t ret = RATS_ATTESTER_ERR_UNKNOWN;
 	crypto_wrapper_err_t crypto_ret = CRYPTO_WRAPPER_ERR_UNKNOWN;
@@ -40,7 +40,6 @@ librats_get_attestation_certificate(rats_cert_subject_t subject_name, uint8_t **
 	size_t endorsements_buffer_size = 0;
 
 	rats_core_context_t ctx;
-	rats_conf_t conf;
 	attestation_evidence_t evidence;
 	bool attester_initialized = false;
 	bool crypto_wrapper_initialized = false;
@@ -54,12 +53,18 @@ librats_get_attestation_certificate(rats_cert_subject_t subject_name, uint8_t **
 	*certificate_size_out = 0;
 
 	memset(&ctx, 0, sizeof(rats_core_context_t));
-	memset(&conf, 0, sizeof(rats_conf_t));
 	memset(&evidence, 0, sizeof(attestation_evidence_t));
 
 	conf.api_version = RATS_API_VERSION_DEFAULT;
 	conf.key_algo = RATS_KEY_ALGO_DEFAULT;
 	conf.hash_algo = RATS_HASH_ALGO_SHA256;
+	if (conf.log_level < 0 || conf.log_level > RATS_LOG_LEVEL_MAX) {
+		rats_global_log_level = rats_global_core_context.config.log_level;
+		RATS_WARN("log level is illegal, reset to global value %d\n",
+			  rats_global_core_context.config.log_level);
+	} else {
+		rats_global_log_level = conf.log_level;
+	}
 
 	if ((ret = rats_attester_init(&conf, &ctx)) != RATS_ATTESTER_ERR_NONE)
 		goto err;
