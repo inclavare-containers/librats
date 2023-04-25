@@ -130,7 +130,7 @@ int verify_callback(claim_t *claims, size_t claims_size, void *args_in)
 	return ret;
 }
 
-int get_attestation_certificate(bool no_privkey, const claim_t *custom_claims,
+int get_attestation_certificate(rats_conf_t conf, bool no_privkey, const claim_t *custom_claims,
 				size_t custom_claims_size, uint8_t **certificate_out,
 				size_t *certificate_size_out)
 {
@@ -154,7 +154,7 @@ int get_attestation_certificate(bool no_privkey, const claim_t *custom_claims,
 
 	printf("\nGenerate certificate with librats now ...\n");
 	/* Collect certificate */
-	rats_ret = librats_get_attestation_certificate(subject_name, &private_key,
+	rats_ret = librats_get_attestation_certificate(conf, subject_name, &private_key,
 						       &private_key_size, custom_claims,
 						       custom_claims_size, true, certificate_out,
 						       certificate_size_out);
@@ -181,7 +181,8 @@ err:
 	return ret;
 }
 
-int verify_attestation_certificate(uint8_t *certificate, size_t certificate_size, void *args)
+int verify_attestation_certificate(rats_conf_t conf, uint8_t *certificate, size_t certificate_size,
+				   void *args)
 {
 	int ret = -1;
 	rats_verifier_err_t rats_ret;
@@ -189,7 +190,7 @@ int verify_attestation_certificate(uint8_t *certificate, size_t certificate_size
 	printf("\nVerify certificate with librats now ...\n");
 
 	/* Verify certificate */
-	rats_ret = librats_verify_attestation_certificate(certificate, certificate_size,
+	rats_ret = librats_verify_attestation_certificate(conf, certificate, certificate_size,
 							  verify_callback, args);
 	if (rats_ret != RATS_VERIFIER_ERR_NONE) {
 		printf("Failed to verify certificate %#x\n", rats_ret);

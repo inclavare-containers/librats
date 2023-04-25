@@ -41,10 +41,12 @@ int common_init(rats_conf_t *conf, rats_core_context_t *ctx)
 
 	ctx->config = *conf;
 
-	rats_global_log_level = rats_loglevel_getenv("RATS_GLOBAL_LOG_LEVEL");
-	if (rats_global_log_level == (rats_log_level_t)-1) {
-		RATS_FATAL("failed to get log level from env\n");
-		rats_exit();
+	if (conf->log_level == RATS_LOG_LEVEL_MAX) {
+		rats_global_log_level = rats_loglevel_getenv("RATS_GLOBAL_LOG_LEVEL");
+		if (rats_global_log_level == (rats_log_level_t)-1) {
+			RATS_FATAL("failed to get log level from env\n");
+			rats_exit();
+		}
 	}
 
 	rats_global_core_context.config.api_version = RATS_API_VERSION_DEFAULT;
@@ -62,6 +64,7 @@ rats_attester_err_t rats_attester_init(rats_conf_t *conf, rats_core_context_t *c
 	RATS_DEBUG("called, conf %p\n", conf);
 
 	char attester_type[32] = "nullattester";
+	char *choice = NULL;
 
 	rats_attester_err_t err = RATS_ATTESTER_ERR_INVALID;
 
@@ -89,6 +92,8 @@ rats_attester_err_t rats_attester_init(rats_conf_t *conf, rats_core_context_t *c
 		qsort(rats_attesters_ctx, rats_attester_nums, sizeof(rats_attester_ctx_t *),
 		      rats_attester_cmp);
 	}
+	choice = ctx->config.attester_type;
+	if (choice[0] == '\0') {
 // clang-format off
 #if defined(SGX) || defined(OCCLUM)
 	memset(attester_type, 0, 32);
@@ -102,11 +107,16 @@ rats_attester_err_t rats_attester_init(rats_conf_t *conf, rats_core_context_t *c
 	if (rats_global_core_context.config.attester_type[0] != '\0')
 		memcpy(attester_type, rats_global_core_context.config.attester_type, 32);
 #endif
-	// clang-format on
+		// clang-format on
 
-	err = rats_attester_select(ctx, attester_type);
-	if (err != RATS_ATTESTER_ERR_NONE)
-		goto err_ctx;
+		err = rats_attester_select(ctx, attester_type);
+		if (err != RATS_ATTESTER_ERR_NONE)
+			goto err_ctx;
+	} else {
+		err = rats_attester_select(ctx, choice);
+		if (err != RATS_ATTESTER_ERR_NONE)
+			goto err_ctx;
+	}
 
 err_ctx:
 	return err;

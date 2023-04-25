@@ -8,6 +8,7 @@
 #define _LIBRATS_CONF_H
 
 #include <librats/hash.h>
+#include <stdbool.h>
 
 typedef enum {
 	RATS_LOG_LEVEL_DEBUG,
@@ -33,6 +34,7 @@ typedef struct rats_conf {
 	char attester_type[32];
 	char verifier_type[32];
 	char crypto_type[32];
+	rats_log_level_t log_level;
 	rats_key_algo_t key_algo;
 	rats_hash_algo_t hash_algo;
 } rats_conf_t;

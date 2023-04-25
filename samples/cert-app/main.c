@@ -80,11 +80,18 @@ static sgx_enclave_id_t load_enclave(bool debug_enclave)
 }
 
 int rats_app_startup(bool debug_enclave, bool no_privkey, const claim_t *custom_claims,
-		     size_t custom_claims_size)
+		     size_t custom_claims_size, char *attester_type, char *verifier_type,
+		     char *crypto_type, rats_log_level_t log_level)
 {
 	uint8_t certificate[8192 * 4];
 	size_t certificate_size;
 	int ret;
+	rats_conf_t conf;
+
+	memset(&conf, 0, sizeof(rats_conf_t));
+	conf.log_level = log_level;
+	strcpy(conf.attester_type, attester_type);
+	strcpy(conf.crypto_type, crypto_type);
 
 	sgx_enclave_id_t enclave_id = load_enclave(debug_enclave);
 	if (enclave_id == 0) {
@@ -92,7 +99,7 @@ int rats_app_startup(bool debug_enclave, bool no_privkey, const claim_t *custom_
 		goto err;
 	}
 
-	int sgx_status = ecall_get_attestation_certificate(enclave_id, &ret, no_privkey,
+	int sgx_status = ecall_get_attestation_certificate(enclave_id, &ret, conf, no_privkey,
 							   custom_claims, custom_claims_size,
 							   sizeof(certificate), certificate,
 							   &certificate_size);
@@ -120,7 +127,13 @@ int rats_app_startup(bool debug_enclave, bool no_privkey, const claim_t *custom_
 	} args_t;
 
 	args_t args = { .custom_claims = custom_claims, .custom_claims_size = custom_claims_size };
-	sgx_status = ecall_verify_attestation_certificate(enclave_id, &ret, certificate,
+
+	memset(&conf, 0, sizeof(rats_conf_t));
+	conf.log_level = log_level;
+	strcpy(conf.verifier_type, verifier_type);
+	strcpy(conf.crypto_type, crypto_type);
+
+	sgx_status = ecall_verify_attestation_certificate(enclave_id, &ret, conf, certificate,
 							  certificate_size, &args);
 	if (sgx_status != SGX_SUCCESS || ret) {
 		printf("Failed at ecall_verify_attestation_certificate: sgx status %#x return %#x\n",
@@ -141,13 +154,20 @@ err:
 // clang-format on
 
 int rats_app_startup(bool debug_enclave, bool no_privkey, const claim_t *custom_claims,
-		     size_t custom_claims_size)
+		     size_t custom_claims_size, char *attester_type, char *verifier_type,
+		     char *crypto_type, rats_log_level_t log_level)
 {
 	uint8_t *certificate = NULL;
 	size_t certificate_size = 0;
 	int ret;
+	rats_conf_t conf;
 
-	ret = get_attestation_certificate(no_privkey, custom_claims, custom_claims_size,
+	memset(&conf, 0, sizeof(rats_conf_t));
+	conf.log_level = log_level;
+	strcpy(conf.attester_type, attester_type);
+	strcpy(conf.crypto_type, crypto_type);
+
+	ret = get_attestation_certificate(conf, no_privkey, custom_claims, custom_claims_size,
 					  &certificate, &certificate_size);
 	if (ret) {
 		printf("Certificate generation:\tFAILED\n");
@@ -168,7 +188,12 @@ int rats_app_startup(bool debug_enclave, bool no_privkey, const claim_t *custom_
 		size_t custom_claims_size;
 	} args_t;
 	args_t args = { .custom_claims = custom_claims, .custom_claims_size = custom_claims_size };
-	ret = verify_attestation_certificate(certificate, certificate_size, &args);
+
+	memset(&conf, 0, sizeof(rats_conf_t));
+	conf.log_level = log_level;
+	strcpy(conf.verifier_type, verifier_type);
+	strcpy(conf.crypto_type, crypto_type);
+	ret = verify_attestation_certificate(conf, certificate, certificate_size, &args);
 	if (ret) {
 		printf("Certificate verification:\tFAILED\n");
 		goto err;
@@ -193,13 +218,17 @@ int main(int argc, char **argv)
 	printf("    - Welcome to librats sample cert-app program for Host\n");
 #endif
 
-	char *const short_options = "dhkc:";
+	char *const short_options = "dhkC:a:v:c:l:";
 	// clang-format off
     struct option long_options[] = {
         { "debug-enclave", no_argument, NULL, 'd' },
         { "help", no_argument, NULL, 'h' },
         { "no-privkey", no_argument, NULL, 'k'},
-        { "add-claim", required_argument, NULL, 'c' },
+        { "add-claim", required_argument, NULL, 'C' },
+	{ "attester", required_argument, NULL, 'a' },
+        { "verifier", required_argument, NULL, 'v' },
+	{ "crypto", required_argument, NULL, 'c' },
+	{ "log-level", required_argument, NULL, 'l' },
         { 0, 0, 0, 0 }
     };
 	// clang-format on
@@ -208,6 +237,10 @@ int main(int argc, char **argv)
 	bool no_privkey = false;
 	claim_t claims[64];
 	size_t claims_count = 0;
+	char *attester_type = "";
+	char *verifier_type = "";
+	char *crypto_type = "";
+	rats_log_level_t log_level = RATS_LOG_LEVEL_MAX;
 	int opt;
 
 	do {
@@ -219,7 +252,7 @@ int main(int argc, char **argv)
 		case 'k':
 			no_privkey = true;
 			break;
-		case 'c':;
+		case 'C':;
 #ifdef HOST
 			printf("WARN: user-defined custom claims is not supported in host mode, unless your environment has sev/sev-snp/csv support.\n");
 #endif
@@ -238,6 +271,31 @@ int main(int argc, char **argv)
 			claims[claims_count].value_size = value_size;
 			claims_count++;
 			break;
+		case 'a':
+			attester_type = optarg;
+			break;
+		case 'v':
+			verifier_type = optarg;
+			break;
+		case 'c':
+			crypto_type = optarg;
+			break;
+		case 'l':
+			if (!strcasecmp(optarg, "debug"))
+				log_level = RATS_LOG_LEVEL_DEBUG;
+			else if (!strcasecmp(optarg, "info"))
+				log_level = RATS_LOG_LEVEL_INFO;
+			else if (!strcasecmp(optarg, "warn"))
+				log_level = RATS_LOG_LEVEL_WARN;
+			else if (!strcasecmp(optarg, "error"))
+				log_level = RATS_LOG_LEVEL_ERROR;
+			else if (!strcasecmp(optarg, "fatal"))
+				log_level = RATS_LOG_LEVEL_FATAL;
+			else if (!strcasecmp(optarg, "off"))
+				log_level = RATS_LOG_LEVEL_NONE;
+			else
+				printf("WARN: Only supports off, fatal, error, warn, info, and debug modes, and the error mode will be automatically selected\n");
+			break;
 		case -1:
 			break;
 		case 'h':
@@ -246,7 +304,11 @@ int main(int argc, char **argv)
 			     "    Options:\n\n"
 			     "        --debug-enclave/-d            set to enable enclave debugging\n"
 			     "        --no-privkey/-k               set to enable key pairs generation in librats\n"
-			     "        --add-claim/-c key:val        add a user-defined custom claims.\n"
+			     "        --add-claim/-C key:val        add a user-defined custom claims\n"
+			     "        --attester/-a value   	    set the type of quote attester\n"
+			     "        --verifier/-v value   	    set the type of quote verifier\n"
+			     "        --crypto/-c value     	    set the type of crypto wrapper\n"
+			     "        --log-level/-l                set the log level\n"
 			     "        --help/-h                     show the usage\n");
 			exit(1);
 		default:
@@ -254,5 +316,6 @@ int main(int argc, char **argv)
 		}
 	} while (opt != -1);
 
-	return rats_app_startup(debug_enclave, no_privkey, claims, claims_count);
+	return rats_app_startup(debug_enclave, no_privkey, claims, claims_count, attester_type,
+				verifier_type, crypto_type, log_level);
 }
