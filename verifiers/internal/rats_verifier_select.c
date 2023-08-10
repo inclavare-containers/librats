@@ -25,13 +25,13 @@ static rats_verifier_err_t init_rats_verifier(rats_core_context_t *ctx,
 	return RATS_VERIFIER_ERR_NONE;
 }
 
-rats_verifier_err_t rats_verifier_select(rats_core_context_t *ctx, const char *name)
+rats_verifier_err_t rats_verifier_select(rats_core_context_t *ctx, const char *verifier_type)
 {
-	RATS_DEBUG("selecting the rats verifier '%s' ...\n", name);
+	RATS_DEBUG("selecting the rats verifier of type '%s' ...\n", verifier_type);
 
 	rats_verifier_ctx_t *verifier_ctx = NULL;
 	for (unsigned int i = 0; i < rats_verifier_nums; ++i) {
-		if (name && strcmp(name, rats_verifiers_ctx[i]->opts->name))
+		if (verifier_type && strcmp(verifier_type, rats_verifiers_ctx[i]->opts->type))
 			continue;
 
 		verifier_ctx = (rats_verifier_ctx_t *)malloc(sizeof(*verifier_ctx));
@@ -48,10 +48,10 @@ rats_verifier_err_t rats_verifier_select(rats_core_context_t *ctx, const char *n
 	}
 
 	if (!verifier_ctx) {
-		if (!name)
-			RATS_ERR("failed to select an rats verifier\n");
+		if (!verifier_type)
+			RATS_ERR("failed to select a rats verifier\n");
 		else
-			RATS_ERR("failed to select the rats verifier '%s'\n", name);
+			RATS_ERR("failed to select the rats verifier of type '%s'\n", verifier_type);
 
 		return RATS_VERIFIER_ERR_INVALID;
 	}
