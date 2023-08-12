@@ -39,7 +39,7 @@ crypto_wrapper_verify_evidence(crypto_wrapper_ctx_t *crypto_ctx, attestation_evi
 		RATS_WARN("type doesn't match between verifier '%s' and evidence '%s'\n",
 			  crypto_ctx->rats_handle->verifier->opts->name, evidence->type);
 		rats_verifier_err_t verifier_ret =
-			rats_verifier_select(crypto_ctx->rats_handle, evidence->type);
+			rats_verifier_select_by_type(crypto_ctx->rats_handle, evidence->type);
 		if (verifier_ret != RATS_VERIFIER_ERR_NONE) {
 			RATS_ERR("the verifier selecting err %#x during verifying cert extension\n",
 				 verifier_ret);
