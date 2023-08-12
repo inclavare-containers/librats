@@ -15,6 +15,7 @@ extern rats_verifier_err_t rats_verifier_init_static(const char *name);
 extern rats_verifier_err_t rats_verifier_load_all(void);
 extern rats_verifier_err_t rats_verifier_post_init(const char *name, void *handle);
 extern rats_verifier_err_t rats_verifier_select(rats_core_context_t *, const char *);
+extern rats_verifier_err_t rats_verifier_select_by_type(rats_core_context_t *, const char *);
 extern rats_verifier_opts_t *rats_verifiers_opts[RATS_VERIFIER_TYPE_MAX];
 extern rats_verifier_ctx_t *rats_verifiers_ctx[RATS_VERIFIER_TYPE_MAX];
 extern unsigned int rats_verifier_nums;
