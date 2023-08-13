@@ -102,7 +102,7 @@ rats_attester_err_t sev_snp_collect_evidence(rats_attester_ctx_t *ctx,
 	snprintf(evidence->type, sizeof(evidence->type), "sev_snp");
 
 	rats_attester_err_t err = sev_snp_get_vcek_der(report.chip_id, sizeof(report.chip_id),
-						       &report.platform_version, snp_report);
+						       &report.current_tcb, snp_report);
 	if (err != RATS_ATTESTER_ERR_NONE) {
 		return err;
 	}

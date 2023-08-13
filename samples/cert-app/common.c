@@ -2,6 +2,7 @@
 #include <openssl/pem.h>
 #include <openssl/evp.h>
 #include <unistd.h>
+#include <ctype.h>
 
 int generate_key_pairs(uint8_t **private_key_out, size_t *private_key_size_out)
 {
@@ -74,6 +75,25 @@ err:
 	return ret;
 }
 
+void print_claim_value(uint8_t *value, size_t value_size)
+{
+	bool hex = false;
+	for (size_t i = 0; i < value_size; ++i) {
+		if (!isprint(value[i])) {
+			hex = true;
+			break;
+		}
+	}
+	if (hex) {
+		printf("(hex)");
+		for (size_t i = 0; i < value_size; ++i) {
+			printf("%02X", value[i]);
+		}
+	} else {
+		printf("'%.*s'", (int)value_size, value);
+	}
+}
+
 int verify_callback(claim_t *claims, size_t claims_size, void *args_in)
 {
 	int ret = 0;
@@ -81,9 +101,10 @@ int verify_callback(claim_t *claims, size_t claims_size, void *args_in)
 	printf("verify_callback called, claims %p, claims_size %zu, args %p\n", claims, claims_size,
 	       args_in);
 	for (size_t i = 0; i < claims_size; ++i) {
-		printf("claims[%zu] -> name: '%s' value_size: %zu value: '%.*s'\n", i,
-		       claims[i].name, claims[i].value_size, (int)claims[i].value_size,
-		       claims[i].value);
+		printf("claims[%zu] -> name: '%s' value_size: %zu value: ", i, claims[i].name,
+		       claims[i].value_size);
+		print_claim_value(claims[i].value, claims[i].value_size);
+		printf("\n");
 	}
 
 	/* Let's check all custom claims exits and unchanged */
@@ -110,10 +131,12 @@ int verify_callback(claim_t *claims, size_t claims_size, void *args_in)
 				}
 
 				if (memcmp(claim->value, claims[j].value, claim->value_size)) {
-					printf("different claim detected -> name: '%s' value_size: %zu expected value: '%.*s' got: '%.*s'\n",
-					       claim->name, claim->value_size,
-					       (int)claim->value_size, claim->value,
-					       (int)claim->value_size, claims[j].value);
+					printf("different claim detected -> name: '%s' value_size: %zu expected value: ",
+					       claim->name, claim->value_size);
+					print_claim_value(claim->value, claim->value_size);
+					printf(" got: ");
+					print_claim_value(claims[j].value, claim->value_size);
+					printf("\n");
 					ret = 1;
 					break;
 				}

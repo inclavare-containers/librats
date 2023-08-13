@@ -299,12 +299,77 @@ errret:
 }
 #endif
 
+rats_verifier_err_t convert_quote_to_claims(sgx_quote3_t *quote, uint32_t quote_size,
+					    claim_t **claims_out, size_t *claims_length_out)
+{
+	if (!claims_out || !claims_length_out)
+		return RATS_VERIFIER_ERR_NONE;
+	if (!quote || !quote_size)
+		return RATS_VERIFIER_ERR_INVALID_PARAMETER;
+
+	claim_t *claims = NULL;
+	size_t claims_length = 0;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
+
+	claims_length = 2 + 10; /* 2 common claims + 10 sgx claims */
+	claims = malloc(sizeof(claim_t) * claims_length);
+
+	size_t claims_index = 0;
+
+	/* common claims */
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_COMMON_QUOTE, quote,
+				      quote_size));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_COMMON_QUOTE_TYPE,
+				      "sgx_ecdsa", sizeof("sgx_ecdsa")));
+
+	/* sgx claims */
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SGX_CPU_SVN,
+				      (uint8_t *)&quote->report_body.cpu_svn,
+				      sizeof(quote->report_body.cpu_svn)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SGX_ISV_EXT_PROD_ID,
+				      (uint8_t *)&quote->report_body.isv_ext_prod_id,
+				      sizeof(quote->report_body.isv_ext_prod_id)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SGX_ATTRIBUTES,
+				      (uint8_t *)&quote->report_body.attributes,
+				      sizeof(quote->report_body.attributes)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SGX_MR_ENCLAVE,
+				      (uint8_t *)&quote->report_body.mr_enclave,
+				      sizeof(quote->report_body.mr_enclave)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SGX_MR_SIGNER,
+				      (uint8_t *)&quote->report_body.mr_signer,
+				      sizeof(quote->report_body.mr_signer)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SGX_CONFIG_ID,
+				      (uint8_t *)&quote->report_body.config_id,
+				      sizeof(quote->report_body.config_id)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SGX_ISV_PROD_ID,
+				      (uint8_t *)&quote->report_body.isv_prod_id,
+				      sizeof(quote->report_body.isv_prod_id)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SGX_ISV_SVN,
+				      (uint8_t *)&quote->report_body.isv_svn,
+				      sizeof(quote->report_body.isv_svn)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SGX_CONFIG_SVN,
+				      (uint8_t *)&quote->report_body.config_svn,
+				      sizeof(quote->report_body.config_svn)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SGX_ISV_FAMILY_ID,
+				      (uint8_t *)&quote->report_body.isv_family_id,
+				      sizeof(quote->report_body.isv_family_id)));
+
+	*claims_out = claims;
+	*claims_length_out = claims_length;
+	claims = NULL;
+
+	err = RATS_VERIFIER_ERR_NONE;
+done:
+	if (claims)
+		free_claims_list(claims, claims_index);
+	return err;
+}
+
 rats_verifier_err_t
 sgx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx, attestation_evidence_t *evidence,
-			  const uint8_t *hash, __attribute__((unused)) uint32_t hash_len,
-			  attestation_endorsement_t *endorsements /* optional */,
-			  __attribute__((unused)) claim_t **claims,
-			  __attribute__((unused)) size_t *claims_length)
+			  const uint8_t *hash, uint32_t hash_len,
+			  attestation_endorsement_t *endorsements /* optional */, claim_t **claims,
+			  size_t *claims_length)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
@@ -406,6 +471,12 @@ sgx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx, attestation_evidence_t *evid
 	if (err != RATS_VERIFIER_ERR_NONE)
 		RATS_ERR("failed to verify ecdsa\n");
 #endif
+
+	if (err == RATS_VERIFIER_ERR_NONE) {
+		err = convert_quote_to_claims(pquote, quote_size, claims, claims_length);
+		if (err != RATS_VERIFIER_ERR_NONE)
+			RATS_ERR("failed to convert sgx_ecdsa quote to builtin claims: %#x\n", err);
+	}
 
 	return err;
 }

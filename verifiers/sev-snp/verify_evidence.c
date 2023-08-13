@@ -20,10 +20,84 @@
 #include "crypto.h"
 #include "utils.h"
 
-rats_verifier_err_t sev_snp_verify_evidence(
-	rats_verifier_ctx_t *ctx, attestation_evidence_t *evidence, const uint8_t *hash,
-	uint32_t hash_len, __attribute__((unused)) attestation_endorsement_t *endorsements,
-	__attribute__((unused)) claim_t **claims, __attribute__((unused)) size_t *claims_length)
+rats_verifier_err_t convert_quote_to_claims(snp_attestation_report_t *report, uint32_t report_size,
+					    claim_t **claims_out, size_t *claims_length_out)
+{
+	if (!claims_out || !claims_length_out)
+		return RATS_VERIFIER_ERR_NONE;
+	if (!report || !report_size)
+		return RATS_VERIFIER_ERR_INVALID_PARAMETER;
+
+	claim_t *claims = NULL;
+	size_t claims_length = 0;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
+	if (claims == NULL)
+		return RATS_VERIFIER_ERR_NO_MEM;
+
+	claims_length = 2 + 14; /* 2 common claims + 14 sev_snp claims */
+	claims = malloc(sizeof(claim_t) * claims_length);
+
+	size_t claims_index = 0;
+
+	/* common claims */
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_COMMON_QUOTE, report,
+				      report_size));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_COMMON_QUOTE_TYPE,
+				      "sev_snp", sizeof("sev_snp")));
+
+	/* sev_snp claims */
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_GUEST_SVN,
+				      (uint8_t *)&report->guest_svn, sizeof(report->guest_svn)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_POLICY,
+				      (uint8_t *)&report->policy, sizeof(report->policy)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_FAMILY_ID,
+				      (uint8_t *)&report->family_id, sizeof(report->family_id)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_IMAGE_ID,
+				      (uint8_t *)&report->image_id, sizeof(report->image_id)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_VMPL,
+				      (uint8_t *)&report->vmpl, sizeof(report->vmpl)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_CURRENT_TCB,
+				      (uint8_t *)&report->current_tcb,
+				      sizeof(report->current_tcb)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_PLATFORM_INFO,
+				      (uint8_t *)&report->platform_info,
+				      sizeof(report->platform_info)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_MEASUREMENT,
+				      (uint8_t *)&report->measurement,
+				      sizeof(report->measurement)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_HOST_DATA,
+				      (uint8_t *)&report->host_data, sizeof(report->host_data)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_ID_KEY_DIGEST,
+				      (uint8_t *)&report->id_key_digest,
+				      sizeof(report->id_key_digest)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_REPORT_ID,
+				      (uint8_t *)&report->report_id, sizeof(report->report_id)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_REPORT_ID_MA,
+				      (uint8_t *)&report->report_id_ma,
+				      sizeof(report->report_id_ma)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_REPORTED_TCB,
+				      (uint8_t *)&report->reported_tcb,
+				      sizeof(report->reported_tcb)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_SEV_SNP_CHIP_ID,
+				      (uint8_t *)&report->chip_id, sizeof(report->chip_id)));
+
+	*claims_out = claims;
+	*claims_length_out = claims_length;
+	claims = NULL;
+
+	err = RATS_VERIFIER_ERR_NONE;
+done:
+	if (claims)
+		free_claims_list(claims, claims_index);
+	return err;
+}
+
+rats_verifier_err_t sev_snp_verify_evidence(rats_verifier_ctx_t *ctx,
+					    attestation_evidence_t *evidence, const uint8_t *hash,
+					    uint32_t hash_len,
+					    __attribute__((unused))
+					    attestation_endorsement_t *endorsements,
+					    claim_t **claims, size_t *claims_length)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
@@ -36,7 +110,7 @@ rats_verifier_err_t sev_snp_verify_evidence(
 #else
 		memset(evidence->snp.vcek, 0, VECK_MAX_SIZE);
 		err = sev_snp_get_vcek_der(report->chip_id, sizeof(report->chip_id),
-					   &report->platform_version, &evidence->snp);
+					   &report->current_tcb, &evidence->snp);
 		if (err != RATS_ATTESTER_ERR_NONE)
 			return err;
 #endif
@@ -57,36 +131,36 @@ rats_verifier_err_t sev_snp_verify_evidence(
 
 	bio_mem = BIO_new(BIO_s_mem());
 	if (!bio_mem) {
-		goto err;
+		goto errret;
 	}
 	BIO_puts(bio_mem, ask_pem);
 	x509_ask = PEM_read_bio_X509(bio_mem, NULL, NULL, NULL);
 	if (!x509_ask) {
-		goto err;
+		goto errret;
 	}
 	BIO_reset(bio_mem);
 	BIO_puts(bio_mem, ark_pem);
 	x509_ark = PEM_read_bio_X509(bio_mem, NULL, NULL, NULL);
 	if (!x509_ark) {
-		goto err;
+		goto errret;
 	}
 	uint8_t *vcek_ptr = evidence->snp.vcek;
 	x509_vcek = d2i_X509(NULL, (const unsigned char **)&(vcek_ptr), evidence->snp.vcek_len);
 	if (!x509_vcek) {
-		goto err;
+		goto errret;
 	}
 
 	/* Extract the VCEK public key */
 	vcek_pub_key = X509_get_pubkey(x509_vcek);
 	if (!vcek_pub_key)
-		goto err;
+		goto errret;
 
 	/* Verify the ARK self-signed the ARK */
 	ret = x509_validate_signature(x509_ark, NULL, x509_ark);
 	if (!ret) {
 		RATS_ERR("failed to validate signature of x509_ark cert\n");
 		err = RATS_VERIFIER_ERR_INVALID;
-		goto err;
+		goto errret;
 	}
 
 	/* Verify the ASK signed by ARK */
@@ -94,7 +168,7 @@ rats_verifier_err_t sev_snp_verify_evidence(
 	if (!ret) {
 		RATS_ERR("failed to validate signature of x509_ask cert\n");
 		err = RATS_VERIFIER_ERR_INVALID;
-		goto err;
+		goto errret;
 	}
 
 	/* Verify the VCEK signed by ASK */
@@ -102,7 +176,7 @@ rats_verifier_err_t sev_snp_verify_evidence(
 	if (!ret) {
 		RATS_ERR("failed to validate signature of x509_vcek cert\n");
 		err = RATS_VERIFIER_ERR_INVALID;
-		goto err;
+		goto errret;
 	}
 
 	/* Verify the attestation report signed by VCEK */
@@ -112,14 +186,19 @@ rats_verifier_err_t sev_snp_verify_evidence(
 	if (!ret) {
 		RATS_ERR("failed to verify snp guest report\n");
 		err = RATS_VERIFIER_ERR_INVALID;
-		goto err;
+		goto errret;
 	}
 
-	err = RATS_VERIFIER_ERR_NONE;
+	err = convert_quote_to_claims(report, sizeof(*report), claims, claims_length);
+	if (err != RATS_VERIFIER_ERR_NONE) {
+		RATS_ERR("failed to convert sev_snp attestation report to builtin claims: %#x\n",
+			 err);
+		goto errret;
+	}
 
 	RATS_INFO("SEV-SNP attestation report validated successfully!\n");
 
-err:
+errret:
 	X509_free(x509_ark);
 	X509_free(x509_ask);
 	X509_free(x509_vcek);

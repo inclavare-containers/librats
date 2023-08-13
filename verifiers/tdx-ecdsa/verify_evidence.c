@@ -121,53 +121,83 @@ errret:
 	return err;
 }
 
-#define TDX_CLAIMS_COUNT 4
-
-#define TDX_CLAIM_RTMR0 "rtmr0"
-#define TDX_CLAIM_RTMR1 "rtmr1"
-#define TDX_CLAIM_RTMR2 "rtmr2"
-#define TDX_CLAIM_RTMR3 "rtmr3"
-
-rats_verifier_err_t tdx_parse_claims(tdx_quote_t *quote, claim_t **claims_out,
-				     size_t *claims_length_out)
+rats_verifier_err_t convert_quote_to_claims(tdx_quote_t *quote, uint32_t quote_size,
+					    claim_t **claims_out, size_t *claims_length_out)
 {
-	if (!quote || !claims_out || !claims_length_out)
-		return RATS_ERR_INVALID_PARAMETER;
+	if (!claims_out || !claims_length_out)
+		return RATS_VERIFIER_ERR_NONE;
+	if (!quote || !quote_size)
+		return RATS_VERIFIER_ERR_INVALID_PARAMETER;
 
-	rats_err_t err = RATS_ERR_UNKNOWN;
+	claim_t *claims = NULL;
+	size_t claims_length = 0;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
+	if (claims == NULL)
+		return RATS_VERIFIER_ERR_NO_MEM;
+
+	claims_length = 2 + 14; /* 2 common claims + 14 tdx claims */
+	claims = malloc(sizeof(claim_t) * claims_length);
 
 	size_t claims_index = 0;
-	uint64_t claims_size = TDX_CLAIMS_COUNT * sizeof(claim_t);
-	claim_t *claims = (claim_t *)malloc(claims_size);
-	if (claims == NULL)
-		return RATS_ERR_NO_MEM;
 
-	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], TDX_CLAIM_RTMR0,
-				      sizeof(TDX_CLAIM_RTMR0), quote->report_body.rtmr[0],
-				      sizeof(quote->report_body.rtmr[0])));
+	/* common claims */
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_COMMON_QUOTE, quote,
+				      quote_size));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_COMMON_QUOTE_TYPE,
+				      "tdx_ecdsa", sizeof("tdx_ecdsa")));
 
-	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], TDX_CLAIM_RTMR1,
-				      sizeof(TDX_CLAIM_RTMR1), quote->report_body.rtmr[1],
-				      sizeof(quote->report_body.rtmr[1])));
-
-	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], TDX_CLAIM_RTMR2,
-				      sizeof(TDX_CLAIM_RTMR2), quote->report_body.rtmr[2],
-				      sizeof(quote->report_body.rtmr[2])));
-
-	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], TDX_CLAIM_RTMR3,
-				      sizeof(TDX_CLAIM_RTMR3), quote->report_body.rtmr[3],
-				      sizeof(quote->report_body.rtmr[3])));
+	/* tdx claims */
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_TEE_TCB_SVN,
+				      (uint8_t *)&quote->report_body.tee_tcb_svn,
+				      sizeof(quote->report_body.tee_tcb_svn)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_MR_SEAM,
+				      (uint8_t *)&quote->report_body.mr_seam,
+				      sizeof(quote->report_body.mr_seam)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_MRSIGNER_SEAM,
+				      (uint8_t *)&quote->report_body.mrsigner_seam,
+				      sizeof(quote->report_body.mrsigner_seam)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_SEAM_ATTRIBUTES,
+				      (uint8_t *)&quote->report_body.seam_attributes,
+				      sizeof(quote->report_body.seam_attributes)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_TD_ATTRIBUTES,
+				      (uint8_t *)&quote->report_body.td_attributes,
+				      sizeof(quote->report_body.td_attributes)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_XFAM,
+				      (uint8_t *)&quote->report_body.xfam,
+				      sizeof(quote->report_body.xfam)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_MR_TD,
+				      (uint8_t *)&quote->report_body.mr_td,
+				      sizeof(quote->report_body.mr_td)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_MR_CONFIG_ID,
+				      (uint8_t *)&quote->report_body.mr_config_id,
+				      sizeof(quote->report_body.mr_config_id)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_MR_OWNER,
+				      (uint8_t *)&quote->report_body.mr_owner,
+				      sizeof(quote->report_body.mr_owner)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_MR_OWNER_CONFIG,
+				      (uint8_t *)&quote->report_body.mr_owner_config,
+				      sizeof(quote->report_body.mr_owner_config)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_RT_MR0,
+				      (uint8_t *)&quote->report_body.rt_mr[0],
+				      sizeof(quote->report_body.rt_mr[0])));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_RT_MR1,
+				      (uint8_t *)&quote->report_body.rt_mr[1],
+				      sizeof(quote->report_body.rt_mr[1])));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_RT_MR2,
+				      (uint8_t *)&quote->report_body.rt_mr[2],
+				      sizeof(quote->report_body.rt_mr[2])));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_TDX_RT_MR3,
+				      (uint8_t *)&quote->report_body.rt_mr[3],
+				      sizeof(quote->report_body.rt_mr[3])));
 
 	*claims_out = claims;
-	*claims_length_out = claims_index;
+	*claims_length_out = claims_length;
 	claims = NULL;
 
 	err = RATS_VERIFIER_ERR_NONE;
-
 done:
 	if (claims)
 		free_claims_list(claims, claims_index);
-
 	return err;
 }
 
@@ -183,14 +213,15 @@ rats_verifier_err_t tdx_ecdsa_verify_evidence(rats_verifier_ctx_t *ctx,
 	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
 	err = ecdsa_verify_evidence(ctx, ctx->opts->name, evidence, sizeof(attestation_evidence_t),
 				    hash, hash_len, endorsements);
-	if (err != RATS_VERIFIER_ERR_NONE) {
-		RATS_ERR("failed to verify ecdsa\n");
-		return err;
-	}
-
-	err = tdx_parse_claims((tdx_quote_t *)evidence->tdx.quote, claims, claims_length);
 	if (err != RATS_VERIFIER_ERR_NONE)
-		RATS_ERR("failed to parse tdx claims\n");
+		RATS_ERR("failed to verify ecdsa\n");
+	return err;
 
+	if (err == RATS_VERIFIER_ERR_NONE) {
+		err = convert_quote_to_claims((tdx_quote_t *)evidence->tdx.quote,
+					      evidence->tdx.quote_len, claims, claims_length);
+		if (err != RATS_VERIFIER_ERR_NONE)
+			RATS_ERR("failed to convert tdx_ecdsa quote to builtin claims: %#x\n", err);
+	}
 	return err;
 }

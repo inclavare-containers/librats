@@ -13,14 +13,6 @@
 #include "internal/verifier.h"
 #include "internal/dice.h"
 
-#include <librats/csv.h>
-// clang-format off
-#ifdef SGX
-#include "sgx_report.h"
-#endif
-#include "sgx_quote_3.h"
-// clang-format on
-
 crypto_wrapper_err_t
 crypto_wrapper_verify_evidence(crypto_wrapper_ctx_t *crypto_ctx, attestation_evidence_t *evidence,
 			       uint8_t *hash, uint32_t hash_len,
