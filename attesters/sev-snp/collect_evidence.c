@@ -52,8 +52,13 @@ static int snp_get_report(const uint8_t *data, size_t data_size, snp_attestation
 
 	/* Issue the guest request IOCTL */
 	if (ioctl(fd, SNP_GET_REPORT, &guest_req) == -1) {
+#ifdef SNP_GUEST_FW_ERR_MASK
+		RATS_ERR("failed to issue SNP_GET_REPORT ioctl, exit info: %llu\n",
+			 guest_req.exitinfo2);
+#else
 		RATS_ERR("failed to issue SNP_GET_REPORT ioctl, firmware error %llu\n",
 			 guest_req.fw_err);
+#endif
 		goto out_close;
 	}
 
