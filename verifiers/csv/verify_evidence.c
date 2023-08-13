@@ -97,12 +97,79 @@ static rats_verifier_err_t verify_attestation_report(csv_attestation_report *rep
 	return RATS_VERIFIER_ERR_NONE;
 }
 
+rats_verifier_err_t convert_quote_to_claims(csv_attestation_report *report, uint32_t report_size,
+					    claim_t **claims_out, size_t *claims_length_out)
+{
+	if (!claims_out || !claims_length_out)
+		return RATS_VERIFIER_ERR_NONE;
+	if (!report || !report_size)
+		return RATS_VERIFIER_ERR_INVALID_PARAMETER;
+
+	claim_t *claims = NULL;
+	size_t claims_length = 0;
+	rats_verifier_err_t err = RATS_VERIFIER_ERR_UNKNOWN;
+	if (claims == NULL)
+		return RATS_VERIFIER_ERR_NO_MEM;
+
+	claims_length = 2 + 10; /* 2 common claims + 10 csv claims */
+	claims = malloc(sizeof(claim_t) * claims_length);
+
+	size_t claims_index = 0;
+
+	/* common claims */
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_COMMON_QUOTE, report,
+				      report_size));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_COMMON_QUOTE_TYPE,
+				      "csv", sizeof("csv")));
+
+	/* Clear nonce on the range from field `user_pubkey_digest` to field `anonce`, note that
+	   pek_cert and chip_id have been retrieved in function verify_cert_chain(). */
+	int cnt = (offsetof(csv_attestation_report, anonce) -
+		   offsetof(csv_attestation_report, user_pubkey_digest)) /
+		  sizeof(uint32_t);
+	for (int i = 0; i < cnt; i++) {
+		((uint32_t *)report)[i] ^= report->anonce;
+	}
+
+	/* csv claims */
+	CLAIM_CHECK(librats_add_claim(
+		&claims[claims_index++], BUILT_IN_CLAIM_CSV_USER_PUBKEY_DIGEST,
+		(uint8_t *)&report->user_pubkey_digest, sizeof(report->user_pubkey_digest)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_CSV_VM_ID,
+				      (uint8_t *)&report->vm_id, sizeof(report->vm_id)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_CSV_VM_VERSION,
+				      (uint8_t *)&report->vm_version, sizeof(report->vm_version)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_CSV_USER_DATA,
+				      (uint8_t *)&report->user_data, sizeof(report->user_data)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_CSV_MNONCE,
+				      (uint8_t *)&report->mnonce, sizeof(report->mnonce)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_CSV_MEASURE,
+				      (uint8_t *)&report->measure, sizeof(report->measure)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_CSV_POLICY,
+				      (uint8_t *)&report->policy, sizeof(report->policy)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_CSV_SIG_USAGE,
+				      (uint8_t *)&report->sig_usage, sizeof(report->sig_usage)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_CSV_SIG_ALGO,
+				      (uint8_t *)&report->sig_algo, sizeof(report->sig_algo)));
+	CLAIM_CHECK(librats_add_claim(&claims[claims_index++], BUILT_IN_CLAIM_CSV_CHIP_ID,
+				      (uint8_t *)&report->chip_id, sizeof(report->chip_id)));
+
+	*claims_out = claims;
+	*claims_length_out = claims_length;
+	claims = NULL;
+
+	err = RATS_VERIFIER_ERR_NONE;
+done:
+	if (claims)
+		free_claims_list(claims, claims_index);
+	return err;
+}
+
 rats_verifier_err_t csv_verify_evidence(rats_verifier_ctx_t *ctx, attestation_evidence_t *evidence,
 					const uint8_t *hash, uint32_t hash_len,
 					__attribute__((unused))
 					attestation_endorsement_t *endorsements,
-					__attribute__((unused)) claim_t **claims,
-					__attribute__((unused)) size_t *claims_length)
+					claim_t **claims, size_t *claims_length)
 {
 	RATS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
@@ -116,6 +183,7 @@ rats_verifier_err_t csv_verify_evidence(rats_verifier_ctx_t *ctx, attestation_ev
 	};
 	int i;
 
+	/* add nonce on new user_data buffer */
 	for (i = 0; i < sizeof(user_data) / sizeof(uint32_t); i++)
 		((uint32_t *)user_data)[i] = ((uint32_t *)attestation_report->user_data)[i] ^
 					     attestation_report->anonce;
@@ -139,5 +207,13 @@ rats_verifier_err_t csv_verify_evidence(rats_verifier_ctx_t *ctx, attestation_ev
 	if (err != RATS_VERIFIER_ERR_NONE)
 		RATS_ERR("failed to verify csv attestation report\n");
 
+	if (err == RATS_VERIFIER_ERR_NONE) {
+		err = convert_quote_to_claims(attestation_report, sizeof(*attestation_report),
+					      claims, claims_length);
+		if (err != RATS_VERIFIER_ERR_NONE)
+			RATS_ERR(
+				"failed to convert csv attestation report to builtin claims: %#x\n",
+				err);
+	}
 	return err;
 }

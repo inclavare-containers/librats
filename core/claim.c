@@ -25,9 +25,9 @@ void free_claims_list(claim_t *claims, size_t claims_length)
 	free(claims);
 }
 
-int librats_add_claim(claim_t *claim, const void *name, size_t name_size, const void *value,
-		      size_t value_size)
+int librats_add_claim(claim_t *claim, const char *name, const void *value, size_t value_size)
 {
+	size_t name_size = strlen(name) + 1;
 	claim->name = (char *)malloc(name_size);
 	if (claim->name == NULL)
 		return 1;
