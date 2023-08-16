@@ -3,6 +3,11 @@ if(RATS_BUILD_MODE STREQUAL "wasm")
     set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Emscripten.cmake")
 endif()
 project(librats)
+# For wasm mode, we need to set property TARGET_SUPPORTS_SHARED_LIBS to TRUE again here, since it has been set to FALSE by project()
+if(RATS_BUILD_MODE STREQUAL "wasm")
+    set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
+endif()
+
 set(RATS_LIB rats_lib)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(RATS_SRC_PATH ${CMAKE_CURRENT_LIST_DIR})
@@ -16,7 +21,10 @@ list(GET VERSION_LIST 1 VERSION_MINOR)
 list(GET VERSION_LIST 2 VERSION_PATCH)
 
 # Build options
-option(BUILD_SAMPLES "Compile sample code along with libraries" ON)
+if(NOT RATS_BUILD_MODE STREQUAL "wasm")
+    option(BUILD_SAMPLES "Compile sample code along with libraries" ON)
+endif()
+
 option(SGX_HW "Run SGX on hardware, OFF for simulation" ON)
 
 # Define build mode
@@ -116,9 +124,7 @@ endif()
 include(LibCBOR)
 
 # Set include directory
-set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
-                 /usr/include
-                 )
+set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if(SGX)
     list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/edl
                              ${CMAKE_CURRENT_BINARY_DIR}/tee/sgx/trust
@@ -179,9 +185,14 @@ if(SGX)
                         ${CMAKE_CURRENT_SOURCE_DIR}/tee/sgx/trust/sgx_dummy.c
                         ${CMAKE_CURRENT_SOURCE_DIR}/tee/sgx/trust/rats_syscalls.c
                         )
-elseif(WASM)
+endif()
+
+if(WASM)
     list(APPEND SOURCES ${WASM_SRCS_DIR}/wasm.cpp)
-else()
+endif()
+
+if(NOT SGX)
+    # Code for dynamically loading with dlopen()
     list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/rats_attester_load_all.c
                         ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/internal/rats_verifier_load_all.c
                         ${CMAKE_CURRENT_SOURCE_DIR}/crypto_wrappers/internal/crypto_wrapper_load_all.c
@@ -208,12 +219,12 @@ if(SGX)
                             libcbor
                             )
 elseif(WASM)
-# TODO: add libcbor for WASM mode
     set(DEPEND_LIBS verifier_nullverifier
                     verifier_sgx_ecdsa
                     verifier_sev
                     verifier_sev_snp
                     verifier_csv
+                    libcbor
                     )
     set(WASM_LINER_LIBRARIES "-L${WASM_BUILD_DIR} \
                               -L${WASM_SRCS_DIR}/dcap/lib \
@@ -316,9 +327,12 @@ if(SGX)
                                    )
 endif()
 
-if(BUILD_SAMPLES)
-    message(STATUS "Build Samples: on")
-    add_subdirectory(samples)
+
+if(NOT WASM)
+    message(STATUS "Build Samples: ${BUILD_SAMPLES}")
+    if(BUILD_SAMPLES)
+        add_subdirectory(samples)
+    endif()
 endif()
 
 # Install lib
