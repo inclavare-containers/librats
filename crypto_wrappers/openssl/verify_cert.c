@@ -84,7 +84,7 @@ crypto_wrapper_err_t openssl_verify_cert(crypto_wrapper_ctx_t *ctx, const uint8_
 	size_t endorsements_buffer_size = 0;
 
 	/* Decode certificate as DER format */
-	ret = RATS_VERIFIER_ERR_CERT_PARSE;
+	ret = CRYPTO_WRAPPER_ERR_CERT_PARSE;
 	const unsigned char *t = (const unsigned char *)certificate;
 	if (!d2i_X509(&cert, &t, certificate_size)) {
 		RATS_ERR("bad certificate format\n");
@@ -116,7 +116,7 @@ crypto_wrapper_err_t openssl_verify_cert(crypto_wrapper_ctx_t *ctx, const uint8_
 	/* Extract the evidence_buffer(optional for nullverifier) and endorsements_buffer(optional)
 	 * from the X.509 certificate extension.
 	 */
-	ret = RATS_VERIFIER_ERR_CERT_EXTENSION;
+	ret = CRYPTO_WRAPPER_ERR_CERT_EXTENSION;
 	/* Extract evidence from extension */
 	int rc = find_extension_from_cert(cert, TCG_DICE_TAGGED_EVIDENCE_OID, &evidence_buffer,
 					  &evidence_buffer_size, true);

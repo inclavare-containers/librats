@@ -232,7 +232,7 @@ crypto_wrapper_err_t crypto_wrapper_verify_certificate_extension(
 		void *t = realloc(claims,
 				  sizeof(claim_t) * (builtin_claims_length + custom_claims_length));
 		if (!t) {
-			ret = RATS_VERIFIER_ERR_NO_MEM;
+			ret = CRYPTO_WRAPPER_ERR_NO_MEM;
 			goto err;
 		}
 		claims = (claim_t *)t;

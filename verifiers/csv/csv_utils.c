@@ -12,7 +12,7 @@ int sm3_hmac(const char *key, size_t key_len, const unsigned char *data, size_t 
 {
 	HMAC_CTX *hmac_ctx = HMAC_CTX_new();
 	const EVP_MD *evp_md = EVP_sm3();
-	int sm3_hmac_out_size = 0;
+	unsigned int sm3_hmac_out_size = 0;
 	int ret = -1;
 
 	if (hmac_ctx == NULL)

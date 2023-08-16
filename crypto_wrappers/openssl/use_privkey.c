@@ -30,7 +30,7 @@ crypto_wrapper_err_t openssl_use_privkey(crypto_wrapper_ctx_t *ctx, uint8_t *pri
 	if (!bio)
 		goto err;
 
-	ret = RATS_ATTESTER_ERR_CERT_PRIV_KEY;
+	ret = CRYPTO_WRAPPER_ERR_PRIV_KEY_DECODE;
 	if (!PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL))
 		goto err;
 	BIO_free(bio);
