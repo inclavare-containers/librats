@@ -182,7 +182,7 @@ crypto_wrapper_err_t openssl_gen_cert(crypto_wrapper_ctx_t *ctx, rats_hash_algo_
 		/* The DiceTaggedEvidence extension criticality flag SHOULD be marked critical. */
 		if (!x509_extension_add(cert, TCG_DICE_TAGGED_EVIDENCE_OID, false,
 					cert_info->evidence_buffer,
-					cert_info->evidence_buffer_size) != RATS_ERR_NONE)
+					cert_info->evidence_buffer_size))
 			goto err;
 	}
 
@@ -190,7 +190,7 @@ crypto_wrapper_err_t openssl_gen_cert(crypto_wrapper_ctx_t *ctx, rats_hash_algo_
 	if (cert_info->endorsements_buffer_size) {
 		if (!x509_extension_add(cert, TCG_DICE_ENDORSEMENT_MANIFEST_OID, false,
 					cert_info->endorsements_buffer,
-					cert_info->endorsements_buffer_size) != RATS_ERR_NONE)
+					cert_info->endorsements_buffer_size))
 			goto err;
 	}
 

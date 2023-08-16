@@ -5,6 +5,7 @@
  */
 
 #include <string.h>
+#include <inttypes.h>
 #include <librats/err.h>
 #include <librats/log.h>
 #include <internal/dice.h>
@@ -86,7 +87,7 @@ int evidence_from_raw(const uint8_t *data, size_t size, uint64_t tag,
 			data[15]);
 
 	if (!tag_is_valid(tag)) {
-		RATS_FATAL("Invalid cbor tag: 0x%zx\n", tag);
+		RATS_FATAL("Invalid cbor tag: 0x%" PRIx64 "\n", tag);
 		return 1;
 	}
 
@@ -466,7 +467,8 @@ rats_verifier_err_t dice_parse_evidence_buffer_with_tag(const uint8_t *evidence_
 	/* Check cbor tag */
 	RATS_VERIFIER_CBOR_ASSERT(cbor_isa_tag(root));
 	if (!tag_is_valid(cbor_tag_value(root))) {
-		RATS_ERR("Bad cbor data: invalid cbor tag got: 0x%zx\n", cbor_tag_value(root));
+		RATS_ERR("Bad cbor data: invalid cbor tag got: 0x%" PRIx64 "\n",
+			 cbor_tag_value(root));
 		goto err;
 	}
 
@@ -550,7 +552,8 @@ rats_verifier_err_t dice_parse_endorsements_buffer_with_tag(const char *type,
 		RATS_VERIFIER_CBOR_ASSERT(cbor_isa_tag(root));
 		if (cbor_tag_value(root) != OCBR_TAG_EVIDENCE_INTEL_TEE_QUOTE) {
 			/* We currently only support endorsements for SGX/TDX ECDSA. */
-			RATS_ERR("Bad cbor data: invalid cbor tag got: 0x%zx, 0x%zx expected\n",
+			RATS_ERR("Bad cbor data: invalid cbor tag got: 0x%" PRIx64 ", 0x%" PRIx64
+				 " expected\n",
 				 cbor_tag_value(root), (uint64_t)OCBR_TAG_EVIDENCE_INTEL_TEE_QUOTE);
 			goto err;
 		}
@@ -683,10 +686,10 @@ rats_verifier_err_t dice_parse_pubkey_hash_value_buffer(const uint8_t *pubkey_ha
 
 	size_t hash_size = hash_size_of_algo(hash_algo_id);
 	if (hash_size == 0) {
-		RATS_ERR(
-			"unsupported hash-alg-id: %lu, sha-256(1), sha-384(7), sha-512(8) are expected\n",
-			hash_algo_id);
-		ret = RATS_ATTESTER_ERR_INVALID;
+		RATS_ERR("unsupported hash-alg-id: %" PRIu64
+			 ", sha-256(1), sha-384(7), sha-512(8) are expected\n",
+			 hash_algo_id);
+		ret = RATS_VERIFIER_ERR_INVALID;
 		goto err;
 	}
 

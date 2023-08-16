@@ -58,7 +58,7 @@ rats_verifier_err_t librats_verify_attestation_certificate(
 							   certificate_size);
 	if (crypto_ret != CRYPTO_WRAPPER_ERR_NONE) {
 		RATS_ERR("certificate verification failed: %#x\n", crypto_ret);
-		ret = RATS_ATTESTER_ERR_CERT_GEN;
+		ret = RATS_VERIFIER_ERR_INVALID;
 		goto err;
 	}
 

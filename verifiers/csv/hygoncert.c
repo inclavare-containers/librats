@@ -899,7 +899,9 @@ static int verify_hsk_cert_signature(hygon_root_cert_t *hsk_cert)
 int verify_hsk_cert(hygon_root_cert_t *cert)
 {
 	if (cert->key_usage != KEY_USAGE_TYPE_HSK) {
-		RATS_ERR("HSK cert key usage type invalid\n");
+		RATS_ERR(
+			"HSK cert key usage type invalid. Expected %d(KEY_USAGE_TYPE_HSK), got %d\n",
+			KEY_USAGE_TYPE_HSK, cert->key_usage);
 		return -1;
 	}
 
