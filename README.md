@@ -67,14 +67,7 @@
 
  Librats provides support for [WebAssembly](https://webassembly.org), which enables it to run in the browser and [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime).
 
- If you want to run it in browser, please type the following command.
- ```shell
- source wasm/emscripten/pre_build.sh
- cmake -DRATS_BUILD_MODE="wasm"  -H. -Bbuild
- make -C build
- ```
-
- When the compilation is finished, you can find the results in build/wasm.
+ If you want to run it in browser, please read [this document](wasm/emscripten/README.md).
 
  If you want to run it in WAMR, please type the following command.
  ```shell

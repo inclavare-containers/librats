@@ -3,7 +3,7 @@ add_subdirectory(nullverifier)
 include(FindSgxDcapQuoteVerify)
 
 if(HOST OR WASM OR TDX)
-    if(SGXDCAPQV_FOUND)
+    if(WASM OR SGXDCAPQV_FOUND)
         add_subdirectory(sgx-ecdsa)
     else()
         message(WARNING "It will not build sgx_ecdsa verifier due to libsgx_dcap_quoteverify.so not found")
