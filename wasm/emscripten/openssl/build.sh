@@ -32,7 +32,7 @@ if [ ! -d ${OPENSSL_DIR} ]; then
 fi
 cd ${OPENSSL_DIR} || exit 0
 
-emconfigure ./Configure --prefix=${SOURCE_DIR}/install linux-x86 no-asm no-threads no-engine no-hw no-weak-ssl-ciphers no-dtls no-shared no-dso 
+emconfigure ./Configure --prefix=${SOURCE_DIR}/install linux-x86 no-asm no-threads no-engine no-hw no-weak-ssl-ciphers no-dtls no-shared no-dso no-tests no-unit-test
 sed -i -e 's|^CROSS_COMPILE.*$|CROSS_COMPILE=|g' Makefile
 sed -i -e '/^CFLAGS/ s/$/ -D__STDC_NO_ATOMICS__=1/' Makefile
 sed -i -e '/^CXXFLAGS/ s/$/ -D__STDC_NO_ATOMICS__=1/' Makefile
