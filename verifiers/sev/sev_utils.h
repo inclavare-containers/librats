@@ -14,7 +14,7 @@
 #define SEV_DEFAULT_DIR "/opt/sev/"
 
 #define AMD_SEV_DEVELOPER_SITE "https://developer.amd.com/sev/"
-#define ASK_ARK_PATH_SITE      "https://developer.amd.com/wp-content/resources/"
+#define ASK_ARK_PATH_SITE      "https://download.amd.com/developer/eula/sev/"
 
 #define ASK_ARK_NAPLES_FILE "ask_ark_naples.cert"
 #define ASK_ARK_ROME_FILE   "ask_ark_rome.cert"
