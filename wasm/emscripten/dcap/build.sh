@@ -21,8 +21,10 @@ mkdir -p "${LIB_DIR}"
 
 # git pull and apply patch
 if [ ! -d "${DCAP_DIR}" ]; then
-  git clone -b ${DCAP_VERSION}  https://github.com/intel/SGXDataCenterAttestationPrimitives
+  git clone -b ${DCAP_VERSION} --depth=1 https://github.com/intel/SGXDataCenterAttestationPrimitives || exit 1
   cd ${DCAP_DIR} || exit 1
+  git config user.email "you@example.com" || exit 1
+  git config user.name "Your Name" || exit 1
   git am ../patch/*.patch || exit 1
 fi
 
