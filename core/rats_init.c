@@ -161,7 +161,7 @@ rats_verifier_err_t rats_verifier_init(rats_conf_t *conf, rats_core_context_t *c
 		if (choice[0] == '\0')
 			choice = NULL;
 	}
-	err = rats_verifier_select(ctx, choice);
+	err = rats_verifier_select_by_type(ctx, choice);
 	if (err != RATS_VERIFIER_ERR_NONE)
 		goto err_ctx;
 
