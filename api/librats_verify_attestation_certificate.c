@@ -36,7 +36,7 @@ rats_verifier_err_t librats_verify_attestation_certificate(
 		rats_global_log_level = conf.log_level;
 	}
 
-	if ((ret = rats_verifier_init(&conf, &ctx)) != RATS_VERIFIER_ERR_NONE)
+	if ((ret = rats_verifier_init(&conf, &ctx, NULL)) != RATS_VERIFIER_ERR_NONE)
 		goto err;
 	verifier_initialized = true;
 	if ((crypto_ret = rats_crypto_wrapper_init(&conf, &ctx)) != CRYPTO_WRAPPER_ERR_NONE) {

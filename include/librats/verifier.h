@@ -30,7 +30,8 @@
 typedef struct rats_core_context rats_core_context_t;
 typedef struct rats_verifier_ctx rats_verifier_ctx_t;
 
-extern rats_verifier_err_t rats_verifier_init(rats_conf_t *conf, rats_core_context_t *ctx);
+extern rats_verifier_err_t rats_verifier_init(rats_conf_t *conf, rats_core_context_t *ctx,
+					      attestation_evidence_t *evidence);
 
 typedef struct rats_verifier_opts {
 	uint8_t api_version;
