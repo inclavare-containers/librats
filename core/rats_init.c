@@ -122,7 +122,8 @@ err_ctx:
 	return err;
 }
 
-rats_verifier_err_t rats_verifier_init(rats_conf_t *conf, rats_core_context_t *ctx)
+rats_verifier_err_t rats_verifier_init(rats_conf_t *conf, rats_core_context_t *ctx,
+				       attestation_evidence_t *evidence)
 {
 	RATS_DEBUG("called, conf %p\n", conf);
 
@@ -154,14 +155,18 @@ rats_verifier_err_t rats_verifier_init(rats_conf_t *conf, rats_core_context_t *c
 		qsort(rats_verifiers_ctx, rats_verifier_nums, sizeof(rats_verifier_ctx_t *),
 		      rats_verifier_cmp);
 	}
-	/* Select the target verifier to be used */
-	choice = ctx->config.verifier_type;
-	if (choice[0] == '\0') {
-		choice = rats_global_core_context.config.verifier_type;
-		if (choice[0] == '\0')
-			choice = NULL;
+	if (evidence) {
+		err = rats_verifier_select_by_type(ctx, evidence->type);
+	} else {
+		/* Select the target verifier to be used */
+		choice = ctx->config.verifier_type;
+		if (choice[0] == '\0') {
+			choice = rats_global_core_context.config.verifier_type;
+			if (choice[0] == '\0')
+				choice = NULL;
+		}
+		err = rats_verifier_select(ctx, choice);
 	}
-	err = rats_verifier_select(ctx, choice);
 	if (err != RATS_VERIFIER_ERR_NONE)
 		goto err_ctx;
 
