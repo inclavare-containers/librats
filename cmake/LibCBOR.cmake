@@ -21,4 +21,5 @@ ExternalProject_Add(${PROJECT_NAME}
         CONFIGURE_COMMAND       ${LIBCBOR_CONFIGURE}
         BUILD_COMMAND           ${LIBCBOR_MAKE}
         INSTALL_COMMAND         ${LIBCBOR_INSTALL}
+        BUILD_BYPRODUCTS        ${LIBCBOR_LIB_FILES}
 )

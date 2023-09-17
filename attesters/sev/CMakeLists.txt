@@ -1,6 +1,8 @@
 # Project name
 project(attester_sev)
 
+find_package (OpenSSL REQUIRED)
+
 # Set include directory
 set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../include
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/librats
@@ -26,11 +28,11 @@ set(SOURCES cleanup.c
             )
 
 add_custom_target(ttrpc_lib ALL
-	COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/ttrpc && cargo build --release && cp -f target/release/${TTRPC_LIB} ${CMAKE_BINARY_DIR})
+	COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/ttrpc && env OPENSSL_LIB_DIR=`dirname ${OPENSSL_SSL_LIBRARY}` OPENSSL_INCLUDE_DIR=${OPENSSL_INCLUDE_DIR} cargo build --release && cp -f target/release/${TTRPC_LIB} ${CMAKE_BINARY_DIR})
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 add_dependencies(${PROJECT_NAME} ttrpc_lib)
-target_link_libraries(${PROJECT_NAME} ${RATS_LDFLAGS} ${RATS_LIB} ${TTRPC_LIB} crypto)
+target_link_libraries(${PROJECT_NAME} ${RATS_LDFLAGS} ${RATS_LIB} ${TTRPC_LIB} OpenSSL::Crypto)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${VERSION} SOVERSION ${VERSION_MAJOR})
 
 # Install library

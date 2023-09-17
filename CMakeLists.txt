@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.12.0)
 if(RATS_BUILD_MODE STREQUAL "wasm")
     set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Emscripten.cmake")
 endif()
@@ -148,7 +148,7 @@ endif()
 
 add_subdirectory(crypto_wrappers)
 
-list(APPEND INCLUDE_DIRS ${LIBCBOR_INC_PATH})
+list(APPEND INCLUDE_DIRS ${LIBCBOR_INC_PATH}) # libcbor is need by core layer only 
 
 include_directories(${INCLUDE_DIRS})
 
@@ -336,9 +336,9 @@ endif()
 # Install lib
 if(NOT WASM)
     install(TARGETS ${RATS_LIB} DESTINATION ${RATS_INSTALL_LIB_PATH})
-    install(DIRECTORY DESTINATION ${RATS_INSTALL_INCLUDE_PATH}/librats)
-    install(FILES ${RATS_INCLUDE_FILES} DESTINATION ${RATS_INSTALL_INCLUDE_PATH}/librats)
+    install(DIRECTORY DESTINATION ${RATS_INSTALL_INCLUDE_PATH})
+    install(FILES ${RATS_INCLUDE_FILES} DESTINATION ${RATS_INSTALL_INCLUDE_PATH})
     if(SGX)
-        install(FILES ${RATS_EDL_FILES} DESTINATION ${RATS_INSTALL_INCLUDE_PATH}/librats/edl)
+        install(FILES ${RATS_EDL_FILES} DESTINATION ${RATS_INSTALL_INCLUDE_PATH}/edl)
     endif()
 endif()

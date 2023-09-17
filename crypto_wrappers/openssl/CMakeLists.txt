@@ -1,6 +1,10 @@
 # Project name
 project(crypto_wrapper_openssl)
 
+if(NOT SGX AND NOT WASM)
+    find_package (OpenSSL REQUIRED)
+endif()
+
 # Set include directory
 include_directories(${INCLUDE_DIRS})
 
@@ -46,7 +50,7 @@ elseif(WASM)
     endif()
 else()
     add_library(${PROJECT_NAME} SHARED ${SOURCES})
-    target_link_libraries(${PROJECT_NAME} ${RATS_LDFLAGS} ${RATS_LIB} crypto.so)
+    target_link_libraries(${PROJECT_NAME} ${RATS_LDFLAGS} ${RATS_LIB} OpenSSL::Crypto)
     set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${VERSION} SOVERSION ${VERSION_MAJOR})
 endif()
 

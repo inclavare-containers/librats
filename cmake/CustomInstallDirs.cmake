@@ -1,20 +1,19 @@
-# /usr/local
-set(RATS_INSTALL_PATH "/usr/local" CACHE STRING "Install path for librats")
+# Use CMAKE_INSTALL_PREFIX (/usr/local by default) as prefix of install path for librats
 
-# lib/rats
-set(RATS_INSTALL_LIB_PATH "${RATS_INSTALL_PATH}/lib/librats")
+# lib/librats
+set(RATS_INSTALL_LIB_PATH "${CMAKE_INSTALL_PREFIX}/lib/librats")
 
-# rats/attesters
+# librats/attesters
 set(RATS_INSTALL_LIBA_PATH "${RATS_INSTALL_LIB_PATH}/attesters")
 
-# rats/verifiers
+# librats/verifiers
 set(RATS_INSTALL_LIBV_PATH "${RATS_INSTALL_LIB_PATH}/verifiers")
 
-# rats/crypto_wrappers
+# librats/crypto_wrappers
 set(RATS_INSTALL_LIBCW_PATH "${RATS_INSTALL_LIB_PATH}/crypto_wrappers")
 
-# include/rats
-set(RATS_INSTALL_INCLUDE_PATH "${RATS_INSTALL_PATH}/include/")
+# include/librats
+set(RATS_INSTALL_INCLUDE_PATH "${CMAKE_INSTALL_PREFIX}/include/librats")
 
 # sgx sdk
 if(EXISTS $ENV{SGX_SDK})
