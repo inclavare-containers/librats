@@ -1,8 +1,13 @@
 # Project name
 project(attester_csv)
 
+find_package (OpenSSL REQUIRED)
+
+find_package (CURL REQUIRED)
+
 # Set include directory
-set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../include
+set(INCLUDE_DIRS ${INCLUDE_DIRS}
+                 ${CMAKE_CURRENT_SOURCE_DIR}/../../include
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/librats
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/internal
                  )
@@ -25,7 +30,7 @@ set(SOURCES cleanup.c
 
 # Generate library
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
-target_link_libraries(${PROJECT_NAME} ${RATS_LDFLAGS} ${RATS_LIB} crypto curl)
+target_link_libraries(${PROJECT_NAME} ${RATS_LDFLAGS} ${RATS_LIB} OpenSSL::Crypto CURL::libcurl)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${VERSION} SOVERSION ${VERSION_MAJOR})
 
 # Install library

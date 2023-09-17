@@ -1,8 +1,14 @@
 # Project name
 project(verifier_sev_snp)
 
+if(NOT WASM)
+    find_package (OpenSSL REQUIRED)
+    find_package (CURL REQUIRED)
+endif()
+
 # Set include directory
-set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../include
+set(INCLUDE_DIRS ${INCLUDE_DIRS}
+                 ${CMAKE_CURRENT_SOURCE_DIR}/../../include
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/librats
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/internal
                  ${CMAKE_CURRENT_SOURCE_DIR}
@@ -10,6 +16,7 @@ set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../include
 if(WASM)
     list(APPEND INCLUDE_DIRS ${WASM_SRCS_DIR}/openssl/install/include)
 endif()
+
 include_directories(${INCLUDE_DIRS})
 
 # Set dependency library directory
@@ -18,9 +25,6 @@ set(LIBRARY_DIRS ${CMAKE_BINARY_DIR}
                  )
 
 link_directories(${LIBRARY_DIRS})
-
-# Set extra link library
-set(EXTRA_LINK_LIBRARY crypto curl)
 
 # Set source file
 set(SOURCES cleanup.c
@@ -48,7 +52,7 @@ if(WASM)
                          )
     endif()
 else()
-    target_link_libraries(${PROJECT_NAME} ${EXTRA_LINK_LIBRARY} ${RATS_LDFLAGS} ${RATS_LIB})
+    target_link_libraries(${PROJECT_NAME} ${RATS_LDFLAGS} ${RATS_LIB} OpenSSL::Crypto CURL::libcurl)
     set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${VERSION} SOVERSION ${VERSION_MAJOR})
 endif()
 

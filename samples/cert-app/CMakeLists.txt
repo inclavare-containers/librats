@@ -41,7 +41,6 @@ else()
                      ${CMAKE_CURRENT_SOURCE_DIR}/../../include/librats
                      ${RATS_INSTALL_INCLUDE_PATH}
                      ${RATS_INSTALL_INCLUDE_PATH}/edl
-                     ${RATS_INSTALL_INCLUDE_PATH}/librats
                      )
     set(LIBRARY_DIRS ${RATS_INSTALL_LIB_PATH})
 endif()
