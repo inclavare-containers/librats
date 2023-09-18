@@ -56,7 +56,6 @@ BraceWrapping:
   SplitEmptyFunction: true # Unknown to clang-format-4.0
   SplitEmptyRecord: true # Unknown to clang-format-4.0
   SplitEmptyNamespace: true # Unknown to clang-format-4.0
-BreakAfterJavaFieldAnnotations: true
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
 #BreakBeforeConceptDeclarations: false # Unknown to clang-format-9.0
@@ -141,7 +140,6 @@ SpaceBeforeInheritanceColon: true # Unknown to clang-format-6.0
 SpaceBeforeParens: ControlStatements
 SpaceBeforeRangeBasedForLoopColon: true # Unknown to clang-format-6.0
 #SpaceBeforeSquareBrackets: false # Unknown to clang-format-9.0
-SpaceInEmptyParentheses: false
 #SpaceInEmptyBlock: true # Unknown to clang-format-9.0
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
