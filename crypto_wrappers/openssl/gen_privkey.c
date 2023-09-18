@@ -83,7 +83,7 @@ crypto_wrapper_err_t openssl_gen_privkey(crypto_wrapper_ctx_t *ctx, rats_key_alg
 	if (!PEM_write_bio_PrivateKey(bio, octx->privkey, NULL, NULL, 0, 0, NULL))
 		goto err;
 
-	*privkey_len = BIO_get_mem_data(bio, privkey);
+	*privkey_len = BIO_get_mem_data(bio, (char**)privkey);
 	if (*privkey_len <= 0)
 		goto err;
 

@@ -18,7 +18,7 @@
 #define SEV_CERT_MAX_SIGNATURES 2
 #define SEV_CERT_MAX_VERSION	1
 
-static bool validate_usage(uint32_t usage)
+__attribute__((unused)) static bool validate_usage(uint32_t usage)
 {
 	switch (usage) {
 	case SEV_USAGE_ARK:
