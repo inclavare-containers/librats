@@ -160,15 +160,21 @@ crypto_wrapper_err_t openssl_gen_cert(crypto_wrapper_ctx_t *ctx, rats_hash_algo_
 	if (!name)
 		goto err;
 
-	X509_NAME_add_entry_by_txt(name, "O", MBSTRING_ASC,
-				   (const unsigned char *)cert_info->subject.organization, -1, -1,
-				   0);
-	X509_NAME_add_entry_by_txt(name, "OU", MBSTRING_ASC,
-				   (const unsigned char *)cert_info->subject.organization_unit, -1,
-				   -1, 0);
-	X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC,
-				   (const unsigned char *)cert_info->subject.common_name, -1, -1,
-				   0);
+	if (cert_info->subject.organization) {
+		X509_NAME_add_entry_by_txt(name, "O", MBSTRING_ASC,
+					   (const unsigned char *)cert_info->subject.organization,
+					   -1, -1, 0);
+	}
+	if (cert_info->subject.organization_unit) {
+		X509_NAME_add_entry_by_txt(
+			name, "OU", MBSTRING_ASC,
+			(const unsigned char *)cert_info->subject.organization_unit, -1, -1, 0);
+	}
+	if (cert_info->subject.common_name) {
+		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC,
+					   (const unsigned char *)cert_info->subject.common_name,
+					   -1, -1, 0);
+	}
 	if (!X509_set_issuer_name(cert, name))
 		goto err;
 
