@@ -40,3 +40,16 @@ jobs:
           fi
         env:
           HOME: /root
+
+      - name: Run "librats" ${{ matrix.build_mode }} mode
+        if: ${{ matrix.build_mode == 'host'}}
+        run: |
+          /usr/share/librats/samples/cert-app
+        env:
+          HOME: /root
+
+      - name: Clean for ${{ matrix.build_mode }} mode
+        run: |
+          make -C build clean
+        env:
+          HOME: /root
