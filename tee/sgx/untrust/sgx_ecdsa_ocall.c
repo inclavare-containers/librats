@@ -78,13 +78,15 @@ rats_verifier_err_t rats_ocall_ecdsa_verify_evidence(
 	/* sgx_ecdsa_qve instance re-uses this code and thus we need to distinguish
 	 * it from sgx_ecdsa instance.
 	 */
+	static bool has_load_policy_been_set = false;
 	bool is_sgx_ecdsa_qve = p_qve_report_info != NULL;
-	if (is_sgx_ecdsa_qve) {
+	if (is_sgx_ecdsa_qve && !has_load_policy_been_set) {
 		/* Set enclave load policy of Quote Verification Library before loading the QvE enclave. */
 		dcap_ret = sgx_qv_set_enclave_load_policy(SGX_QL_DEFAULT);
-		if (dcap_ret == SGX_QL_SUCCESS)
+		if (dcap_ret == SGX_QL_SUCCESS) {
+			has_load_policy_been_set = true;
 			RATS_INFO("sgx qv setting for enclave load policy succeeds.\n");
-		else {
+		} else {
 			RATS_ERR("failed to set enclave load policy by sgx qv: %04x\n", dcap_ret);
 			err = SGX_ECDSA_VERIFIER_ERR_CODE((int)dcap_ret);
 			goto errret;
