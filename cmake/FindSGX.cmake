@@ -1,3 +1,7 @@
+function(reportSGXSDKNotFound)
+    message(FATAL_ERROR "Can not found intel-sgx-sdk at ${SGX_PATH}, which is needed by ${CMAKE_CURRENT_LIST_FILE}.\nYou may need to install the sdk at there first, or set current path with -DSGX_SDK=<path-to-sdk>\n")
+endfunction()
+
 include(FindPackageHandleStandardArgs)
 
 if(EXISTS SGX_DIR)

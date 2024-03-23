@@ -14,7 +14,7 @@ if(SGX)
 
     include(FindSGX)
     if(NOT SGX_FOUND)
-        message(FATAL_ERROR "Failed to find sgx!")
+        reportSGXSDKNotFound()
     endif()
 
     include(CompilerOptions)
