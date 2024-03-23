@@ -7,6 +7,16 @@ set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../include
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/internal
                  ${CMAKE_CURRENT_SOURCE_DIR}
                  )
+
+include(FindSGX)
+if(NOT SGX_FOUND)
+    reportSGXSDKNotFound()
+else()
+    set(INCLUDE_DIRS ${INCLUDE_DIRS}
+                     ${SGX_PATH}/include/
+                     )
+endif()
+
 include_directories(${INCLUDE_DIRS})
 
 # Set dependency library directory

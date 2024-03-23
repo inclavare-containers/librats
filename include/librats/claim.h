@@ -40,32 +40,40 @@
 #define BUILT_IN_CLAIM_SGX_ISV_FAMILY_ID "sgx_isv_family_id"
 
 /* TDX built-in claims */
-/* Refer to: https://github.com/intel/linux-sgx/blob/a1eeccba5a72b3b9b342569d2cc469ece106d3e9/common/inc/sgx_report.h#L93-L111 */
-/// TEE_TCB_SVN Array
+/* Refer to: https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/cd27223301e7c2bc80c9c5084ad6f5c2b9d24f5c/QuoteGeneration/quote_wrapper/common/inc/sgx_quote_4.h#L123-L137 */
+/* TEE_TCB_SVN Array */
 #define BUILT_IN_CLAIM_TDX_TEE_TCB_SVN "tdx_tee_tcb_svn"
-/// Measurement of the SEAM module
+/* Measurement of the SEAM module */
 #define BUILT_IN_CLAIM_TDX_MR_SEAM "tdx_mr_seam"
-/// Measurement of a 3rd party SEAM module’s signer (SHA384 hash). The value is 0’ed for Intel SEAM module
+/* Measurement of a 3rd party SEAM module’s signer (SHA384 hash). The value is 0’ed for Intel SEAM module */
 #define BUILT_IN_CLAIM_TDX_MRSIGNER_SEAM "tdx_mrsigner_seam"
-/// MBZ: TDX 1.0
+/* MBZ: TDX 1.0 */
 #define BUILT_IN_CLAIM_TDX_SEAM_ATTRIBUTES "tdx_seam_attributes"
-/// TD's attributes
+/* TD's attributes */
 #define BUILT_IN_CLAIM_TDX_TD_ATTRIBUTES "tdx_td_attributes"
-/// TD's XFAM
+/* TD's XFAM */
 #define BUILT_IN_CLAIM_TDX_XFAM "tdx_xfam"
-/// Measurement of the initial contents of the TD
+/* Measurement of the initial contents of the TD */
 #define BUILT_IN_CLAIM_TDX_MR_TD "tdx_mr_td"
-/// Software defined ID for non-owner-defined configuration on the guest TD. e.g., runtime or OS configuration
+/* Software defined ID for non-owner-defined configuration on the guest TD. e.g., runtime or OS configuration */
 #define BUILT_IN_CLAIM_TDX_MR_CONFIG_ID "tdx_mr_config_id"
-/// Software defined ID for the guest TD's owner
+/* Software defined ID for the guest TD's owner */
 #define BUILT_IN_CLAIM_TDX_MR_OWNER "tdx_mr_owner"
-/// Software defined ID for owner-defined configuration of the guest TD, e.g., specific to the workload rather than the runtime or OS
+/* Software defined ID for owner-defined configuration of the guest TD, e.g., specific to the workload rather than the runtime or OS */
 #define BUILT_IN_CLAIM_TDX_MR_OWNER_CONFIG "tdx_mr_owner_config"
-/// Array of 4(TDX1: NUM_RTMRS is 4) runtime extendable measurement registers
+/* Array of 4(TDX1: NUM_RTMRS is 4) runtime extendable measurement registers */
 #define BUILT_IN_CLAIM_TDX_RT_MR0 "tdx_rt_mr0"
 #define BUILT_IN_CLAIM_TDX_RT_MR1 "tdx_rt_mr1"
 #define BUILT_IN_CLAIM_TDX_RT_MR2 "tdx_rt_mr2"
 #define BUILT_IN_CLAIM_TDX_RT_MR3 "tdx_rt_mr3"
+
+/* TDX built-in claims, for TDX 1.5 only */
+/* Refer to: https://github.com/intel/SGXDataCenterAttestationPrimitives/blob/cd27223301e7c2bc80c9c5084ad6f5c2b9d24f5c/QuoteGeneration/quote_wrapper/common/inc/sgx_quote_5.h#L99-L100 */
+/* Array of TEE TCB SVNs (for TD preserving). */
+#define BUILT_IN_CLAIM_TDX_TEE_TCB_SVN2 "tdx_tee_tcb_svn2"
+/* If is one or more bound or pre-bound service TDs, SERVTD_HASH is the SHA384 hash of the TDINFO_STRUCTs of those service TDs bound. */
+#define BUILT_IN_CLAIM_TDX_MR_SERVICETD "tdx_mr_servicetd"
+
 
 /* sev-snp built-in claims */
 #define BUILT_IN_CLAIM_SEV_SNP_GUEST_SVN     "sev_snp_guest_svn" /* 0x004 */

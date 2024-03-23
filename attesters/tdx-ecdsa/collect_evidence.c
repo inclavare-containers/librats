@@ -9,7 +9,6 @@
 #include <librats/log.h>
 #include <librats/attester.h>
 #include <stddef.h>
-#include "../../verifiers/tdx-ecdsa/tdx-ecdsa.h"
 
 #define VSOCK
 

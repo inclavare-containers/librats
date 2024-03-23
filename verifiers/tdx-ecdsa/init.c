@@ -7,18 +7,14 @@
 #include <string.h>
 #include <librats/log.h>
 #include <librats/verifier.h>
-#include "tdx-ecdsa.h"
+
+static unsigned int dummy_private;
 
 rats_verifier_err_t tdx_ecdsa_verifier_init(rats_verifier_ctx_t *ctx)
 {
 	RATS_DEBUG("ctx %p\n", ctx);
 
-	tdx_ctx_t *tdx_ctx = (tdx_ctx_t *)calloc(1, sizeof(*tdx_ctx));
-	if (!tdx_ctx)
-		return RATS_VERIFIER_ERR_NO_MEM;
-
-	memset(tdx_ctx->mrowner, 0, sizeof(tdx_ctx->mrowner));
-	ctx->verifier_private = tdx_ctx;
+	ctx->verifier_private = &dummy_private;
 
 	return RATS_VERIFIER_ERR_NONE;
 }

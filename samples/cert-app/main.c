@@ -214,6 +214,8 @@ int main(int argc, char **argv)
 	printf("    - Welcome to librats sample cert-app program for Intel SGX\n");
 #elif defined(OCCLUM)
 	printf("    - Welcome to librats sample cert-app program for Occlum\n");
+#elif defined(TDX)
+	printf("    - Welcome to librats sample cert-app program for Intel TDX\n");
 #else
 	printf("    - Welcome to librats sample cert-app program for Host\n");
 #endif
@@ -305,9 +307,9 @@ int main(int argc, char **argv)
 			     "        --debug-enclave/-d            set to enable enclave debugging\n"
 			     "        --no-privkey/-k               set to enable key pairs generation in librats\n"
 			     "        --add-claim/-C key:val        add a user-defined custom claims\n"
-			     "        --attester/-a value   	    set the type of quote attester\n"
-			     "        --verifier/-v value   	    set the type of quote verifier\n"
-			     "        --crypto/-c value     	    set the type of crypto wrapper\n"
+			     "        --attester/-a value           set the type of quote attester\n"
+			     "        --verifier/-v value           set the type of quote verifier\n"
+			     "        --crypto/-c value             set the type of crypto wrapper\n"
 			     "        --log-level/-l                set the log level\n"
 			     "        --help/-h                     show the usage\n");
 			exit(1);
