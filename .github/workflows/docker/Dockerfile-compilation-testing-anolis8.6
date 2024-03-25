@@ -1,0 +1,50 @@
+FROM openanolis/anolisos:8.6-x86_64
+
+LABEL maintainer="Shirong Hao <shirong@linux.alibaba.com>"
+
+ENV SGX_SDK_VERSION 2.23
+ENV SGX_SDK_RELEASE_NUMBER 2.23.100.2
+ENV SGX_DCAP_VERSION 1.20
+
+# install some necessary packages
+RUN dnf install -y --nogpgcheck epel-release
+
+RUN dnf clean all && rm -rf /var/cache/dnf && \
+    dnf --enablerepo=PowerTools install -y git wget \
+        make cmake autoconf libtool gcc gcc-c++ \
+        openssl-devel libcurl-devel dnf-utils patch \
+        libcbor-devel
+
+WORKDIR /root
+
+# install rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+ENV PATH         /root/.cargo/bin:$PATH
+
+# install LVI binutils for rats-tls build
+RUN wget https://download.01.org/intel-sgx/sgx-linux/$SGX_SDK_VERSION/as.ld.objdump.r4.tar.gz && \
+    tar -zxvf as.ld.objdump.r4.tar.gz && cp -rf external/toolset/anolis8.6/* /usr/local/bin/ && \
+    rm -rf external && rm -rf as.ld.objdump.r4.tar.gz
+
+# install SGX SDK
+RUN [ ! -f sgx_linux_x64_sdk_$SGX_SDK_RELEASE_NUMBER.bin ] && \
+    wget https://download.01.org/intel-sgx/sgx-linux/$SGX_SDK_VERSION/distro/Anolis86/sgx_linux_x64_sdk_$SGX_SDK_RELEASE_NUMBER.bin && \
+    chmod +x sgx_linux_x64_sdk_$SGX_SDK_RELEASE_NUMBER.bin && echo -e 'n\n\/opt/intel\n' | ./sgx_linux_x64_sdk_$SGX_SDK_RELEASE_NUMBER.bin && \
+    source /opt/intel/sgxsdk/environment && \
+    rm -rf sgx_linux_x64_sdk_$SGX_SDK_RELEASE_NUMBER.bin
+
+# add repository to package manager
+RUN [ ! -f sgx_rpm_local_repo.tgz ] && \
+    wget https://download.01.org/intel-sgx/sgx-linux/$SGX_SDK_VERSION/distro/Anolis86/sgx_rpm_local_repo.tgz && \
+    tar zxvf sgx_rpm_local_repo.tgz && \
+    dnf config-manager --add-repo sgx_rpm_local_repo && \
+    dnf makecache && rm -rf sgx_rpm_local_repo.tgz
+
+# install SGX DCAP
+RUN dnf install --nogpgcheck -y libsgx-headers-"$SGX_SDK_VERSION*" \
+        libsgx-dcap-quote-verify-devel-"$SGX_DCAP_VERSION*" \
+        libsgx-dcap-ql-devel-"$SGX_DCAP_VERSION*" \
+        libsgx-dcap-default-qpl-"$SGX_DCAP_VERSION*"
+
+# install tdx
+RUN dnf install --nogpgcheck -y libtdx-attest-devel-"$SGX_DCAP_VERSION*"
