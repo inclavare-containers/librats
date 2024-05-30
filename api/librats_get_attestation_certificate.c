@@ -44,6 +44,8 @@ rats_attester_err_t librats_get_attestation_certificate(
 	bool attester_initialized = false;
 	bool crypto_wrapper_initialized = false;
 
+	rats_cert_info_t cert_info = { 0 };
+
 	if (!privkey || !privkey_len || (*privkey && !*privkey_len) || !certificate_out ||
 	    !certificate_size_out || (!custom_claims && custom_claims_length))
 		return RATS_ATTESTER_ERR_INVALID_PARAMETER;
@@ -177,10 +179,10 @@ rats_attester_err_t librats_get_attestation_certificate(
 	RATS_DEBUG("endorsements buffer size: %zu\n", endorsements_buffer_size);
 
 	/* Prepare cert info for cert generation */
-	rats_cert_info_t cert_info = {
+	cert_info = (rats_cert_info_t) {
 		.subject = subject_name,
-		.cert_len = 0,
-		.cert_buf = { 0 },
+		.cert_bufer = NULL,
+		.cert_bufer_size = 0,
 		.evidence_buffer = evidence_buffer,
 		.evidence_buffer_size = evidence_buffer_size,
 		.endorsements_buffer = endorsements_buffer,
@@ -196,14 +198,10 @@ rats_attester_err_t librats_get_attestation_certificate(
 		goto err;
 	}
 
-	uint8_t *t = (uint8_t *)malloc(cert_info.cert_len);
-	if (!t) {
-		ret = RATS_ATTESTER_ERR_NO_MEM;
-		goto err;
-	}
-	memcpy(t, cert_info.cert_buf, cert_info.cert_len);
-	*certificate_out = t;
-	*certificate_size_out = cert_info.cert_len;
+	*certificate_out = cert_info.cert_bufer;
+	*certificate_size_out = cert_info.cert_bufer_size;
+	cert_info.cert_bufer = NULL;
+	cert_info.cert_bufer_size = 0;
 
 	ret = RATS_ATTESTER_ERR_NONE;
 err:
@@ -215,6 +213,8 @@ err:
 	    ctx.attester->opts->cleanup(ctx.attester) != RATS_ATTESTER_ERR_NONE) {
 		RATS_ERR("failed to clean up attester\n");
 	}
+	if (cert_info.cert_bufer)
+		free(cert_info.cert_bufer);
 	if (evidence_buffer)
 		free(evidence_buffer);
 	if (endorsements_buffer)

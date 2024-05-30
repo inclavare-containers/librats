@@ -109,10 +109,13 @@ rats_verifier_err_t sev_snp_verify_evidence(rats_verifier_ctx_t *ctx,
 		return RATS_VERIFIER_ERR_INVALID;
 #else
 		memset(evidence->snp.vcek, 0, VECK_MAX_SIZE);
-		err = sev_snp_get_vcek_der(report->chip_id, sizeof(report->chip_id),
-					   &report->current_tcb, &evidence->snp);
-		if (err != RATS_ATTESTER_ERR_NONE)
+		rats_attester_err_t attester_err =
+			sev_snp_get_vcek_der(report->chip_id, sizeof(report->chip_id),
+					     &report->current_tcb, &evidence->snp);
+		if (attester_err != RATS_ATTESTER_ERR_NONE) {
+			err = (rats_verifier_err_t)attester_err;
 			return err;
+		}
 #endif
 	}
 

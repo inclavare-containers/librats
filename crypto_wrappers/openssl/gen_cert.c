@@ -204,12 +204,26 @@ crypto_wrapper_err_t openssl_gen_cert(crypto_wrapper_ctx_t *ctx, rats_hash_algo_
 	if (!X509_sign(cert, octx->privkey, EVP_sha256()))
 		goto err;
 
-	unsigned char *der = cert_info->cert_buf;
+	len = i2d_X509(cert, NULL);
+	if (len < 0) {
+		RATS_DEBUG("openssl failed to serialize X.509 cert\n");
+		goto err;
+	}
+
+	u_int8_t *cert_buffer = malloc(len);
+	if (cert_buffer == NULL) {
+		ret = CRYPTO_WRAPPER_ERR_NO_MEM;
+		goto err;
+	}
+
+	unsigned char *der = cert_buffer;
 	len = i2d_X509(cert, &der);
 	if (len < 0)
 		goto err;
 
-	cert_info->cert_len = len;
+	cert_info->cert_bufer = cert_buffer;
+	cert_info->cert_bufer_size = len;
+	cert_buffer = NULL;
 
 	RATS_DEBUG("self-signing certificate generated\n");
 
@@ -218,6 +232,9 @@ crypto_wrapper_err_t openssl_gen_cert(crypto_wrapper_ctx_t *ctx, rats_hash_algo_
 err:
 	if (ret != CRYPTO_WRAPPER_ERR_NONE)
 		RATS_DEBUG("failed to generate certificate %d\n", ret);
+
+	if (cert_buffer)
+		free(cert_buffer);
 
 	if (cert)
 		X509_free(cert);
