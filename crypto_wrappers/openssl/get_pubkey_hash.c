@@ -19,7 +19,7 @@ crypto_wrapper_err_t openssl_get_pubkey_hash(crypto_wrapper_ctx_t *ctx, rats_has
 	RATS_DEBUG("ctx %p, hash_algo %d, hash %p\n", ctx, hash_algo, hash);
 
 	if (!ctx || !hash)
-		return -CRYPTO_WRAPPER_ERR_INVALID;
+		return CRYPTO_WRAPPER_ERR_INVALID;
 
 	octx = ctx->crypto_private;
 

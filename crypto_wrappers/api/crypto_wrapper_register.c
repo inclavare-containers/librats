@@ -13,13 +13,13 @@
 crypto_wrapper_err_t crypto_wrapper_register(const crypto_wrapper_opts_t *opts)
 {
 	if (!opts)
-		return -CRYPTO_WRAPPER_ERR_INVALID;
+		return CRYPTO_WRAPPER_ERR_INVALID;
 
 	RATS_DEBUG("registering the crypto wrapper '%s' ...\n", opts->name);
 
 	crypto_wrapper_opts_t *new_opts = (crypto_wrapper_opts_t *)malloc(sizeof(*new_opts));
 	if (!new_opts)
-		return -CRYPTO_WRAPPER_ERR_NO_MEM;
+		return CRYPTO_WRAPPER_ERR_NO_MEM;
 
 	memcpy(new_opts, opts, sizeof(*new_opts));
 
@@ -42,5 +42,5 @@ crypto_wrapper_err_t crypto_wrapper_register(const crypto_wrapper_opts_t *opts)
 
 err:
 	free(new_opts);
-	return -CRYPTO_WRAPPER_ERR_INVALID;
+	return CRYPTO_WRAPPER_ERR_INVALID;
 }

@@ -127,11 +127,11 @@ crypto_wrapper_err_t openssl_gen_cert(crypto_wrapper_ctx_t *ctx, rats_hash_algo_
 	RATS_DEBUG("ctx: %p, hash_algo: %d, cert_info: %p\n", ctx, hash_algo, cert_info);
 
 	if (!ctx || !cert_info)
-		return -CRYPTO_WRAPPER_ERR_INVALID;
+		return CRYPTO_WRAPPER_ERR_INVALID;
 
 	octx = ctx->crypto_private;
 
-	ret = -CRYPTO_WRAPPER_ERR_NO_MEM;
+	ret = CRYPTO_WRAPPER_ERR_NO_MEM;
 	cert = X509_new();
 	if (!cert)
 		goto err;
@@ -151,7 +151,7 @@ crypto_wrapper_err_t openssl_gen_cert(crypto_wrapper_ctx_t *ctx, rats_hash_algo_
 		ASN1_TIME_set_string(X509_get_notAfter(cert), timestr_notAfter);
 	}
 
-	ret = -CRYPTO_WRAPPER_ERR_PUB_KEY_LEN;
+	ret = CRYPTO_WRAPPER_ERR_PUB_KEY_LEN;
 	if (!X509_set_pubkey(cert, octx->privkey))
 		goto err;
 
@@ -178,7 +178,7 @@ crypto_wrapper_err_t openssl_gen_cert(crypto_wrapper_ctx_t *ctx, rats_hash_algo_
 	if (!X509_set_issuer_name(cert, name))
 		goto err;
 
-	ret = -CRYPTO_WRAPPER_ERR_CERT_EXTENSION;
+	ret = CRYPTO_WRAPPER_ERR_CERT_EXTENSION;
 
 	if (!x509_extension_add_common(cert))
 		goto err;
@@ -200,7 +200,7 @@ crypto_wrapper_err_t openssl_gen_cert(crypto_wrapper_ctx_t *ctx, rats_hash_algo_
 			goto err;
 	}
 
-	ret = -CRYPTO_WRAPPER_ERR_CERT;
+	ret = CRYPTO_WRAPPER_ERR_CERT;
 	if (!X509_sign(cert, octx->privkey, EVP_sha256()))
 		goto err;
 

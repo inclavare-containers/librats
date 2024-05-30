@@ -17,7 +17,7 @@ crypto_wrapper_err_t openssl_init(crypto_wrapper_ctx_t *ctx)
 
 	octx = calloc(1, sizeof(*octx));
 	if (!octx)
-		return -CRYPTO_WRAPPER_ERR_NO_MEM;
+		return CRYPTO_WRAPPER_ERR_NO_MEM;
 
 	ctx->crypto_private = octx;
 
