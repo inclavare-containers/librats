@@ -48,7 +48,9 @@ Librats's log level can be set through `-l` option with 6 levels: `off`, `fatal`
 ./cert-app -l debug
 ```
 
-## debug
+## Debug
+
+### Inspecting generated cert
 
 The generated certificate will be dumped to `/tmp/cert.der`. Here are some code snippets to let you parse the certificate manually from the command line:
 
@@ -69,3 +71,16 @@ The generated certificate will be dumped to `/tmp/cert.der`. Here are some code 
     The output is the sha256 hash of SubjectPublicKeyInfo field in the certificate. Now you can compare it manually with the value stored in the evidence extension.
 
 - Set `RATS_GLOBAL_LOG_LEVEL=debug` at runtime if you need more log message.
+
+### Debugging memory error
+
+You can checking the memory errors with `AddressSanitizer`, which is supported by clang only. To enable it, compile librats with clang and some special options `-DCMAKE_C_COMPILER="/usr/bin/clang" -DCMAKE_C_FLAGS="-fsanitize=address -g"`.
+
+For example:
+```
+rm -rf ./build/
+cmake -DRATS_BUILD_MODE="tdx" -DCMAKE_C_COMPILER="/usr/bin/clang" -DCMAKE_C_FLAGS="-fsanitize=address -g" -H. -Bbuild
+make -C build install
+```
+
+Then run `cert-app` as before to check for memory errors.
